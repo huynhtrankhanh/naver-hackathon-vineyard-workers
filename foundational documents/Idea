@@ -1,0 +1,59 @@
+# Idea
+
+# Problems
+
+Many young people want to save money — but they don’t know where their income goes each month.
+Most people rely on traditional expense apps, which require manual data entry and offer little guidance. After a few days, they lose motivation and stop tracking.
+
+As a result:
+
+- They overspend without realizing it
+- They can’t visualize progress toward goals
+- Saving becomes something they *want* to do, but *never actually start*
+
+There’s a need for a **smart, effortless system** that helps users manage spending and create achievable saving plans — automatically.
+
+# **Idea – SmartMoney**
+
+**SmartMoney** is an AI-powered web app that helps young people manage spending and achieve saving goals — *without manual effort.*
+
+Users can:
+
+- **Add expenses** by typing, **scanning receipts (OCR)**, or **using voice (STT)**.
+- **View their financial dashboard** with clear charts and spending insights.
+- **Set saving goals**, and let **AI (CLOVA Studio + PuLP)** generate a personalized plan showing how much to save each month and which expenses to reduce.
+
+The goal is to turn personal finance from a boring, repetitive task into a **simple, smart, and motivating experience** — helping users save money faster and more consistently.
+
+# Users
+
+Minh is a 25-year-old office worker in Ho Chi Minh City.
+
+Every month, he tells himself: *“This time I’ll finally save at least two million.”* But by the end of the month, he has no idea where all his money went. He’s tried several expense-tracking apps before — but they all feel like work.
+
+Every time he spends, he has to **open the app, type in the amount, choose a category**, and remember to save. After a few days, he simply gives up.
+
+⇒ With SmartMoney, Minh can:
+
+- When he buys a coffee, he wants to **snap a photo of the receipt**, not type it.
+- When he’s riding, he wants to **say “Add 50,000 for gas today”**, and have it logged automatically.
+- See his monthly spending visualized clearly in a dashboard
+- Ask AI to generate a saving plan based on his habits and goal
+
+# Features
+
+- **Login & Profile** – User registration, login, and personal settings (language, currency, notifications).
+- **Add Transactions** – Record income or expenses manually, by **receipt scan (OCR)**, or **voice input (STT)**.
+- **Dashboard** – Visualize spending by category, track income vs. expenses, and monitor progress with charts.
+- **Saving Goals (AI-powered)** – Set financial goals; **AI + PuLP** generates a personalized saving plan and monthly target.
+- **Notifications** (Optional) - For overspending or goal milestones.
+
+# AI utilization plan
+
+| **Feature** | **AI Service / Model** | **Purpose & Functionality** |
+| --- | --- | --- |
+| **Receipt Scanning (OCR)** | **Naver Cloud OCR API** | Automatically reads receipts or invoices uploaded by users, extracting merchant names, dates, items, and total amounts to create expense entries instantly. |
+| **Voice Input (Speech-to-Text)** | **Naver Cloud STT API** | Converts spoken sentences like “Add 50,000 for lunch today” into structured expense data. |
+| **AI Expense Categorization** | **Naver CLOVA Studio (LLM)** | Cleans and interprets OCR/STT outputs, standardizes merchant names, and predicts appropriate spending categories (e.g., Food, Transport, Shopping). |
+| **AI Saving Planner** | **Naver CLOVA Studio + PuLP (Linear Programming)** | Generates an optimization model from user income, expenses, and goals, then uses **PuLP** to calculate the best saving plan — including monthly targets and suggested spending cuts per category. |
+| **Smart Notifications** | **Naver SENS API** | Sends automated SMS/email alerts when users exceed category budgets or achieve saving milestones. |
