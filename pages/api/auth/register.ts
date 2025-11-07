@@ -18,8 +18,6 @@ export default async function handler(
     return res.status(405).json({ message: 'Method Not Allowed' })
   }
   try {
-    // eslint-disable-next-line no-console
-    console.log('>>> NEXTAUTH_SECRET LẤY ĐƯỢC:', process.env.NEXTAUTH_SECRET)
     //Lấy body
     const { email, password } = req.body
 
@@ -39,6 +37,7 @@ export default async function handler(
 
     return res.status(201).json({ message: 'Tạo tài khoản thành công' })
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('LỖI API ĐĂNG KÝ:', error)
     return res.status(500).json({ message: 'Lỗi server nội bộ', error })
   }
