@@ -8,7 +8,7 @@ const Splash: React.FC = () => {
   return (
     <IonPage>
       <IonContent className="ion-padding relative" fullscreen>
-        <div className="flex flex-col justify-center items-center text-center h-full z-10 relative text-xl"><h1 className="text-5xl font-bold mb-5">SmartMoney</h1>A slack hand causes poverty, but the hand of the diligent makes rich. <em className="italic">(Proverbs 10:4, NRSVue)</em></div>
+        <div className="flex flex-col justify-center items-center text-center h-full z-10 relative text-xl"><h1 className="text-5xl font-bold mb-5">SmartMoney</h1></div>
         
         <div className="absolute bottom-12 left-4 right-4 w-[calc(100%-32px)] z-10">
           <IonButton
