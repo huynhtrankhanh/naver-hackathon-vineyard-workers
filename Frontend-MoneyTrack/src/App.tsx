@@ -8,7 +8,13 @@ import { IonReactRouter } from "@ionic/react-router";
 import Splash from "./pages/splash";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-// import SignUp from './pages/SignUp.tsx'; // (Sẽ thêm sau)
+import Dashboard from "./pages/dashboard/Dashboard";
+import Income from "./pages/dashboard/Income";
+import Expenses from "./pages/dashboard/Expenses";
+import Budget from "./pages/dashboard/Budget";
+import AddTransaction from "./pages/dashboard/AddTransaction";
+import Goals from "./pages/dashboard/Goals";
+import Profile from "./pages/dashboard/Profile";
 
 /* Core CSS */
 import "@ionic/react/css/core.css";
@@ -39,7 +45,13 @@ const App: React.FC = () => (
         <Route exact path="/splash" component={Splash} />
         <Route exact path="/login" component={SignIn} />
         <Route exact path="/signup" component={SignUp} />
-        {/* <Route exact path="/signup" component={SignUp} /> */}
+        <Route exact path="/dashboard" component={Dashboard} />
+        <Route exact path="/dashboard/income" component={Income} />
+        <Route exact path="/dashboard/expenses" component={Expenses} />
+        <Route exact path="/dashboard/budget" component={Budget} />
+        <Route exact path="/add" component={AddTransaction} />
+        <Route exact path="/goals" component={Goals} />
+        <Route exact path="/profile" component={Profile} />
 
         {/* 3. DÙNG 'Redirect' (của v5) */}
         <Route exact path="/">
