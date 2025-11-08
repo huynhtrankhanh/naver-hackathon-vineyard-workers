@@ -25,6 +25,8 @@ const SignIn: React.FC = () => {
   const handleLogin = async () => {
     console.log("Logging in with:", email, password);
     // ... (Logic gọi API sẽ thêm ở đây) ...
+    // For now, navigate to dashboard after simulated login
+    history.push("/dashboard");
   };
 
   return (
