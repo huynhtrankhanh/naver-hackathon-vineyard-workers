@@ -1,0 +1,8 @@
+/* For information on how to create your own theme, please see:
+http://ionicframework.com/docs/theming/ */
+/* src/theme/variables.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ... code CSS variables mặc định của Ionic ... */
