@@ -1,11 +1,122 @@
-import React from "react";
-import { IonPage, IonContent } from "@ionic/react";
+import React, { useState, useEffect } from "react";
+import { IonPage, IonContent, IonSpinner, IonButton, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
+import { budgetApi } from "../../services/api";
+
+interface Budget {
+  _id: string;
+  category: string;
+  limit: number;
+  spent: number;
+  month: string;
+}
 
 const Budget: React.FC = () => {
   const history = useHistory();
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [category, setCategory] = useState('');
+  const [limit, setLimit] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
+
+  const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
+  
+  // Get current month in YYYY-MM format
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  const categories = [
+    'Food & Drinks',
+    'Transport',
+    'Shopping',
+    'Bills',
+    'Entertainment',
+    'Healthcare',
+    'Education',
+    'Other'
+  ];
+
+  useEffect(() => {
+    fetchBudgets();
+  }, []);
+
+  const fetchBudgets = async () => {
+    try {
+      setLoading(true);
+      const data = await budgetApi.getByMonth(currentMonth);
+      setBudgets(data);
+    } catch (error) {
+      console.error("Error fetching budgets:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!category || !limit || parseFloat(limit) <= 0) {
+      setToastMessage('Please fill in all fields with valid values');
+      setToastColor('danger');
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      await budgetApi.create({
+        category,
+        limit: parseFloat(limit),
+        spent: 0,
+        month: currentMonth
+      });
+
+      setToastMessage('Budget added successfully!');
+      setToastColor('success');
+      setShowToast(true);
+      
+      // Reset form and close modal
+      setCategory('');
+      setLimit('');
+      setShowAddModal(false);
+      
+      // Refresh budgets
+      fetchBudgets();
+    } catch (error) {
+      console.error('Error creating budget:', error);
+      setToastMessage('Failed to add budget. Please try again.');
+      setToastColor('danger');
+      setShowToast(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteBudget = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this budget?')) {
+      return;
+    }
+
+    try {
+      await budgetApi.delete(id);
+      setToastMessage('Budget deleted successfully!');
+      setToastColor('success');
+      setShowToast(true);
+      fetchBudgets();
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      setToastMessage('Failed to delete budget.');
+      setToastColor('danger');
+      setShowToast(true);
+    }
+  };
 
   return (
     <IonPage>
@@ -13,7 +124,142 @@ const Budget: React.FC = () => {
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
           <Header title="Monthly Budget" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
-            <div className="text-slate-500 text-sm">Coming soon… adjust category limits here.</div>
+            <div className="text-slate-500 text-sm mb-4">
+              Set spending limits for different categories. Month: {new Date().toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <IonSpinner name="crescent" />
+              </div>
+            ) : (
+              <>
+                {budgets.length > 0 ? (
+                  <div className="space-y-3 mb-4">
+                    {budgets.map(budget => {
+                      const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
+                      const isOverBudget = percentage > 100;
+                      return (
+                        <div key={budget._id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="font-medium">{budget.category}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-slate-500">Limit {toCurrency(budget.limit)}</span>
+                              <button
+                                onClick={() => handleDeleteBudget(budget._id)}
+                                className="p-1 hover:bg-slate-100 rounded"
+                              >
+                                <Trash2 className="h-4 w-4 text-slate-400 hover:text-rose-600" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="mt-2 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                            <div 
+                              className={`h-full transition-all ${isOverBudget ? 'bg-rose-500' : 'bg-blue-500'}`}
+                              style={{ width: `${Math.min(100, percentage)}%` }} 
+                            />
+                          </div>
+                          <div className="mt-2 flex justify-between text-xs">
+                            <span className={isOverBudget ? 'text-rose-600 font-medium' : 'text-slate-500'}>
+                              {toCurrency(budget.spent)} spent
+                            </span>
+                            <span className={isOverBudget ? 'text-rose-600 font-medium' : 'text-slate-600'}>
+                              {Math.round(percentage)}%
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center text-slate-500 py-8 mb-4">
+                    No budgets set for this month. Add one to start tracking!
+                  </div>
+                )}
+
+                {!showAddModal ? (
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 text-white py-3 font-medium shadow-md hover:bg-blue-700"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Add Budget Category
+                  </button>
+                ) : (
+                  <div className="rounded-2xl border-2 border-blue-500 p-4 shadow-lg">
+                    <h3 className="font-semibold mb-4">Add New Budget</h3>
+                    <form onSubmit={handleAddBudget} className="space-y-3">
+                      <div>
+                        <label htmlFor="category" className="block text-sm font-medium text-slate-700 mb-1">
+                          Category
+                        </label>
+                        <select
+                          id="category"
+                          value={category}
+                          onChange={(e) => setCategory(e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none bg-white"
+                          required
+                        >
+                          <option value="">Select a category</option>
+                          {categories.map((cat) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="limit" className="block text-sm font-medium text-slate-700 mb-1">
+                          Monthly Limit (VND)
+                        </label>
+                        <input
+                          id="limit"
+                          type="number"
+                          value={limit}
+                          onChange={(e) => setLimit(e.target.value)}
+                          placeholder="0"
+                          min="0"
+                          step="10000"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAddModal(false);
+                            setCategory('');
+                            setLimit('');
+                          }}
+                          className="flex-1 py-2 px-4 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className="flex-1 py-2 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {submitting ? 'Adding...' : 'Add Budget'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </>
+            )}
+
+            <IonToast
+              isOpen={showToast}
+              onDidDismiss={() => setShowToast(false)}
+              message={toastMessage}
+              duration={2000}
+              color={toastColor}
+              position="top"
+            />
           </main>
           <TabBar active="dashboard" />
         </div>
