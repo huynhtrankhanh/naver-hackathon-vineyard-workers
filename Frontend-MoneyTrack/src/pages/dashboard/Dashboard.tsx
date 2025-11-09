@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { Wallet, PiggyBank, PieChart, Gauge, Bell } from "lucide-react";
 import { useHistory } from "react-router-dom";
@@ -6,6 +6,7 @@ import TabBar from "../../components/dashboard/TabBar";
 import KpiCard from "../../components/dashboard/KpiCard";
 import Legend from "../../components/dashboard/Legend";
 import { transactionApi, goalsApi } from "../../services/api";
+import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface Transaction {
   _id: string;
@@ -32,33 +33,35 @@ const Dashboard: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch summary
-        const summaryData = await transactionApi.getSummary();
-        setIncome(summaryData.income);
-        setExpenses(summaryData.expenses);
-        setSavings(summaryData.savings);
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch summary
+      const summaryData = await transactionApi.getSummary();
+      setIncome(summaryData.income);
+      setExpenses(summaryData.expenses);
+      setSavings(summaryData.savings);
 
-        // Fetch recent transactions (limit to 3)
-        const transactionsData = await transactionApi.getAll();
-        setTransactions(transactionsData.slice(0, 3));
+      // Fetch recent transactions (limit to 3)
+      const transactionsData = await transactionApi.getAll();
+      setTransactions(transactionsData.slice(0, 3));
 
-        // Fetch goals (limit to 2)
-        const goalsData = await goalsApi.getAll();
-        setGoals(goalsData.slice(0, 2));
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+      // Fetch goals (limit to 2)
+      const goalsData = await goalsApi.getAll();
+      setGoals(goalsData.slice(0, 2));
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Use state invalidation hook for dashboard data
+  useStateInvalidation({
+    dataType: 'summary',
+    fetchData,
+  });
 
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
   

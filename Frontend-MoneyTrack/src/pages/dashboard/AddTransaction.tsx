@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi } from "../../services/api";
+import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
 
 const AddTransaction: React.FC = () => {
   const history = useHistory();
@@ -15,6 +16,8 @@ const AddTransaction: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
+
+  const invalidateOnMutation = useInvalidateOnMutation();
 
   const expenseCategories = [
     'Food & Drinks',
@@ -58,6 +61,9 @@ const AddTransaction: React.FC = () => {
         type,
         date: new Date().toISOString()
       });
+
+      // Invalidate all state since we modified backend
+      invalidateOnMutation();
 
       setToastMessage('Transaction added successfully!');
       setToastColor('success');

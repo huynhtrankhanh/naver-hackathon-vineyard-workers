@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi } from "../../services/api";
+import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface CategoryExpense {
   category: string;
@@ -23,36 +24,38 @@ const Expenses: React.FC = () => {
   const sum = items.reduce((a, b) => a + b.amount, 0);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        setLoading(true);
-        const transactions = await transactionApi.getAll();
-        // Filter only expense transactions
-        const expenseTransactions = transactions.filter((t: Transaction) => t.type === 'expense');
-        
-        // Group by category
-        const categoryMap = new Map<string, number>();
-        expenseTransactions.forEach((t: Transaction) => {
-          const current = categoryMap.get(t.category) || 0;
-          categoryMap.set(t.category, current + Math.abs(t.amount));
-        });
-        
-        // Convert to array and sort by amount descending
-        const categoryExpenses: CategoryExpense[] = Array.from(categoryMap.entries())
-          .map(([category, amount]) => ({ category, amount }))
-          .sort((a, b) => b.amount - a.amount);
-        
-        setItems(categoryExpenses);
-      } catch (error) {
-        console.error("Error fetching expenses:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExpenses();
+  const fetchExpenses = useCallback(async () => {
+    try {
+      setLoading(true);
+      const transactions = await transactionApi.getAll();
+      // Filter only expense transactions
+      const expenseTransactions = transactions.filter((t: Transaction) => t.type === 'expense');
+      
+      // Group by category
+      const categoryMap = new Map<string, number>();
+      expenseTransactions.forEach((t: Transaction) => {
+        const current = categoryMap.get(t.category) || 0;
+        categoryMap.set(t.category, current + Math.abs(t.amount));
+      });
+      
+      // Convert to array and sort by amount descending
+      const categoryExpenses: CategoryExpense[] = Array.from(categoryMap.entries())
+        .map(([category, amount]) => ({ category, amount }))
+        .sort((a, b) => b.amount - a.amount);
+      
+      setItems(categoryExpenses);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Use state invalidation hook
+  useStateInvalidation({
+    dataType: 'transactions',
+    fetchData: fetchExpenses,
+  });
 
   return (
     <IonPage>

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { Target, Plus } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { goalsApi } from "../../services/api";
+import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface Goal {
   _id: string;
@@ -20,11 +21,7 @@ const Goals: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
-  useEffect(() => {
-    fetchGoals();
-  }, []);
-
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     try {
       setLoading(true);
       const data = await goalsApi.getAll();
@@ -34,7 +31,13 @@ const Goals: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Use state invalidation hook
+  useStateInvalidation({
+    dataType: 'goals',
+    fetchData: fetchGoals,
+  });
 
   return (
     <IonPage>
