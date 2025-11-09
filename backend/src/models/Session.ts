@@ -27,11 +27,10 @@ const sessionSchema = new Schema<ISession>({
   expiresAt: {
     type: Date,
     required: true,
-    index: true,
   },
 });
 
-// Automatically clean up expired sessions
+// Automatically clean up expired sessions using TTL index
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const Session = mongoose.model<ISession>('Session', sessionSchema);
