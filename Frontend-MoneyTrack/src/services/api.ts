@@ -4,14 +4,31 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// Get auth token from localStorage
+function getAuthToken(): string | null {
+  return localStorage.getItem('authToken');
+}
+
 // Helper function for API calls
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add custom headers from options
+  if (options?.headers) {
+    Object.assign(headers, options.headers);
+  }
+
+  // Add auth token if available
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
     ...options,
+    headers,
   });
 
   if (!response.ok) {
@@ -90,4 +107,33 @@ export const aiApi = {
     method: 'POST',
     body: JSON.stringify({ context }),
   }),
+};
+
+// Auth API
+export const authApi = {
+  register: (username: string, passwordHash: string) =>
+    apiCall<{ message: string; token: string; username: string }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ username, passwordHash }),
+    }),
+  login: (username: string, passwordHash: string) =>
+    apiCall<{ message: string; token: string; username: string }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, passwordHash }),
+    }),
+  verify: () => apiCall<{ valid: boolean; username: string }>('/auth/verify'),
+  
+  // Helper methods for token management
+  setToken: (token: string) => {
+    localStorage.setItem('authToken', token);
+  },
+  getToken: () => {
+    return localStorage.getItem('authToken');
+  },
+  removeToken: () => {
+    localStorage.removeItem('authToken');
+  },
+  isAuthenticated: () => {
+    return !!localStorage.getItem('authToken');
+  },
 };

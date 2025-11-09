@@ -5,17 +5,39 @@ A comprehensive money tracking and AI-powered savings recommendation app built w
 ## 🎯 Features
 
 ### Completed ✅
+- **Username/Password Authentication** - Secure authentication with argon2id client-side hashing and SHA256 server-side hashing
+- **Protected API Endpoints** - All backend routes require authentication
 - **AI-Powered Savings Wizard** - Interactive 3-step onboarding to create personalized savings plans
 - **Mock AI Backend** - Sophisticated mock AI using Markov chains and random number generation
 - **Full-Stack Architecture** - React frontend with Express + MongoDB backend
 - **RESTful API** - Complete CRUD operations for transactions, goals, and budgets
 - **Beautiful UI** - Modern, mobile-first design with Ionic components
 
-### Demo Screens
-The app includes a complete savings onboarding flow:
-1. Welcome screen with AI introduction
-2. Three-step wizard (Priority, Savings Goal, Intensity)
-3. AI-generated personalized savings plan with recommendations
+## 📸 Application Screenshots
+
+### Authentication Pages
+
+**Splash Screen**
+
+![Splash Screen](https://github.com/user-attachments/assets/3edd34ac-ade4-466b-90ab-c387d4c3df37)
+
+**Sign Up Page**
+
+![Sign Up](https://github.com/user-attachments/assets/af90beda-f601-4e94-b0cd-58f207b4b3a1)
+
+**Sign In Page**
+
+![Sign In](https://github.com/user-attachments/assets/63c1e9e5-35c2-4492-ab73-144cb8c8b7e3)
+
+### Main Application Pages
+
+**Dashboard**
+
+![Dashboard](https://github.com/user-attachments/assets/3917409c-b796-4616-a95c-c07521cd670e)
+
+**Saving Goals**
+
+![Goals](https://github.com/user-attachments/assets/a09b3344-b0a5-4bf7-882f-fe2a0cab93e3)
 
 ## 🚀 Getting Started
 
@@ -153,7 +175,7 @@ The mock AI uses sophisticated algorithms to generate realistic savings recommen
 - `GET /budgets/month/:month` - Get budgets by month
 
 **AI (Mock)**
-- `POST /ai/generate` - Generate savings plan
+- `POST /ai/generate` - Generate savings plan (protected)
   ```json
   {
     "goal": "Build a safety net",
@@ -162,8 +184,48 @@ The mock AI uses sophisticated algorithms to generate realistic savings recommen
     "notes": "I have a wedding in June"
   }
   ```
-- `GET /ai/latest` - Get latest savings plan
-- `POST /ai/advice` - Get financial advice
+- `GET /ai/latest` - Get latest savings plan (protected)
+- `POST /ai/advice` - Get financial advice (protected)
+
+**Authentication**
+- `POST /auth/register` - Register new user
+  ```json
+  {
+    "username": "john_doe",
+    "passwordHash": "argon2id_hash_from_client"
+  }
+  ```
+- `POST /auth/login` - Login user
+  ```json
+  {
+    "username": "john_doe",
+    "passwordHash": "argon2id_hash_from_client"
+  }
+  ```
+- `GET /auth/verify` - Verify authentication token
+
+## 🔐 Authentication & Security
+
+### Password Hashing Strategy ("Server Relief")
+The application implements a two-layer password hashing approach:
+
+1. **Client-Side (argon2id via libsodium)**:
+   - Password is hashed using argon2id algorithm
+   - Salt is derived from username + fixed site-specific salt
+   - Fixed site salt prevents cross-site password database comparison
+   - Memory: 19MB, Iterations: 2, Parallelism: 1
+   - Output: 64-character hex string
+
+2. **Server-Side (SHA256)**:
+   - Server receives the argon2id hash from client
+   - Applies SHA256 to the received hash
+   - Stores the SHA256 hash in database
+
+This approach provides:
+- **Client-side protection**: Heavy computation (argon2id) runs on client, reducing server load
+- **Rainbow table resistance**: Username-derived salt makes pre-computed tables ineffective
+- **Cross-site protection**: Fixed site salt ensures leaked passwords can't be compared across sites
+- **Server verification**: SHA256 allows quick verification without storing the argon2id hash directly
 
 ## 🛠️ Technology Stack
 
@@ -174,6 +236,7 @@ The mock AI uses sophisticated algorithms to generate realistic savings recommen
 - **Vite** - Build tool
 - **Tailwind CSS** - Styling
 - **Lucide React** - Icons
+- **libsodium-wrappers** - Argon2id password hashing
 
 ### Backend
 - **Express** - Web framework
@@ -181,10 +244,14 @@ The mock AI uses sophisticated algorithms to generate realistic savings recommen
 - **TypeScript** - Type safety
 - **CORS** - Cross-origin support
 - **dotenv** - Environment configuration
+- **crypto (Node.js)** - SHA256 password hashing
 
 ## 🔐 Security Notes
 
-- No authentication implemented yet (demo/development mode)
+- ✅ **Authentication implemented** - Username/password authentication with argon2id + SHA256
+- ✅ **Protected API endpoints** - All data routes require valid authentication token
+- ✅ **Two-layer password hashing** - Argon2id on client, SHA256 on server
+- ✅ **Site-specific salt** - Prevents cross-site password database comparison
 - CORS is enabled for local development
 - Environment variables used for configuration
 - Input validation on backend routes
@@ -223,13 +290,15 @@ VITE_API_URL=http://localhost:3001/api
 ## 🚧 Future Enhancements
 
 - [ ] Real AI API integration (replace mock)
-- [ ] User authentication
+- [x] User authentication (completed)
 - [ ] Transaction history visualization
 - [ ] Budget tracking dashboard
 - [ ] Spending analytics
 - [ ] Goal progress tracking
 - [ ] Push notifications
 - [ ] Export data (CSV/PDF)
+- [ ] Password reset functionality
+- [ ] Two-factor authentication
 
 ## 📄 License
 
