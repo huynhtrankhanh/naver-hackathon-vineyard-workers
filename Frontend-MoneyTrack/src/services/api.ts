@@ -122,6 +122,10 @@ export const authApi = {
       body: JSON.stringify({ username, passwordHash }),
     }),
   verify: () => apiCall<{ valid: boolean; username: string }>('/auth/verify'),
+  logout: () =>
+    apiCall<{ message: string }>('/auth/logout', {
+      method: 'POST',
+    }),
   
   // Helper methods for token management
   setToken: (token: string) => {

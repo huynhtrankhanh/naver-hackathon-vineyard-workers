@@ -1,8 +1,30 @@
 import express, { Request, Response } from 'express';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import User from '../models/User.js';
+import Session from '../models/Session.js';
 
 const router = express.Router();
+
+// Helper function to generate secure session token
+function generateSessionToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Helper function to create a session
+async function createSession(userId: string): Promise<string> {
+  const token = generateSessionToken();
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
+
+  await Session.create({
+    userId,
+    token,
+    expiresAt,
+  });
+
+  return token;
+}
 
 // Register new user
 router.post('/register', async (req: Request, res: Response) => {
@@ -30,8 +52,8 @@ router.post('/register', async (req: Request, res: Response) => {
 
     await user.save();
 
-    // Generate a simple token (username:timestamp)
-    const token = Buffer.from(`${user.username}:${Date.now()}`).toString('base64');
+    // Generate secure session token
+    const token = await createSession((user._id as mongoose.Types.ObjectId).toString());
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -67,8 +89,8 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
 
-    // Generate a simple token
-    const token = Buffer.from(`${user.username}:${Date.now()}`).toString('base64');
+    // Generate secure session token
+    const token = await createSession((user._id as mongoose.Types.ObjectId).toString());
 
     res.json({
       message: 'Login successful',
@@ -90,12 +112,18 @@ router.get('/verify', async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'No token provided' });
     }
 
-    // Decode token to get username
-    const decoded = Buffer.from(token, 'base64').toString('utf-8');
-    const [username] = decoded.split(':');
+    // Find valid session
+    const session = await Session.findOne({
+      token,
+      expiresAt: { $gt: new Date() },
+    }).populate('userId');
 
-    // Verify user exists
-    const user = await User.findOne({ username });
+    if (!session) {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+
+    // Get user from session
+    const user = await User.findById(session.userId);
     if (!user) {
       return res.status(401).json({ message: 'Invalid token' });
     }
@@ -106,6 +134,27 @@ router.get('/verify', async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
+// Logout endpoint - invalidate session
+router.post('/logout', async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    // Delete the session
+    await Session.deleteOne({ token });
+
+    res.json({
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Error logging out' });
   }
 });
 
