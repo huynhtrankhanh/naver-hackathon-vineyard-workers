@@ -116,10 +116,3 @@ const SignIn: React.FC = () => {
 };
 
 export default SignIn;
-        </IonText>
-      </IonContent>
-    </IonPage>
-  );
-};
-
-export default SignIn;
