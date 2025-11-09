@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { Plus, Trash2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { budgetApi } from "../../services/api";
+import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 
 interface Budget {
   _id: string;
@@ -31,6 +32,8 @@ const Budget: React.FC = () => {
   // Get current month in YYYY-MM format
   const currentMonth = new Date().toISOString().slice(0, 7);
 
+  const invalidateOnMutation = useInvalidateOnMutation();
+
   const categories = [
     'Food & Drinks',
     'Transport',
@@ -54,9 +57,11 @@ const Budget: React.FC = () => {
     }
   }, [currentMonth]);
 
-  useEffect(() => {
-    fetchBudgets();
-  }, [fetchBudgets]);
+  // Use state invalidation hook
+  useStateInvalidation({
+    dataType: 'budgets',
+    fetchData: fetchBudgets,
+  });
 
   const handleAddBudget = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +82,9 @@ const Budget: React.FC = () => {
         spent: 0,
         month: currentMonth
       });
+
+      // Invalidate all state since we modified backend
+      invalidateOnMutation();
 
       setToastMessage('Budget added successfully!');
       setToastColor('success');
@@ -106,6 +114,10 @@ const Budget: React.FC = () => {
 
     try {
       await budgetApi.delete(id);
+      
+      // Invalidate all state since we modified backend
+      invalidateOnMutation();
+      
       setToastMessage('Budget deleted successfully!');
       setToastColor('success');
       setShowToast(true);

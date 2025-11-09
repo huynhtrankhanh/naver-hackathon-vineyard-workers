@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi } from "../../services/api";
+import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface Transaction {
   _id: string;
@@ -21,23 +22,25 @@ const Income: React.FC = () => {
   const sum = items.reduce((a, b) => a + b.amount, 0);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
-  useEffect(() => {
-    const fetchIncome = async () => {
-      try {
-        setLoading(true);
-        const transactions = await transactionApi.getAll();
-        // Filter only income transactions
-        const incomeTransactions = transactions.filter((t: Transaction) => t.type === 'income');
-        setItems(incomeTransactions);
-      } catch (error) {
-        console.error("Error fetching income:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIncome();
+  const fetchIncome = useCallback(async () => {
+    try {
+      setLoading(true);
+      const transactions = await transactionApi.getAll();
+      // Filter only income transactions
+      const incomeTransactions = transactions.filter((t: Transaction) => t.type === 'income');
+      setItems(incomeTransactions);
+    } catch (error) {
+      console.error("Error fetching income:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Use state invalidation hook
+  useStateInvalidation({
+    dataType: 'transactions',
+    fetchData: fetchIncome,
+  });
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
