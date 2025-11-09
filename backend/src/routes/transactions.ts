@@ -1,20 +1,12 @@
 import express, { Request, Response } from 'express';
 import Transaction from '../models/Transaction.js';
-import { inMemory } from '../utils/inMemoryStore.js';
 
 const router = express.Router();
 
 // Get all transactions
 router.get('/', async (req: Request, res: Response) => {
   try {
-    let transactions;
-    if (inMemory.isConnected()) {
-      transactions = await Transaction.find().sort({ date: -1 }).limit(50);
-    } else {
-      transactions = inMemory.find('transactions').sort((a: any, b: any) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      ).slice(0, 50);
-    }
+    const transactions = await Transaction.find().sort({ date: -1 }).limit(50);
     res.json(transactions);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching transactions', error });
@@ -24,12 +16,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Get transaction by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    let transaction;
-    if (inMemory.isConnected()) {
-      transaction = await Transaction.findById(req.params.id);
-    } else {
-      transaction = inMemory.findOne('transactions', req.params.id);
-    }
+    const transaction = await Transaction.findById(req.params.id);
     if (!transaction) {
       return res.status(404).json({ message: 'Transaction not found' });
     }
@@ -42,13 +29,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Create new transaction
 router.post('/', async (req: Request, res: Response) => {
   try {
-    let savedTransaction;
-    if (inMemory.isConnected()) {
-      const transaction = new Transaction(req.body);
-      savedTransaction = await transaction.save();
-    } else {
-      savedTransaction = inMemory.create('transactions', req.body);
-    }
+    const transaction = new Transaction(req.body);
+    const savedTransaction = await transaction.save();
     res.status(201).json(savedTransaction);
   } catch (error) {
     res.status(400).json({ message: 'Error creating transaction', error });
@@ -58,16 +40,11 @@ router.post('/', async (req: Request, res: Response) => {
 // Update transaction
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    let transaction;
-    if (inMemory.isConnected()) {
-      transaction = await Transaction.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true, runValidators: true }
-      );
-    } else {
-      transaction = inMemory.update('transactions', req.params.id, req.body);
-    }
+    const transaction = await Transaction.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
     if (!transaction) {
       return res.status(404).json({ message: 'Transaction not found' });
     }
@@ -80,12 +57,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 // Delete transaction
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    let transaction;
-    if (inMemory.isConnected()) {
-      transaction = await Transaction.findByIdAndDelete(req.params.id);
-    } else {
-      transaction = inMemory.delete('transactions', req.params.id);
-    }
+    const transaction = await Transaction.findByIdAndDelete(req.params.id);
     if (!transaction) {
       return res.status(404).json({ message: 'Transaction not found' });
     }
@@ -98,31 +70,18 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // Get summary statistics
 router.get('/stats/summary', async (req: Request, res: Response) => {
   try {
-    let totalIncome = 0;
-    let totalExpenses = 0;
+    const income = await Transaction.aggregate([
+      { $match: { type: 'income' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
     
-    if (inMemory.isConnected()) {
-      const income = await Transaction.aggregate([
-        { $match: { type: 'income' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-      ]);
-      
-      const expenses = await Transaction.aggregate([
-        { $match: { type: 'expense' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-      ]);
-      
-      totalIncome = income[0]?.total || 0;
-      totalExpenses = Math.abs(expenses[0]?.total || 0);
-    } else {
-      const transactions = inMemory.find('transactions');
-      totalIncome = transactions
-        .filter((t: any) => t.type === 'income')
-        .reduce((sum: number, t: any) => sum + t.amount, 0);
-      totalExpenses = Math.abs(transactions
-        .filter((t: any) => t.type === 'expense')
-        .reduce((sum: number, t: any) => sum + t.amount, 0));
-    }
+    const expenses = await Transaction.aggregate([
+      { $match: { type: 'expense' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    
+    const totalIncome = income[0]?.total || 0;
+    const totalExpenses = Math.abs(expenses[0]?.total || 0);
     
     res.json({
       income: totalIncome,

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import transactionsRouter from './routes/transactions.js';
 import goalsRouter from './routes/goals.js';
 import budgetsRouter from './routes/budgets.js';
@@ -12,7 +13,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/moneytrack';
 
 // Middleware
 app.use(cors());
@@ -45,14 +45,25 @@ app.get('/', (req, res) => {
   });
 });
 
-// MongoDB connection - optional for demonstration
+// MongoDB connection - use real MongoDB (memory server for testing)
 async function connectDB() {
   try {
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 2000 });
+    let mongoUri = process.env.MONGODB_URI;
+    
+    // If no MongoDB URI provided or connection fails, use MongoMemoryServer
+    if (!mongoUri || process.env.NODE_ENV === 'development') {
+      console.log('🔄 Starting MongoDB Memory Server...');
+      const mongoServer = await MongoMemoryServer.create();
+      mongoUri = mongoServer.getUri();
+      console.log('✅ MongoDB Memory Server started');
+    }
+    
+    await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
+    console.log('📊 Database ready for operations');
   } catch (error) {
-    console.warn('⚠️  MongoDB not available. API will work with mock data.');
-    console.warn('   Install and run MongoDB for persistent storage: mongod');
+    console.error('❌ MongoDB connection failed:', error);
+    process.exit(1);
   }
 }
 
