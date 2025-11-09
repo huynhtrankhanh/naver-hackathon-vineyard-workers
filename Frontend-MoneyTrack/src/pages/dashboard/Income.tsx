@@ -11,6 +11,7 @@ interface Transaction {
   amount: number;
   date: string;
   category: string;
+  type: string;
 }
 
 const Income: React.FC = () => {
@@ -26,7 +27,7 @@ const Income: React.FC = () => {
         setLoading(true);
         const transactions = await transactionApi.getAll();
         // Filter only income transactions
-        const incomeTransactions = transactions.filter((t: any) => t.type === 'income');
+        const incomeTransactions = transactions.filter((t: Transaction) => t.type === 'income');
         setItems(incomeTransactions);
       } catch (error) {
         console.error("Error fetching income:", error);

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { IonPage, IonContent, IonSpinner, IonButton, IonToast } from "@ionic/react";
+import React, { useState, useEffect, useCallback } from "react";
+import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { budgetApi } from "../../services/api";
@@ -42,11 +42,7 @@ const Budget: React.FC = () => {
     'Other'
   ];
 
-  useEffect(() => {
-    fetchBudgets();
-  }, []);
-
-  const fetchBudgets = async () => {
+  const fetchBudgets = useCallback(async () => {
     try {
       setLoading(true);
       const data = await budgetApi.getByMonth(currentMonth);
@@ -56,7 +52,11 @@ const Budget: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentMonth]);
+
+  useEffect(() => {
+    fetchBudgets();
+  }, [fetchBudgets]);
 
   const handleAddBudget = async (e: React.FormEvent) => {
     e.preventDefault();

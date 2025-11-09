@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { IonPage, IonContent, IonSpinner, IonButton } from "@ionic/react";
+import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { Target, Plus } from "lucide-react";
 import Header from "../../components/dashboard/Header";

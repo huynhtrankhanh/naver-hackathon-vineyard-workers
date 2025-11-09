@@ -10,6 +10,12 @@ interface CategoryExpense {
   amount: number;
 }
 
+interface Transaction {
+  type: string;
+  category: string;
+  amount: number;
+}
+
 const Expenses: React.FC = () => {
   const history = useHistory();
   const [items, setItems] = useState<CategoryExpense[]>([]);
@@ -23,11 +29,11 @@ const Expenses: React.FC = () => {
         setLoading(true);
         const transactions = await transactionApi.getAll();
         // Filter only expense transactions
-        const expenseTransactions = transactions.filter((t: any) => t.type === 'expense');
+        const expenseTransactions = transactions.filter((t: Transaction) => t.type === 'expense');
         
         // Group by category
         const categoryMap = new Map<string, number>();
-        expenseTransactions.forEach((t: any) => {
+        expenseTransactions.forEach((t: Transaction) => {
           const current = categoryMap.get(t.category) || 0;
           categoryMap.set(t.category, current + Math.abs(t.amount));
         });
