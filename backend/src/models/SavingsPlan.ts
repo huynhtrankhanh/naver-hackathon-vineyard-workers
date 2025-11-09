@@ -12,6 +12,7 @@ export interface ISavingsPlan extends Document {
     category: string;
     percentage?: number;
   }>;
+  markdownAdvice?: string;
 }
 
 const SavingsPlanSchema: Schema = new Schema({
@@ -25,7 +26,8 @@ const SavingsPlanSchema: Schema = new Schema({
     type: { type: String, enum: ['reduce', 'protect'], required: true },
     category: { type: String, required: true },
     percentage: { type: Number }
-  }]
+  }],
+  markdownAdvice: { type: String }
 }, { timestamps: true });
 
 export default mongoose.model<ISavingsPlan>('SavingsPlan', SavingsPlanSchema);

@@ -31,7 +31,8 @@ router.post('/generate', async (req: Request, res: Response) => {
       intensity,
       notes,
       suggestedSavings: aiResult.suggestedSavings,
-      recommendations: aiResult.recommendations
+      recommendations: aiResult.recommendations,
+      markdownAdvice: aiResult.markdownAdvice
     };
     
     // Save the generated plan to the database or in-memory store

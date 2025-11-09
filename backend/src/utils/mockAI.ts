@@ -19,6 +19,7 @@ interface SavingsRecommendation {
 interface SavingsPlanResult {
   suggestedSavings: number;
   recommendations: SavingsRecommendation[];
+  markdownAdvice: string;
 }
 
 // Markov chain for generating recommendation text
@@ -111,6 +112,145 @@ function generateRecommendations(intensity: string, goal: string): SavingsRecomm
   return recommendations;
 }
 
+// Generate markdown advice using Markov chain approach
+function generateMarkdownAdvice(input: SavingsInput, recommendations: SavingsRecommendation[]): string {
+  const { goal, savingsGoal, intensity, notes } = input;
+  
+  // Markov chain data structures for generating varied text
+  const openings = [
+    'Based on your financial goals and current spending patterns, here\'s a personalized savings strategy',
+    'After analyzing your priorities and commitment level, I\'ve created a tailored plan',
+    'Your dedication to achieving your goals is commendable. Here\'s how we can help you succeed',
+    'Let\'s work together to make your financial dreams a reality'
+  ];
+  
+  const goalPhrases: { [key: string]: string[] } = {
+    'Build a safety net': [
+      'Building an emergency fund is crucial for financial stability',
+      'A safety net provides peace of mind during unexpected situations',
+      'Creating a financial cushion protects you from life\'s uncertainties'
+    ],
+    'Big Purchase': [
+      'Saving for a major purchase requires discipline and planning',
+      'Major investments need careful financial preparation',
+      'Reaching your big purchase goal is achievable with the right strategy'
+    ],
+    'Dream Vacation': [
+      'Your dream vacation is within reach with consistent saving',
+      'Travel experiences create lasting memories worth saving for',
+      'Making your travel dreams come true starts with smart financial planning'
+    ],
+    'General Investing': [
+      'Building wealth through investing is a smart long-term strategy',
+      'Growing your investment portfolio requires patience and consistency',
+      'Investing in your future starts with disciplined savings today'
+    ]
+  };
+  
+  const intensityPhrases: { [key: string]: string[] } = {
+    'Just starting out': [
+      'Since you\'re just beginning your savings journey, we\'ll focus on small, sustainable changes',
+      'Starting with gentle adjustments helps build lasting habits',
+      'Your comfort-focused approach ensures you\'ll stick with the plan'
+    ],
+    'Ideal target': [
+      'With your balanced approach, we can optimize both savings and quality of life',
+      'This balanced strategy maximizes savings while maintaining your lifestyle',
+      'Your realistic target allows for effective progress without sacrifice'
+    ],
+    'Must achieve': [
+      'Your strong commitment enables aggressive savings strategies',
+      'With your determination, we can implement bold changes for maximum impact',
+      'Your unwavering focus allows us to pursue ambitious savings targets'
+    ]
+  };
+  
+  const actionIntros = [
+    'Here are the key actions to implement',
+    'Focus on these strategic changes',
+    'I recommend prioritizing these adjustments',
+    'Let\'s break down the specific steps'
+  ];
+  
+  const conclusions = [
+    'Remember, consistency is key to reaching your financial goals',
+    'Stay committed to these changes, and you\'ll see real progress',
+    'Track your progress regularly and adjust as needed',
+    'You\'re on the path to financial success - keep up the great work'
+  ];
+  
+  // Select random phrases using Markov-like approach
+  const opening = openings[Math.floor(Math.random() * openings.length)];
+  const goalPhrase = (goalPhrases[goal] || goalPhrases['General Investing'])[Math.floor(Math.random() * (goalPhrases[goal]?.length || 3))];
+  const intensityPhrase = (intensityPhrases[intensity] || intensityPhrases['Ideal target'])[Math.floor(Math.random() * 3)];
+  const actionIntro = actionIntros[Math.floor(Math.random() * actionIntros.length)];
+  const conclusion = conclusions[Math.floor(Math.random() * conclusions.length)];
+  
+  // Build the markdown content
+  let markdown = `# ${opening}\n\n`;
+  markdown += `## Your Goal: ${goal}\n\n`;
+  markdown += `${goalPhrase}. ${intensityPhrase}.\n\n`;
+  
+  // Add context from notes if provided
+  if (notes && notes.trim()) {
+    const contextPhrases = [
+      'I\'ve taken into account your specific situation',
+      'Your additional context has been considered in this plan',
+      'Based on what you\'ve shared'
+    ];
+    markdown += `### Personal Context\n\n`;
+    markdown += `${contextPhrases[Math.floor(Math.random() * contextPhrases.length)]}: "${notes}"\n\n`;
+  }
+  
+  // Add recommendations section
+  markdown += `## ${actionIntro}\n\n`;
+  
+  recommendations.forEach((rec, index) => {
+    markdown += `${index + 1}. **${rec.type === 'reduce' ? '🔻 Reduce' : '🛡️ Protect'} ${rec.category}**`;
+    if (rec.percentage) {
+      markdown += ` by ${rec.percentage}%`;
+    }
+    markdown += '\n';
+    
+    // Add explanatory text for each recommendation
+    const explanations = rec.type === 'reduce' ? [
+      `   - Small cuts in this category can add up to significant savings over time`,
+      `   - Consider alternatives or finding better deals to reduce spending here`,
+      `   - This is an area where you can likely find savings without major lifestyle impact`,
+      `   - Look for subscriptions or recurring expenses you can eliminate`
+    ] : [
+      `   - This is an essential category that should remain stable`,
+      `   - Maintain your current spending level here for quality of life`,
+      `   - This category supports your well-being and shouldn't be cut`,
+      `   - Keep this protected while optimizing other areas`
+    ];
+    markdown += explanations[Math.floor(Math.random() * explanations.length)] + '\n\n';
+  });
+  
+  // Add progress tracking section
+  markdown += `## Tracking Your Progress\n\n`;
+  markdown += `To stay on track:\n\n`;
+  markdown += `- Review your spending weekly to ensure you're meeting targets\n`;
+  markdown += `- Celebrate small wins along the way\n`;
+  markdown += `- Adjust the plan if circumstances change\n`;
+  markdown += `- Use budgeting tools to automate tracking\n\n`;
+  
+  // Add conclusion
+  markdown += `## Moving Forward\n\n`;
+  markdown += `${conclusion}! `;
+  
+  // Add intensity-specific encouragement
+  if (intensity === 'Must achieve') {
+    markdown += `Your determination will pay off as you see your savings grow rapidly.`;
+  } else if (intensity === 'Ideal target') {
+    markdown += `Your balanced approach sets you up for sustainable long-term success.`;
+  } else {
+    markdown += `Building savings habits gradually ensures lasting change.`;
+  }
+  
+  return markdown;
+}
+
 // Main mock AI function
 export function generateMockSavingsPlan(input: SavingsInput): SavingsPlanResult {
   const { goal, savingsGoal, intensity, notes } = input;
@@ -134,9 +274,13 @@ export function generateMockSavingsPlan(input: SavingsInput): SavingsPlanResult 
     }
   }
   
+  // Generate markdown advice using Markov chain approach
+  const markdownAdvice = generateMarkdownAdvice(input, recommendations);
+  
   return {
     suggestedSavings,
-    recommendations
+    recommendations,
+    markdownAdvice
   };
 }
 
