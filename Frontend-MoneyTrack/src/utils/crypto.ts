@@ -1,4 +1,4 @@
-import _sodium from 'libsodium-wrappers';
+import sodium from 'libsodium-wrappers-sumo';
 
 // Fixed random salt for this website - this provides site-specific password hashing
 // This ensures leaked passwords from this site cannot be compared against other sites
@@ -12,8 +12,7 @@ const SITE_SALT = 'MoneyTrack_2024_FixedSalt_3f8a9b2c1d4e5f6a';
  */
 export async function hashPassword(password: string, username: string): Promise<string> {
   // Wait for libsodium to be ready
-  await _sodium.ready;
-  const sodium = _sodium;
+  await sodium.ready;
 
   // Combine username and fixed site salt to create a unique salt
   const saltString = `${username.toLowerCase()}_${SITE_SALT}`;
