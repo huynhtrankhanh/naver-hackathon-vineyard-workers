@@ -5,7 +5,7 @@ import { useHistory } from "react-router-dom";
 import TabBar from "../../components/dashboard/TabBar";
 import KpiCard from "../../components/dashboard/KpiCard";
 import Legend from "../../components/dashboard/Legend";
-import { transactionApi, goalsApi } from "../../services/api";
+import { transactionApi, goalsApi, budgetApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface Transaction {
@@ -24,6 +24,14 @@ interface Goal {
   current: number;
 }
 
+interface Budget {
+  _id: string;
+  category: string;
+  limit: number;
+  spent: number;
+  month: string;
+}
+
 const Dashboard: React.FC = () => {
   const history = useHistory();
   const [income, setIncome] = useState(0);
@@ -31,11 +39,16 @@ const Dashboard: React.FC = () => {
   const [savings, setSavings] = useState(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
+      // Only show loading spinner on initial load, not on periodic refreshes
+      if (isInitialLoad) {
+        setLoading(true);
+      }
       
       // Fetch summary
       const summaryData = await transactionApi.getSummary();
@@ -50,12 +63,20 @@ const Dashboard: React.FC = () => {
       // Fetch goals (limit to 2)
       const goalsData = await goalsApi.getAll();
       setGoals(goalsData.slice(0, 2));
+
+      // Fetch budgets for current month
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const budgetsData = await budgetApi.getByMonth(currentMonth);
+      setBudgets(budgetsData);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
     }
-  }, []);
+  }, [isInitialLoad]);
 
   // Use state invalidation hook for dashboard data
   useStateInvalidation({
@@ -145,6 +166,50 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Budget Limits */}
+                {budgets.length > 0 && (
+                  <section className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">Budget Limits</h3>
+                      <a href="/dashboard/budget" className="text-sm text-blue-600 hover:underline">View all</a>
+                    </div>
+                    <div className="grid gap-2">
+                      {budgets.slice(0, 3).map(budget => {
+                        const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
+                        const isOverBudget = percentage > 100;
+                        const isNearLimit = percentage > 80 && !isOverBudget;
+                        return (
+                          <div key={budget._id} className="rounded-xl border border-slate-100 p-3 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="text-sm font-medium">{budget.category}</div>
+                              <span className="text-xs text-slate-500">
+                                {toCurrency(budget.spent)} / {toCurrency(budget.limit)}
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                              <div 
+                                className={`h-full transition-all ${
+                                  isOverBudget ? 'bg-rose-500' : isNearLimit ? 'bg-orange-500' : 'bg-blue-500'
+                                }`}
+                                style={{ width: `${Math.min(100, percentage)}%` }} 
+                              />
+                            </div>
+                            <div className="mt-1 text-xs text-right">
+                              <span className={
+                                isOverBudget ? 'text-rose-600 font-medium' : 
+                                isNearLimit ? 'text-orange-600 font-medium' : 
+                                'text-slate-500'
+                              }>
+                                {Math.round(percentage)}% used
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
 
                 {/* Goals preview */}
                 {goals.length > 0 && (

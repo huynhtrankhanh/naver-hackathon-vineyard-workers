@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { IonPage, IonContent, IonButton, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { transactionApi } from "../../services/api";
+import { transactionApi, budgetApi } from "../../services/api";
 import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
+
+interface Budget {
+  _id: string;
+  category: string;
+  limit: number;
+  spent: number;
+  month: string;
+}
 
 const AddTransaction: React.FC = () => {
   const history = useHistory();
@@ -16,8 +24,38 @@ const AddTransaction: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
 
   const invalidateOnMutation = useInvalidateOnMutation();
+
+  const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
+
+  // Fetch budgets when component mounts or when type changes to expense
+  useEffect(() => {
+    const fetchBudgets = async () => {
+      if (type === 'expense') {
+        try {
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const budgetsData = await budgetApi.getByMonth(currentMonth);
+          setBudgets(budgetsData);
+        } catch (error) {
+          console.error("Error fetching budgets:", error);
+        }
+      }
+    };
+    fetchBudgets();
+  }, [type]);
+
+  // Update selected budget when category changes
+  useEffect(() => {
+    if (type === 'expense' && category) {
+      const budget = budgets.find(b => b.category === category);
+      setSelectedBudget(budget || null);
+    } else {
+      setSelectedBudget(null);
+    }
+  }, [category, budgets, type]);
 
   const expenseCategories = [
     'Food & Drinks',
@@ -165,6 +203,55 @@ const AddTransaction: React.FC = () => {
                     </option>
                   ))}
                 </select>
+
+                {/* Budget Limit Info */}
+                {type === 'expense' && selectedBudget && (
+                  <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
+                    <div className="text-sm font-medium text-blue-900 mb-2">
+                      Budget for {selectedBudget.category}
+                    </div>
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-blue-700">Spent:</span>
+                      <span className="font-medium text-blue-900">{toCurrency(selectedBudget.spent)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-blue-700">Limit:</span>
+                      <span className="font-medium text-blue-900">{toCurrency(selectedBudget.limit)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-blue-700">Remaining:</span>
+                      <span className={`font-medium ${
+                        (selectedBudget.limit - selectedBudget.spent) >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                      }`}>
+                        {toCurrency(selectedBudget.limit - selectedBudget.spent)}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-blue-200 overflow-hidden mt-2">
+                      <div 
+                        className={`h-full transition-all ${
+                          selectedBudget.spent / selectedBudget.limit > 1 ? 'bg-rose-500' :
+                          selectedBudget.spent / selectedBudget.limit > 0.8 ? 'bg-orange-500' : 
+                          'bg-blue-500'
+                        }`}
+                        style={{ 
+                          width: `${Math.min(100, (selectedBudget.spent / selectedBudget.limit) * 100)}%` 
+                        }} 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* No Budget Warning */}
+                {type === 'expense' && category && !selectedBudget && (
+                  <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                    <div className="text-sm text-amber-800">
+                      No budget set for this category. 
+                      <a href="/dashboard/budget" className="ml-1 font-medium text-amber-900 hover:underline">
+                        Set one now
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Amount */}
