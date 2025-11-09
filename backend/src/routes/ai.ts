@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import SavingsPlan from '../models/SavingsPlan.js';
 import { generateMockSavingsPlan, generateFinancialAdvice } from '../utils/mockAI.js';
-import { inMemory } from '../utils/inMemoryStore.js';
 
 const router = express.Router();
 
@@ -31,17 +30,13 @@ router.post('/generate', async (req: Request, res: Response) => {
       intensity,
       notes,
       suggestedSavings: aiResult.suggestedSavings,
-      recommendations: aiResult.recommendations
+      recommendations: aiResult.recommendations,
+      markdownAdvice: aiResult.markdownAdvice
     };
     
-    // Save the generated plan to the database or in-memory store
-    let savedPlan;
-    if (inMemory.isConnected()) {
-      const savingsPlan = new SavingsPlan(planData);
-      savedPlan = await savingsPlan.save();
-    } else {
-      savedPlan = inMemory.create('savingsPlans', planData);
-    }
+    // Save the generated plan to the database
+    const savingsPlan = new SavingsPlan(planData);
+    const savedPlan = await savingsPlan.save();
     
     res.status(201).json(savedPlan);
   } catch (error) {
@@ -52,14 +47,7 @@ router.post('/generate', async (req: Request, res: Response) => {
 // Get all savings plans
 router.get('/', async (req: Request, res: Response) => {
   try {
-    let plans;
-    if (inMemory.isConnected()) {
-      plans = await SavingsPlan.find().sort({ createdAt: -1 });
-    } else {
-      plans = inMemory.find('savingsPlans').sort((a: any, b: any) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    }
+    const plans = await SavingsPlan.find().sort({ createdAt: -1 });
     res.json(plans);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching savings plans', error });
@@ -69,15 +57,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Get latest savings plan
 router.get('/latest', async (req: Request, res: Response) => {
   try {
-    let plan;
-    if (inMemory.isConnected()) {
-      plan = await SavingsPlan.findOne().sort({ createdAt: -1 });
-    } else {
-      const plans = inMemory.find('savingsPlans');
-      plan = plans.sort((a: any, b: any) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )[0] || null;
-    }
+    const plan = await SavingsPlan.findOne().sort({ createdAt: -1 });
     if (!plan) {
       return res.status(404).json({ message: 'No savings plan found' });
     }
@@ -90,12 +70,7 @@ router.get('/latest', async (req: Request, res: Response) => {
 // Get savings plan by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    let plan;
-    if (inMemory.isConnected()) {
-      plan = await SavingsPlan.findById(req.params.id);
-    } else {
-      plan = inMemory.findOne('savingsPlans', req.params.id);
-    }
+    const plan = await SavingsPlan.findById(req.params.id);
     if (!plan) {
       return res.status(404).json({ message: 'Savings plan not found' });
     }
@@ -119,12 +94,7 @@ router.post('/advice', async (req: Request, res: Response) => {
 // Delete savings plan
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    let plan;
-    if (inMemory.isConnected()) {
-      plan = await SavingsPlan.findByIdAndDelete(req.params.id);
-    } else {
-      plan = inMemory.delete('savingsPlans', req.params.id);
-    }
+    const plan = await SavingsPlan.findByIdAndDelete(req.params.id);
     if (!plan) {
       return res.status(404).json({ message: 'Savings plan not found' });
     }

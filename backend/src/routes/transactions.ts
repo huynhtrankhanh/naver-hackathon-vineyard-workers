@@ -81,7 +81,7 @@ router.get('/stats/summary', async (req: Request, res: Response) => {
     ]);
     
     const totalIncome = income[0]?.total || 0;
-    const totalExpenses = expenses[0]?.total || 0;
+    const totalExpenses = Math.abs(expenses[0]?.total || 0);
     
     res.json({
       income: totalIncome,
