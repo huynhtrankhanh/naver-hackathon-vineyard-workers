@@ -2,7 +2,8 @@
  * API Service for communicating with the backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Use proxied API endpoint by default, fallback to direct URL from env or localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Get auth token from localStorage
 function getAuthToken(): string | null {
