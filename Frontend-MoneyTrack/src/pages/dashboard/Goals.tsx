@@ -13,7 +13,13 @@ const Goals: React.FC = () => {
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
           <Header title="Saving Goals" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
-            <div className="text-slate-500 text-sm">Coming soon… manage your saving goals here.</div>
+            <div className="text-slate-500 text-sm mb-4">Create AI-powered savings goals to reach your financial targets.</div>
+            <button
+              onClick={() => history.push("/savings-onboarding")}
+              className="w-full block rounded-2xl bg-blue-600 text-white text-center py-3 font-medium shadow-md hover:bg-blue-700"
+            >
+              Create Savings Plan with AI
+            </button>
           </main>
           <TabBar active="goals" />
         </div>

@@ -15,6 +15,7 @@ import Budget from "./pages/dashboard/Budget";
 import AddTransaction from "./pages/dashboard/AddTransaction";
 import Goals from "./pages/dashboard/Goals";
 import Profile from "./pages/dashboard/Profile";
+import SavingsOnboarding from "./pages/SavingsOnboarding";
 
 /* Core CSS */
 import "@ionic/react/css/core.css";
@@ -52,6 +53,7 @@ const App: React.FC = () => (
         <Route exact path="/add" component={AddTransaction} />
         <Route exact path="/goals" component={Goals} />
         <Route exact path="/profile" component={Profile} />
+        <Route exact path="/savings-onboarding" component={SavingsOnboarding} />
 
         {/* 3. DÙNG 'Redirect' (của v5) */}
         <Route exact path="/">
