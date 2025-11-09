@@ -19,19 +19,26 @@ const Goals: React.FC = () => {
   const history = useHistory();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
   const fetchGoals = useCallback(async () => {
     try {
-      setLoading(true);
+      // Only show loading spinner on initial load, not on periodic refreshes
+      if (isInitialLoad) {
+        setLoading(true);
+      }
       const data = await goalsApi.getAll();
       setGoals(data);
     } catch (error) {
       console.error("Error fetching goals:", error);
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
     }
-  }, []);
+  }, [isInitialLoad]);
 
   // Use state invalidation hook
   useStateInvalidation({

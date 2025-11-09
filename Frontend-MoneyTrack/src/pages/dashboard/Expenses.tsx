@@ -21,12 +21,16 @@ const Expenses: React.FC = () => {
   const history = useHistory();
   const [items, setItems] = useState<CategoryExpense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const sum = items.reduce((a, b) => a + b.amount, 0);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
   const fetchExpenses = useCallback(async () => {
     try {
-      setLoading(true);
+      // Only show loading spinner on initial load, not on periodic refreshes
+      if (isInitialLoad) {
+        setLoading(true);
+      }
       const transactions = await transactionApi.getAll();
       // Filter only expense transactions
       const expenseTransactions = transactions.filter((t: Transaction) => t.type === 'expense');
@@ -47,9 +51,12 @@ const Expenses: React.FC = () => {
     } catch (error) {
       console.error("Error fetching expenses:", error);
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
     }
-  }, []);
+  }, [isInitialLoad]);
 
   // Use state invalidation hook
   useStateInvalidation({
