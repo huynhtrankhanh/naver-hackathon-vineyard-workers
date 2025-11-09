@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/User.js';
+import Session from '../models/Session.js';
 
 // Extend Express Request type to include user
 declare global {
@@ -20,12 +21,18 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    // Decode token to get username
-    const decoded = Buffer.from(token, 'base64').toString('utf-8');
-    const [username] = decoded.split(':');
+    // Find valid session
+    const session = await Session.findOne({
+      token,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!session) {
+      return res.status(401).json({ message: 'Invalid or expired session' });
+    }
 
     // Verify user exists
-    const user = await User.findOne({ username });
+    const user = await User.findById(session.userId);
     if (!user) {
       return res.status(401).json({ message: 'Invalid authentication token' });
     }
