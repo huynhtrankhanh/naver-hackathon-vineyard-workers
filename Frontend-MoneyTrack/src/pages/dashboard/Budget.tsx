@@ -19,6 +19,7 @@ const Budget: React.FC = () => {
   const history = useHistory();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
@@ -47,15 +48,21 @@ const Budget: React.FC = () => {
 
   const fetchBudgets = useCallback(async () => {
     try {
-      setLoading(true);
+      // Only show loading spinner on initial load, not on periodic refreshes
+      if (isInitialLoad) {
+        setLoading(true);
+      }
       const data = await budgetApi.getByMonth(currentMonth);
       setBudgets(data);
     } catch (error) {
       console.error("Error fetching budgets:", error);
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
     }
-  }, [currentMonth]);
+  }, [currentMonth, isInitialLoad]);
 
   // Use state invalidation hook
   useStateInvalidation({
