@@ -4,40 +4,64 @@ import {
   IonContent,
   IonInput,
   IonButton,
-  IonIcon,
   IonText,
+  IonToast,
+  IonSpinner,
 } from "@ionic/react";
-import { logoGoogle, logoApple } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
 import { Wallet, ArrowLeft } from "lucide-react";
+import { hashPassword } from "../utils/crypto";
+import { authApi } from "../services/api";
 
 const SignUp: React.FC = () => {
   const history = useHistory();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showError, setShowError] = useState(false);
 
   const handleSignUp = async () => {
-    if (password !== confirmPassword) {
-      console.error("Mật khẩu không khớp!");
-      // TODO: Hiển thị thông báo lỗi cho user (dùng Toast hoặc Alert)
+    if (!username || !password || !confirmPassword) {
+      setError("All fields are required");
+      setShowError(true);
       return;
     }
 
-    console.log("Đăng ký với:", email, password);
-
-    // --- TODO: GỌI API ĐĂNG KÝ CỦA BACKEND ---
-    /*
-    try {
-      // const response = await apiClient.post('/api/auth/register', { email, password });
-      // console.log(response.data);
-      // Đăng ký thành công, chuyển hướng đến trang login
-      // history.push('/login');
-    } catch (error) {
-      // Xử lý lỗi (ví dụ: email đã tồn tại)
-      console.error('Đăng ký thất bại:', error);
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setShowError(true);
+      return;
     }
-    */
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setShowError(true);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // Hash password with argon2id on client side
+      const passwordHash = await hashPassword(password, username);
+
+      // Call register API
+      const response = await authApi.register(username, passwordHash);
+
+      // Store token
+      authApi.setToken(response.token);
+
+      // Navigate to dashboard
+      history.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Registration failed. Username may already exist.");
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,12 +94,13 @@ const SignUp: React.FC = () => {
             </div>
 
             <IonInput
-              label="Email"
+              label="Username"
               labelPlacement="floating"
               fill="outline"
-              type="email"
+              type="text"
               className="mt-4"
-              onIonChange={(e) => setEmail(e.detail.value!)}
+              value={username}
+              onIonChange={(e) => setUsername(e.detail.value!)}
             />
 
             <IonInput
@@ -84,6 +109,7 @@ const SignUp: React.FC = () => {
               fill="outline"
               type="password"
               className="mt-4"
+              value={password}
               onIonChange={(e) => setPassword(e.detail.value!)}
             />
 
@@ -93,23 +119,17 @@ const SignUp: React.FC = () => {
               fill="outline"
               type="password"
               className="mt-4"
+              value={confirmPassword}
               onIonChange={(e) => setConfirmPassword(e.detail.value!)}
             />
 
-            <IonButton expand="block" className="mt-6" onClick={handleSignUp}>
-              Create Account
-            </IonButton>
-
-            <IonText className="block text-center text-gray-500 my-5">or</IonText>
-
-            <IonButton expand="block" fill="outline" color="dark" className="mt-4">
-              <IonIcon icon={logoGoogle} slot="start" />
-              Sign up with Google
-            </IonButton>
-
-            <IonButton expand="block" fill="outline" color="dark" className="mt-4">
-              <IonIcon icon={logoApple} slot="start" />
-              Sign up with Apple
+            <IonButton 
+              expand="block" 
+              className="mt-6" 
+              onClick={handleSignUp}
+              disabled={loading}
+            >
+              {loading ? <IonSpinner name="crescent" /> : "Create Account"}
             </IonButton>
 
             {/* --- Link Sign In --- */}
@@ -123,6 +143,15 @@ const SignUp: React.FC = () => {
                 Sign in
               </IonText>
             </IonText>
+
+            <IonToast
+              isOpen={showError}
+              onDidDismiss={() => setShowError(false)}
+              message={error}
+              duration={3000}
+              color="danger"
+              position="top"
+            />
           </main>
         </div>
       </IonContent>

@@ -7,6 +7,8 @@ import transactionsRouter from './routes/transactions.js';
 import goalsRouter from './routes/goals.js';
 import budgetsRouter from './routes/budgets.js';
 import aiRouter from './routes/ai.js';
+import authRouter from './routes/auth.js';
+import { authMiddleware } from './middleware/auth.js';
 
 // Load environment variables
 dotenv.config();
@@ -19,11 +21,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api/transactions', transactionsRouter);
-app.use('/api/goals', goalsRouter);
-app.use('/api/budgets', budgetsRouter);
-app.use('/api/ai', aiRouter);
+// Public routes (no auth required)
+app.use('/api/auth', authRouter);
+
+// Protected routes (auth required)
+app.use('/api/transactions', authMiddleware, transactionsRouter);
+app.use('/api/goals', authMiddleware, goalsRouter);
+app.use('/api/budgets', authMiddleware, budgetsRouter);
+app.use('/api/ai', authMiddleware, aiRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -37,10 +42,11 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/api/health',
-      transactions: '/api/transactions',
-      goals: '/api/goals',
-      budgets: '/api/budgets',
-      ai: '/api/ai'
+      auth: '/api/auth',
+      transactions: '/api/transactions (protected)',
+      goals: '/api/goals (protected)',
+      budgets: '/api/budgets (protected)',
+      ai: '/api/ai (protected)'
     }
   });
 });

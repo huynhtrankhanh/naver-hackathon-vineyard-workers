@@ -6,23 +6,51 @@ import {
   IonButton,
   IonCheckbox,
   IonLabel,
-  IonIcon,
   IonText,
+  IonToast,
+  IonSpinner,
 } from "@ionic/react";
-import { logoGoogle, logoApple } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
 import { Wallet, ArrowLeft } from "lucide-react";
+import { hashPassword } from "../utils/crypto";
+import { authApi } from "../services/api";
 
 const SignIn: React.FC = () => {
   const history = useHistory();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showError, setShowError] = useState(false);
 
   const handleLogin = async () => {
-    console.log("Logging in with:", email, password);
-    // ... (Logic gọi API sẽ thêm ở đây) ...
-    // For now, navigate to dashboard after simulated login
-    history.push("/dashboard");
+    if (!username || !password) {
+      setError("Username and password are required");
+      setShowError(true);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // Hash password with argon2id on client side
+      const passwordHash = await hashPassword(password, username);
+
+      // Call login API
+      const response = await authApi.login(username, passwordHash);
+
+      // Store token
+      authApi.setToken(response.token);
+
+      // Navigate to dashboard
+      history.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please check your credentials.");
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,12 +83,13 @@ const SignIn: React.FC = () => {
             </div>
 
             <IonInput
-              label="Email"
+              label="Username"
               labelPlacement="floating"
               fill="outline"
-              type="email"
+              type="text"
               className="mt-4 rounded-xl"
-              onIonChange={(e) => setEmail(e.detail.value!)}
+              value={username}
+              onIonChange={(e) => setUsername(e.detail.value!)}
             />
 
             <IonInput
@@ -69,6 +98,7 @@ const SignIn: React.FC = () => {
               fill="outline"
               type="password"
               className="mt-4"
+              value={password}
               onIonChange={(e) => setPassword(e.detail.value!)}
             />
 
@@ -77,25 +107,15 @@ const SignIn: React.FC = () => {
                 <IonCheckbox slot="start" />
                 <IonLabel className="ml-2">Remember me</IonLabel>
               </div>
-              <IonText color="primary" className="cursor-pointer">
-                Forgot password?
-              </IonText>
             </div>
 
-            <IonButton expand="block" className="mt-6" onClick={handleLogin}>
-              Sign in
-            </IonButton>
-
-            <IonText className="block text-center text-gray-500 my-5">or</IonText>
-
-            <IonButton expand="block" fill="outline" color="dark" className="mt-4">
-              <IonIcon icon={logoGoogle} slot="start" />
-              Continue with Google
-            </IonButton>
-
-            <IonButton expand="block" fill="outline" color="dark" className="mt-4">
-              <IonIcon icon={logoApple} slot="start" />
-              Continue with Apple
+            <IonButton 
+              expand="block" 
+              className="mt-6" 
+              onClick={handleLogin}
+              disabled={loading}
+            >
+              {loading ? <IonSpinner name="crescent" /> : "Sign in"}
             </IonButton>
 
             <IonText className="text-center block mt-8">
@@ -108,6 +128,15 @@ const SignIn: React.FC = () => {
                 Sign up
               </IonText>
             </IonText>
+
+            <IonToast
+              isOpen={showError}
+              onDidDismiss={() => setShowError(false)}
+              message={error}
+              duration={3000}
+              color="danger"
+              position="top"
+            />
           </main>
         </div>
       </IonContent>
