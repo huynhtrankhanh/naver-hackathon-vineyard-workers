@@ -306,8 +306,12 @@ MIT License - See LICENSE file for details
 
 ## 👥 Contributors
 
-- Huynh Tran Khanh
+- Nguyễn Đỗ Chiến Thắng
+- Nguyễn Hà Nam Trân
+- Huỳnh Trần Khanh
 - GitHub Copilot
+- ChatGPT
+- Gemini 2.5 Pro
 
 ## 🙏 Acknowledgments
 
