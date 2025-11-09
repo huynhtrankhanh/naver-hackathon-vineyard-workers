@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
-import { Sparkles, BrainCircuit, Receipt, Bot, ArrowLeft, ArrowRight, CheckCircle2, Sprout, Scale, Flame, Info } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Sparkles, BrainCircuit, Receipt, Bot, ArrowLeft, ArrowRight, CheckCircle2, Sprout, Scale, Flame, Info, FileText } from 'lucide-react';
 import { aiApi } from '../services/api';
 
 interface WizardData {
@@ -22,11 +23,12 @@ interface AIResponse {
     category: string;
     percentage?: number;
   }>;
+  markdownAdvice?: string;
 }
 
 const SavingsOnboarding: React.FC = () => {
   const history = useHistory();
-  const [currentScreen, setCurrentScreen] = useState<'welcome' | 'wizard' | 'loading' | 'result'>('welcome');
+  const [currentScreen, setCurrentScreen] = useState<'welcome' | 'wizard' | 'loading' | 'result' | 'advice'>('welcome');
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>({
     goal: 'Build a safety net',
@@ -39,7 +41,7 @@ const SavingsOnboarding: React.FC = () => {
 
   const totalSteps = 3;
 
-  const showScreen = (screen: 'welcome' | 'wizard' | 'loading' | 'result') => {
+  const showScreen = (screen: 'welcome' | 'wizard' | 'loading' | 'result' | 'advice') => {
     setCurrentScreen(screen);
   };
 
@@ -357,26 +359,26 @@ const SavingsOnboarding: React.FC = () => {
 
             {/* Result Screen */}
             {currentScreen === 'result' && aiResult && (
-              <div className="flex-1 flex flex-col p-6 bg-slate-900 overflow-y-auto">
+              <div className="flex-1 flex flex-col p-6 bg-white overflow-y-auto">
                 <div className="flex-1 flex flex-col justify-center min-h-min py-8">
-                  <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
-                    <CheckCircle2 className="w-8 h-8 text-green-400" />
+                  <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6 border-2 border-green-500/20">
+                    <CheckCircle2 className="w-8 h-8 text-green-600" />
                   </div>
-                  <h1 className="text-3xl font-bold text-white mb-2">Your plan is ready.</h1>
-                  <p className="text-slate-400 text-lg mb-8 leading-relaxed">
-                    Based on your goal of <span className="text-white font-medium">{aiResult.goal}</span> with{' '}
-                    <span className="text-white font-medium">{aiResult.intensity}</span> priority.
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Your plan is ready.</h1>
+                  <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                    Based on your goal of <span className="text-gray-900 font-medium">{aiResult.goal}</span> with{' '}
+                    <span className="text-gray-900 font-medium">{aiResult.intensity}</span> priority.
                   </p>
 
-                  <div className="bg-slate-800/50 border border-slate-700/50 p-6 rounded-[2rem] backdrop-blur-md shadow-2xl shadow-black/20">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-6 rounded-[2rem] shadow-lg">
                     <div className="flex justify-between items-center mb-8">
                       <div>
-                        <div className="text-indigo-300 text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <div className="text-blue-600 text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
                           <Sparkles className="w-4 h-4" /> Suggested Savings
                         </div>
-                        <div className="text-5xl font-black text-white tracking-tight">
+                        <div className="text-5xl font-black text-gray-900 tracking-tight">
                           ${aiResult.suggestedSavings}
-                          <span className="text-slate-400 text-xl font-medium ml-1">/mo</span>
+                          <span className="text-gray-500 text-xl font-medium ml-1">/mo</span>
                         </div>
                       </div>
                       <div className="relative w-16 h-16">
@@ -384,13 +386,13 @@ const SavingsOnboarding: React.FC = () => {
                           <path
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             fill="none"
-                            stroke="#334155"
+                            stroke="#e2e8f0"
                             strokeWidth="4"
                           />
                           <path
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             fill="none"
-                            stroke="#6366f1"
+                            stroke="#3b82f6"
                             strokeWidth="4"
                             strokeDasharray="75, 100"
                           />
@@ -402,22 +404,22 @@ const SavingsOnboarding: React.FC = () => {
                       {aiResult.recommendations.map((rec, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-4 p-4 bg-slate-900/50 rounded-2xl border border-slate-700/30"
+                          className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm"
                         >
                           <div
                             className={`w-10 h-10 ${
-                              rec.type === 'reduce' ? 'bg-red-500/10' : 'bg-green-500/10'
+                              rec.type === 'reduce' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
                             } rounded-xl flex items-center justify-center shrink-0`}
                           >
                             {rec.type === 'reduce' ? (
-                              <ArrowRight className="w-5 h-5 text-red-400 rotate-90" />
+                              <ArrowRight className="w-5 h-5 rotate-90" />
                             ) : (
-                              <CheckCircle2 className="w-5 h-5 text-green-400" />
+                              <CheckCircle2 className="w-5 h-5" />
                             )}
                           </div>
-                          <div className="flex-1 text-slate-300">
+                          <div className="flex-1 text-gray-700">
                             {rec.type === 'reduce' ? 'Reduce' : 'Protect'}{' '}
-                            <span className="text-white font-semibold">{rec.category}</span>
+                            <span className="text-gray-900 font-semibold">{rec.category}</span>
                             {rec.percentage && ` by ${rec.percentage}%`}
                           </div>
                         </div>
@@ -426,10 +428,62 @@ const SavingsOnboarding: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="shrink-0 pt-6">
+                <div className="shrink-0 pt-6 space-y-3">
+                  {aiResult.markdownAdvice && (
+                    <button
+                      onClick={() => showScreen('advice')}
+                      className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-2xl text-lg transition-all active:scale-95 flex items-center justify-center gap-2 border border-gray-200"
+                    >
+                      <FileText className="w-5 h-5" />
+                      <span>View Detailed Advice</span>
+                    </button>
+                  )}
                   <button
                     onClick={acceptPlan}
-                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-lg transition-all active:scale-95 shadow-lg shadow-indigo-600/20"
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-lg transition-all active:scale-95 shadow-lg shadow-blue-600/20"
+                  >
+                    Accept Plan
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Detailed Advice Screen */}
+            {currentScreen === 'advice' && aiResult && (
+              <div className="flex-1 flex flex-col bg-white overflow-y-auto">
+                <div className="px-6 py-4 flex items-center bg-white border-b border-gray-100 shrink-0">
+                  <button
+                    onClick={() => showScreen('result')}
+                    className="p-2 -ml-2 text-gray-400 hover:text-gray-900 transition-colors"
+                  >
+                    <ArrowLeft className="w-6 h-6" />
+                  </button>
+                  <h2 className="flex-1 text-lg font-bold text-gray-900 ml-4">Detailed Savings Advice</h2>
+                </div>
+                
+                <div className="flex-1 p-6 overflow-y-auto prose prose-slate max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-gray-900 mb-4 mt-6" {...props} />,
+                      h2: ({node, ...props}) => <h2 className="text-xl font-bold text-gray-900 mb-3 mt-5" {...props} />,
+                      h3: ({node, ...props}) => <h3 className="text-lg font-semibold text-gray-800 mb-2 mt-4" {...props} />,
+                      p: ({node, ...props}) => <p className="text-gray-700 mb-3 leading-relaxed" {...props} />,
+                      ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
+                      ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
+                      li: ({node, ...props}) => <li className="text-gray-700" {...props} />,
+                      strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                      em: ({node, ...props}) => <em className="italic text-gray-600" {...props} />,
+                      code: ({node, ...props}) => <code className="bg-gray-100 px-1 py-0.5 rounded text-sm" {...props} />
+                    }}
+                  >
+                    {aiResult.markdownAdvice || ''}
+                  </ReactMarkdown>
+                </div>
+
+                <div className="p-6 pt-4 bg-white border-t border-gray-100 shrink-0">
+                  <button
+                    onClick={acceptPlan}
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-lg transition-all active:scale-95"
                   >
                     Accept Plan
                   </button>
