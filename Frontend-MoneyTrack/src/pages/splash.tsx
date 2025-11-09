@@ -19,7 +19,7 @@ const Splash: React.FC = () => {
               <h1 className="text-5xl font-bold text-gray-900 mb-4">SmartMoney</h1>
               <p className="text-xl text-gray-600 leading-relaxed max-w-md mx-auto">
                 The plans of the diligent lead surely to abundance{" "}
-                <em className="italic text-gray-500">(NRSVue)</em>
+                <em className="italic text-gray-500">(Proverbs 21:5a, NRSVue)</em>
               </p>
             </div>
           </div>
