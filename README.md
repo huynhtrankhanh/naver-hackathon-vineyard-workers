@@ -1,4 +1,4 @@
-# MoneyTrack - Naver Hackathon Vineyard Workers
+# SmartMoney - Naver Hackathon Vineyard Workers
 
 A comprehensive money tracking and AI-powered savings recommendation app built with React (Ionic), Express, and MongoDB.
 
