@@ -54,7 +54,7 @@ export const transactionApi = {
   delete: (id: string) => apiCall<any>(`/transactions/${id}`, {
     method: 'DELETE',
   }),
-  getSummary: () => apiCall<{ income: number; expenses: number; savings: number }>('/transactions/stats/summary'),
+  getSummary: () => apiCall<{ income: number; expenses: number; balance: number }>('/transactions/stats/summary'),
 };
 
 // Goals API
@@ -71,6 +71,10 @@ export const goalsApi = {
   }),
   delete: (id: string) => apiCall<any>(`/goals/${id}`, {
     method: 'DELETE',
+  }),
+  contribute: (id: string, amount: number) => apiCall<any>(`/goals/${id}/contribute`, {
+    method: 'POST',
+    body: JSON.stringify({ amount }),
   }),
 };
 
