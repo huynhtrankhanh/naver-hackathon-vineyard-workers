@@ -86,7 +86,7 @@ router.get('/stats/summary', async (req: Request, res: Response) => {
     res.json({
       income: totalIncome,
       expenses: totalExpenses,
-      savings: totalIncome - totalExpenses
+      balance: totalIncome - totalExpenses
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching summary', error });

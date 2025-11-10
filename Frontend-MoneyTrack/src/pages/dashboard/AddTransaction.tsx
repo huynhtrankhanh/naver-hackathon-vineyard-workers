@@ -26,10 +26,28 @@ const AddTransaction: React.FC = () => {
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [balance, setBalance] = useState(0);
+  const [balanceLoading, setBalanceLoading] = useState(true);
 
   const invalidateOnMutation = useInvalidateOnMutation();
 
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
+
+  // Fetch balance on mount
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        setBalanceLoading(true);
+        const summaryData = await transactionApi.getSummary();
+        setBalance(summaryData.balance);
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+      } finally {
+        setBalanceLoading(false);
+      }
+    };
+    fetchBalance();
+  }, []);
 
   // Fetch budgets when component mounts or when type changes to expense
   useEffect(() => {
@@ -132,6 +150,21 @@ const AddTransaction: React.FC = () => {
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
           <Header title="Add Transaction" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
+            {/* Current Balance Display */}
+            {!balanceLoading && (
+              <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-purple-50">
+                <div className="text-sm text-slate-600 mb-1">Current Balance</div>
+                <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                  {toCurrency(balance)}
+                </div>
+                {balance < 0 && (
+                  <div className="text-xs text-rose-600 mt-1">
+                    ⚠️ Negative balance - Consider recording income accurately
+                  </div>
+                )}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Transaction Type */}
               <div>
@@ -270,6 +303,37 @@ const AddTransaction: React.FC = () => {
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none"
                   required
                 />
+
+                {/* Balance Preview */}
+                {amount && parseFloat(amount) > 0 && !balanceLoading && (
+                  <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="text-sm font-medium text-slate-700 mb-2">Balance Preview</div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Current balance:</span>
+                        <span className={`font-medium ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                          {toCurrency(balance)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Transaction:</span>
+                        <span className={`font-medium ${type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {type === 'income' ? '+' : '-'}{toCurrency(parseFloat(amount))}
+                        </span>
+                      </div>
+                      <div className="border-t border-slate-200 pt-1 mt-1 flex justify-between">
+                        <span className="text-slate-700 font-medium">New balance:</span>
+                        <span className={`font-bold ${
+                          (type === 'income' ? balance + parseFloat(amount) : balance - parseFloat(amount)) < 0 
+                            ? 'text-rose-600' 
+                            : 'text-slate-900'
+                        }`}>
+                          {toCurrency(type === 'income' ? balance + parseFloat(amount) : balance - parseFloat(amount))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}

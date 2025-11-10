@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
   const history = useHistory();
   const [income, setIncome] = useState(0);
   const [expenses, setExpenses] = useState(0);
-  const [savings, setSavings] = useState(0);
+  const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
       const summaryData = await transactionApi.getSummary();
       setIncome(summaryData.income);
       setExpenses(summaryData.expenses);
-      setSavings(summaryData.savings);
+      setBalance(summaryData.balance);
 
       // Fetch recent transactions (limit to 3)
       const transactionsData = await transactionApi.getAll();
@@ -162,7 +162,7 @@ const Dashboard: React.FC = () => {
                     <div className="flex-1 grid grid-cols-2 gap-3 text-sm">
                       <Legend label="Income" value={toCurrency(income)} colorClass="bg-blue-600"/>
                       <Legend label="Expenses" value={toCurrency(expenses)} colorClass="bg-rose-500"/>
-                      <Legend label="Savings" value={toCurrency(savings)} colorClass="bg-emerald-500"/>
+                      <Legend label="Balance" value={toCurrency(balance)} colorClass="bg-emerald-500"/>
                     </div>
                   </div>
                 </div>

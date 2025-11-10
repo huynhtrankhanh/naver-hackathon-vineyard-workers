@@ -67,4 +67,28 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Contribute to goal
+router.post('/:id/contribute', async (req: Request, res: Response) => {
+  try {
+    const { amount } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Invalid contribution amount' });
+    }
+
+    const goal = await Goal.findById(req.params.id);
+    if (!goal) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+
+    // Add contribution to current amount
+    goal.current += amount;
+    const updatedGoal = await goal.save();
+    
+    res.json(updatedGoal);
+  } catch (error) {
+    res.status(400).json({ message: 'Error contributing to goal', error });
+  }
+});
+
 export default router;

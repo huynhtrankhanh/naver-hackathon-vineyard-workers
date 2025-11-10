@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Edit2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { budgetApi } from "../../services/api";
+import { budgetApi, transactionApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 
 interface Budget {
@@ -21,12 +21,14 @@ const Budget: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
+  const [balance, setBalance] = useState(0);
 
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
   
@@ -54,6 +56,10 @@ const Budget: React.FC = () => {
       }
       const data = await budgetApi.getByMonth(currentMonth);
       setBudgets(data);
+      
+      // Fetch balance
+      const summaryData = await transactionApi.getSummary();
+      setBalance(summaryData.balance);
     } catch (error) {
       console.error("Error fetching budgets:", error);
     } finally {
@@ -114,6 +120,57 @@ const Budget: React.FC = () => {
     }
   };
 
+  const handleEditBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingBudget || !limit || parseFloat(limit) <= 0) {
+      setToastMessage('Please enter a valid limit value');
+      setToastColor('danger');
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      await budgetApi.update(editingBudget._id, {
+        limit: parseFloat(limit)
+      });
+
+      // Invalidate all state since we modified backend
+      invalidateOnMutation();
+
+      setToastMessage('Budget updated successfully!');
+      setToastColor('success');
+      setShowToast(true);
+      
+      // Reset form and close modal
+      setEditingBudget(null);
+      setLimit('');
+      
+      // Refresh budgets
+      fetchBudgets();
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      setToastMessage('Failed to update budget. Please try again.');
+      setToastColor('danger');
+      setShowToast(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const startEditBudget = (budget: Budget) => {
+    setEditingBudget(budget);
+    setLimit(budget.limit.toString());
+    setShowAddModal(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingBudget(null);
+    setLimit('');
+  };
+
   const handleDeleteBudget = async (id: string) => {
     if (!confirm('Are you sure you want to delete this budget?')) {
       return;
@@ -143,6 +200,21 @@ const Budget: React.FC = () => {
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
           <Header title="Monthly Budget" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
+            {/* Balance Display */}
+            {!loading && (
+              <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="text-sm text-slate-600 mb-1">Current Balance</div>
+                <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                  {toCurrency(balance)}
+                </div>
+                {balance < 0 && (
+                  <div className="text-xs text-rose-600 mt-1">
+                    ⚠️ Negative balance - Track expenses carefully
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="text-slate-500 text-sm mb-4">
               Set spending limits for different categories. Month: {new Date().toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
             </div>
@@ -165,8 +237,16 @@ const Budget: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-slate-500">Limit {toCurrency(budget.limit)}</span>
                               <button
+                                onClick={() => startEditBudget(budget)}
+                                className="p-1 hover:bg-slate-100 rounded"
+                                title="Edit limit"
+                              >
+                                <Edit2 className="h-4 w-4 text-slate-400 hover:text-blue-600" />
+                              </button>
+                              <button
                                 onClick={() => handleDeleteBudget(budget._id)}
                                 className="p-1 hover:bg-slate-100 rounded"
+                                title="Delete budget"
                               >
                                 <Trash2 className="h-4 w-4 text-slate-400 hover:text-rose-600" />
                               </button>
@@ -196,7 +276,49 @@ const Budget: React.FC = () => {
                   </div>
                 )}
 
-                {!showAddModal ? (
+                {/* Edit Budget Modal */}
+                {editingBudget && (
+                  <div className="rounded-2xl border-2 border-blue-500 p-4 shadow-lg mb-4">
+                    <h3 className="font-semibold mb-4">Edit Budget Limit - {editingBudget.category}</h3>
+                    <form onSubmit={handleEditBudget} className="space-y-3">
+                      <div>
+                        <label htmlFor="edit-limit" className="block text-sm font-medium text-slate-700 mb-1">
+                          Monthly Limit (VND)
+                        </label>
+                        <input
+                          id="edit-limit"
+                          type="number"
+                          value={limit}
+                          onChange={(e) => setLimit(e.target.value)}
+                          placeholder="0"
+                          min="0"
+                          step="10000"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={cancelEdit}
+                          className="flex-1 py-2 px-4 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className="flex-1 py-2 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {submitting ? 'Updating...' : 'Update Limit'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {!showAddModal && !editingBudget ? (
                   <button
                     onClick={() => setShowAddModal(true)}
                     className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 text-white py-3 font-medium shadow-md hover:bg-blue-700"
@@ -204,7 +326,7 @@ const Budget: React.FC = () => {
                     <Plus className="h-5 w-5" />
                     Add Budget Category
                   </button>
-                ) : (
+                ) : showAddModal ? (
                   <div className="rounded-2xl border-2 border-blue-500 p-4 shadow-lg">
                     <h3 className="font-semibold mb-4">Add New Budget</h3>
                     <form onSubmit={handleAddBudget} className="space-y-3">
@@ -267,7 +389,7 @@ const Budget: React.FC = () => {
                       </div>
                     </form>
                   </div>
-                )}
+                ) : null}
               </>
             )}
 
