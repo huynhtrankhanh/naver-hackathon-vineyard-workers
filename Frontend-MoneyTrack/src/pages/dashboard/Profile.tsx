@@ -11,7 +11,7 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
-  const username = authApi.getToken() ? "User" : "Guest"; // Could be enhanced to store username
+  const username = authApi.getToken() ? "User" : "Guest"; // TODO: optionally call /auth/verify to fetch username
 
   const handleLogout = async () => {
     setLoading(true);

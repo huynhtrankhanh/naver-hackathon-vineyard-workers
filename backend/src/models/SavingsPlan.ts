@@ -5,7 +5,7 @@ export interface ISavingsPlan extends Document {
   savingsGoal?: number;
   intensity: string;
   notes?: string;
-  userId?: string;
+  userId: mongoose.Types.ObjectId;
   suggestedSavings: number;
   recommendations: Array<{
     type: 'reduce' | 'protect';
@@ -20,7 +20,7 @@ const SavingsPlanSchema: Schema = new Schema({
   savingsGoal: { type: Number },
   intensity: { type: String, required: true },
   notes: { type: String },
-  userId: { type: String, default: 'default' },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   suggestedSavings: { type: Number, required: true },
   recommendations: [{
     type: { type: String, enum: ['reduce', 'protect'], required: true },

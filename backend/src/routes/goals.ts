@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Goal from '../models/Goal.js';
 
 const router = express.Router();
@@ -6,7 +7,8 @@ const router = express.Router();
 // Get all goals
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const goals = await Goal.find().sort({ createdAt: -1 });
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const goals = await Goal.find({ userId }).sort({ createdAt: -1 });
     res.json(goals);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching goals', error });
@@ -16,7 +18,8 @@ router.get('/', async (req: Request, res: Response) => {
 // Get goal by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const goal = await Goal.findById(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const goal = await Goal.findOne({ _id: req.params.id, userId });
     if (!goal) {
       return res.status(404).json({ message: 'Goal not found' });
     }
@@ -29,7 +32,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Create new goal
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const goal = new Goal(req.body);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const goal = new Goal({ ...req.body, userId });
     const savedGoal = await goal.save();
     res.status(201).json(savedGoal);
   } catch (error) {
@@ -40,8 +44,9 @@ router.post('/', async (req: Request, res: Response) => {
 // Update goal
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const goal = await Goal.findByIdAndUpdate(
-      req.params.id,
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const goal = await Goal.findOneAndUpdate(
+      { _id: req.params.id, userId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -57,7 +62,8 @@ router.put('/:id', async (req: Request, res: Response) => {
 // Delete goal
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const goal = await Goal.findByIdAndDelete(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const goal = await Goal.findOneAndDelete({ _id: req.params.id, userId });
     if (!goal) {
       return res.status(404).json({ message: 'Goal not found' });
     }
@@ -76,7 +82,8 @@ router.post('/:id/contribute', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid contribution amount' });
     }
 
-    const goal = await Goal.findById(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const goal = await Goal.findOne({ _id: req.params.id, userId });
     if (!goal) {
       return res.status(404).json({ message: 'Goal not found' });
     }

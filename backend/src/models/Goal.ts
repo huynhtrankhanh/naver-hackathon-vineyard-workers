@@ -5,7 +5,7 @@ export interface IGoal extends Document {
   target: number;
   current: number;
   priority: string;
-  userId?: string;
+  userId: mongoose.Types.ObjectId;
 }
 
 const GoalSchema: Schema = new Schema({
@@ -13,7 +13,7 @@ const GoalSchema: Schema = new Schema({
   target: { type: Number, required: true },
   current: { type: Number, default: 0 },
   priority: { type: String, default: 'medium' },
-  userId: { type: String, default: 'default' }
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }
 }, { timestamps: true });
 
 export default mongoose.model<IGoal>('Goal', GoalSchema);

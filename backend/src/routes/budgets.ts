@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Budget from '../models/Budget.js';
 import Transaction from '../models/Transaction.js';
 
@@ -14,6 +15,7 @@ async function calculateBudgetSpent(budgets: any[]) {
           $match: {
             type: 'expense',
             category: budget.category,
+            userId: budget.userId,
             date: {
               $gte: new Date(`${budget.month}-01`),
               $lt: new Date(new Date(`${budget.month}-01`).setMonth(new Date(`${budget.month}-01`).getMonth() + 1))
@@ -46,7 +48,8 @@ async function calculateBudgetSpent(budgets: any[]) {
 // Get all budgets
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const budgets = await Budget.find().sort({ month: -1 });
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const budgets = await Budget.find({ userId }).sort({ month: -1 });
     const enrichedBudgets = await calculateBudgetSpent(budgets);
     res.json(enrichedBudgets);
   } catch (error) {
@@ -57,7 +60,8 @@ router.get('/', async (req: Request, res: Response) => {
 // Get budget by month
 router.get('/month/:month', async (req: Request, res: Response) => {
   try {
-    const budgets = await Budget.find({ month: req.params.month });
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const budgets = await Budget.find({ month: req.params.month, userId });
     const enrichedBudgets = await calculateBudgetSpent(budgets);
     res.json(enrichedBudgets);
   } catch (error) {
@@ -68,10 +72,12 @@ router.get('/month/:month', async (req: Request, res: Response) => {
 // Create new budget
 router.post('/', async (req: Request, res: Response) => {
   try {
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
     // Check if budget for this category and month already exists
     const existingBudget = await Budget.findOne({
       category: req.body.category,
-      month: req.body.month
+      month: req.body.month,
+      userId
     });
 
     if (existingBudget) {
@@ -83,7 +89,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Create new budget if none exists
-    const budget = new Budget(req.body);
+    const budget = new Budget({ ...req.body, userId });
     const savedBudget = await budget.save();
     const enriched = await calculateBudgetSpent([savedBudget]);
     res.status(201).json(enriched[0]);
@@ -95,8 +101,9 @@ router.post('/', async (req: Request, res: Response) => {
 // Update budget
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const budget = await Budget.findByIdAndUpdate(
-      req.params.id,
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const budget = await Budget.findOneAndUpdate(
+      { _id: req.params.id, userId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -113,7 +120,8 @@ router.put('/:id', async (req: Request, res: Response) => {
 // Delete budget
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const budget = await Budget.findByIdAndDelete(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const budget = await Budget.findOneAndDelete({ _id: req.params.id, userId });
     if (!budget) {
       return res.status(404).json({ message: 'Budget not found' });
     }

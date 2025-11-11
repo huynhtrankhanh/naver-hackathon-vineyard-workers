@@ -1,6 +1,7 @@
 import React from "react";
 // 1. DÙNG 'Redirect' (của v5)
 import { Redirect, Route } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -46,14 +47,14 @@ const App: React.FC = () => (
         <Route exact path="/splash" component={Splash} />
         <Route exact path="/login" component={SignIn} />
         <Route exact path="/signup" component={SignUp} />
-        <Route exact path="/dashboard" component={Dashboard} />
-        <Route exact path="/dashboard/income" component={Income} />
-        <Route exact path="/dashboard/expenses" component={Expenses} />
-        <Route exact path="/dashboard/budget" component={Budget} />
-        <Route exact path="/add" component={AddTransaction} />
-        <Route exact path="/goals" component={Goals} />
-        <Route exact path="/profile" component={Profile} />
-        <Route exact path="/savings-onboarding" component={SavingsOnboarding} />
+  <ProtectedRoute exact path="/dashboard" component={Dashboard} />
+  <ProtectedRoute exact path="/dashboard/income" component={Income} />
+  <ProtectedRoute exact path="/dashboard/expenses" component={Expenses} />
+  <ProtectedRoute exact path="/dashboard/budget" component={Budget} />
+  <ProtectedRoute exact path="/add" component={AddTransaction} />
+  <ProtectedRoute exact path="/goals" component={Goals} />
+  <ProtectedRoute exact path="/profile" component={Profile} />
+  <ProtectedRoute exact path="/savings-onboarding" component={SavingsOnboarding} />
 
         {/* 3. DÙNG 'Redirect' (của v5) */}
         <Route exact path="/">

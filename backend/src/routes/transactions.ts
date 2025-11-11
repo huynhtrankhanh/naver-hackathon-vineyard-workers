@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Transaction from '../models/Transaction.js';
 
 const router = express.Router();
@@ -6,7 +7,8 @@ const router = express.Router();
 // Get all transactions
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const transactions = await Transaction.find().sort({ date: -1 }).limit(50);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const transactions = await Transaction.find({ userId }).sort({ date: -1 }).limit(50);
     res.json(transactions);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching transactions', error });
@@ -16,7 +18,8 @@ router.get('/', async (req: Request, res: Response) => {
 // Get transaction by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const transaction = await Transaction.findById(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const transaction = await Transaction.findOne({ _id: req.params.id, userId });
     if (!transaction) {
       return res.status(404).json({ message: 'Transaction not found' });
     }
@@ -29,7 +32,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Create new transaction
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const transaction = new Transaction(req.body);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const transaction = new Transaction({ ...req.body, userId });
     const savedTransaction = await transaction.save();
     res.status(201).json(savedTransaction);
   } catch (error) {
@@ -40,8 +44,9 @@ router.post('/', async (req: Request, res: Response) => {
 // Update transaction
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const transaction = await Transaction.findByIdAndUpdate(
-      req.params.id,
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const transaction = await Transaction.findOneAndUpdate(
+      { _id: req.params.id, userId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -57,7 +62,8 @@ router.put('/:id', async (req: Request, res: Response) => {
 // Delete transaction
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const transaction = await Transaction.findByIdAndDelete(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const transaction = await Transaction.findOneAndDelete({ _id: req.params.id, userId });
     if (!transaction) {
       return res.status(404).json({ message: 'Transaction not found' });
     }
@@ -70,13 +76,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
 // Get summary statistics
 router.get('/stats/summary', async (req: Request, res: Response) => {
   try {
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
     const income = await Transaction.aggregate([
-      { $match: { type: 'income' } },
+      { $match: { type: 'income', userId } },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
     
     const expenses = await Transaction.aggregate([
-      { $match: { type: 'expense' } },
+      { $match: { type: 'expense', userId } },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
     

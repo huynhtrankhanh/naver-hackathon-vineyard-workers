@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import SavingsPlan from '../models/SavingsPlan.js';
 import { generateMockSavingsPlan, generateFinancialAdvice } from '../utils/mockAI.js';
 
@@ -29,6 +30,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       savingsGoal,
       intensity,
       notes,
+      userId: new mongoose.Types.ObjectId(req.user!.id),
       suggestedSavings: aiResult.suggestedSavings,
       recommendations: aiResult.recommendations,
       markdownAdvice: aiResult.markdownAdvice
@@ -47,7 +49,8 @@ router.post('/generate', async (req: Request, res: Response) => {
 // Get all savings plans
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const plans = await SavingsPlan.find().sort({ createdAt: -1 });
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const plans = await SavingsPlan.find({ userId }).sort({ createdAt: -1 });
     res.json(plans);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching savings plans', error });
@@ -57,7 +60,8 @@ router.get('/', async (req: Request, res: Response) => {
 // Get latest savings plan
 router.get('/latest', async (req: Request, res: Response) => {
   try {
-    const plan = await SavingsPlan.findOne().sort({ createdAt: -1 });
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const plan = await SavingsPlan.findOne({ userId }).sort({ createdAt: -1 });
     if (!plan) {
       return res.status(404).json({ message: 'No savings plan found' });
     }
@@ -70,7 +74,8 @@ router.get('/latest', async (req: Request, res: Response) => {
 // Get savings plan by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const plan = await SavingsPlan.findById(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const plan = await SavingsPlan.findOne({ _id: req.params.id, userId });
     if (!plan) {
       return res.status(404).json({ message: 'Savings plan not found' });
     }
@@ -94,7 +99,8 @@ router.post('/advice', async (req: Request, res: Response) => {
 // Delete savings plan
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const plan = await SavingsPlan.findByIdAndDelete(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
+    const plan = await SavingsPlan.findOneAndDelete({ _id: req.params.id, userId });
     if (!plan) {
       return res.status(404).json({ message: 'Savings plan not found' });
     }

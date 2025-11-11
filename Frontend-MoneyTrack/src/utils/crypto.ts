@@ -1,3 +1,5 @@
+// libsodium-wrappers-sumo lacks bundled TypeScript declarations; declare module in a global .d.ts if needed.
+// @ts-ignore
 import sodium from 'libsodium-wrappers-sumo';
 
 // Fixed random salt for this website - this provides site-specific password hashing
