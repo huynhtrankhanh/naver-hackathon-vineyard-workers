@@ -292,7 +292,6 @@ const Budget: React.FC = () => {
                           onChange={(e) => setLimit(e.target.value)}
                           placeholder="0"
                           min="0"
-                          step="10000"
                           className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none"
                           required
                         />
