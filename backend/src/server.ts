@@ -57,7 +57,7 @@ async function connectDB() {
     let mongoUri = process.env.MONGODB_URI;
     
     // If no MongoDB URI provided or connection fails, use MongoMemoryServer
-    if (!mongoUri || process.env.NODE_ENV === 'development') {
+    if (!mongoUri) {
       console.log('🔄 Starting MongoDB Memory Server...');
       const mongoServer = await MongoMemoryServer.create();
       mongoUri = mongoServer.getUri();
