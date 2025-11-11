@@ -4,8 +4,9 @@ import { useHistory } from "react-router-dom";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { budgetApi, transactionApi } from "../../services/api";
+import { budgetApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
+import { useBalance } from "../../services/BalanceContext";
 
 interface Budget {
   _id: string;
@@ -28,7 +29,7 @@ const Budget: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
-  const [balance, setBalance] = useState(0);
+  const { balance, loading: balanceLoading } = useBalance();
 
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
   
@@ -54,12 +55,8 @@ const Budget: React.FC = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
-      const data = await budgetApi.getByMonth(currentMonth);
-      setBudgets(data);
-      
-      // Fetch balance
-      const summaryData = await transactionApi.getSummary();
-      setBalance(summaryData.balance);
+  const data = await budgetApi.getByMonth(currentMonth);
+  setBudgets(data);
     } catch (error) {
       console.error("Error fetching budgets:", error);
     } finally {
@@ -201,7 +198,7 @@ const Budget: React.FC = () => {
           <Header title="Monthly Budget" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
             {/* Balance Display */}
-            {!loading && (
+            {!loading && !balanceLoading && (
               <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="text-sm text-slate-600 mb-1">Current Balance</div>
                 <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>

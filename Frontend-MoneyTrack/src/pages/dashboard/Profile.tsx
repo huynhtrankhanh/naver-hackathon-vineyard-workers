@@ -5,6 +5,7 @@ import { LogOut } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { authApi } from "../../services/api";
+import { useBalance } from "../../services/BalanceContext";
 
 const Profile: React.FC = () => {
   const history = useHistory();
@@ -12,6 +13,7 @@ const Profile: React.FC = () => {
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
   const username = authApi.getToken() ? "User" : "Guest"; // TODO: optionally call /auth/verify to fetch username
+  const { balance } = useBalance();
 
   const handleLogout = async () => {
     setLoading(true);
@@ -26,10 +28,7 @@ const Profile: React.FC = () => {
     } finally {
       // Remove token from local storage
       authApi.removeToken();
-      setLoading(false);
-      
-      // Redirect to splash screen
-      history.push("/splash");
+      location.href = "/"; // this is the only way I can fix the logout bug
     }
   };
 
@@ -43,6 +42,11 @@ const Profile: React.FC = () => {
               <div className="bg-slate-50 rounded-xl p-4">
                 <div className="text-sm text-slate-500 mb-1">Logged in as</div>
                 <div className="text-lg font-semibold">{username}</div>
+              </div>
+
+              <div className="rounded-xl p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-slate-100">
+                <div className="text-sm text-slate-600 mb-1">Global Balance</div>
+                <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>{balance.toLocaleString('vi-VN')} đ</div>
               </div>
 
               <div className="bg-slate-50 rounded-xl p-4">

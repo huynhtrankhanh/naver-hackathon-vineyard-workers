@@ -7,6 +7,7 @@ import KpiCard from "../../components/dashboard/KpiCard";
 import Legend from "../../components/dashboard/Legend";
 import { transactionApi, goalsApi, budgetApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
+import { useBalance } from "../../services/BalanceContext";
 
 interface Transaction {
   _id: string;
@@ -34,9 +35,7 @@ interface Budget {
 
 const Dashboard: React.FC = () => {
   const history = useHistory();
-  const [income, setIncome] = useState(0);
-  const [expenses, setExpenses] = useState(0);
-  const [balance, setBalance] = useState(0);
+  const { income, expenses, balance, loading: balanceLoading } = useBalance();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -49,12 +48,6 @@ const Dashboard: React.FC = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
-      
-      // Fetch summary
-      const summaryData = await transactionApi.getSummary();
-      setIncome(summaryData.income);
-      setExpenses(summaryData.expenses);
-      setBalance(summaryData.balance);
 
       // Fetch recent transactions (limit to 3)
       const transactionsData = await transactionApi.getAll();
@@ -78,9 +71,9 @@ const Dashboard: React.FC = () => {
     }
   }, [isInitialLoad]);
 
-  // Use state invalidation hook for dashboard data
+  // Use state invalidation hook for dashboard auxiliary data (transactions/budgets/goals)
   useStateInvalidation({
-    dataType: 'summary',
+    dataType: 'transactions',
     fetchData,
   });
 
@@ -122,7 +115,7 @@ const Dashboard: React.FC = () => {
 
           {/* Scrollable content */}
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
-            {loading ? (
+            {loading || balanceLoading ? (
               <div className="flex justify-center items-center py-12">
                 <IonSpinner name="crescent" />
               </div>

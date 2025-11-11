@@ -278,6 +278,12 @@ Frontend environment (optional, in `Frontend-MoneyTrack/.env`):
 VITE_API_URL=http://localhost:3001/api
 ```
 
+### Global Balance State (Desync Fix)
+- Balance is now managed globally via a React context provider `BalanceProvider` (`src/services/BalanceContext.tsx`).
+- It polls the backend summary endpoint every 5 seconds (only when the page is visible) using the shared state invalidation service.
+- Any backend mutation should call `useInvalidateOnMutation()` and optionally `useBalance().refresh()` to immediately reflect changes in balance.
+- Pages that display the balance (Dashboard, Budgets, Goals, Add Transaction) now read from `useBalance()` and no longer fetch the summary individually. This eliminates desync across screens.
+
 ## 🎨 UI/UX Features
 
 - **Mobile-First Design** - Optimized for mobile devices

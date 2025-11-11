@@ -36,12 +36,14 @@ import "@ionic/react/css/display.css";
 
 /* CSS Chủ đề (Đã import Tailwind ở đây) */
 import "./theme/variables.css";
+import { BalanceProvider } from "./services/BalanceContext";
 
 setupIonicReact();
 
 const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
+      <BalanceProvider>
       <IonRouterOutlet>
         {/* 2. DÙNG 'component' và 'exact' (của v5) */}
         <Route exact path="/splash" component={Splash} />
@@ -61,6 +63,7 @@ const App: React.FC = () => (
           <Redirect to="/splash" />
         </Route>
       </IonRouterOutlet>
+      </BalanceProvider>
     </IonReactRouter>
   </IonApp>
 );

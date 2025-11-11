@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { IonPage, IonContent, IonButton, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi, budgetApi } from "../../services/api";
 import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
+import { useBalance } from "../../services/BalanceContext";
 
 interface Budget {
   _id: string;
@@ -26,28 +27,13 @@ const AddTransaction: React.FC = () => {
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
-  const [balance, setBalance] = useState(0);
-  const [balanceLoading, setBalanceLoading] = useState(true);
+  const { balance, loading: balanceLoading, refresh: refreshBalance } = useBalance();
 
   const invalidateOnMutation = useInvalidateOnMutation();
 
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
-  // Fetch balance on mount
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        setBalanceLoading(true);
-        const summaryData = await transactionApi.getSummary();
-        setBalance(summaryData.balance);
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      } finally {
-        setBalanceLoading(false);
-      }
-    };
-    fetchBalance();
-  }, []);
+  // Balance comes from global context; no local fetch needed
 
   // Fetch budgets when component mounts or when type changes to expense
   useEffect(() => {
@@ -118,8 +104,11 @@ const AddTransaction: React.FC = () => {
         date: new Date().toISOString()
       });
 
-      // Invalidate all state since we modified backend
-      invalidateOnMutation();
+  // Invalidate all state since we modified backend
+  invalidateOnMutation();
+
+  // Proactively refresh balance right away
+  refreshBalance();
 
       setToastMessage('Transaction added successfully!');
       setToastColor('success');

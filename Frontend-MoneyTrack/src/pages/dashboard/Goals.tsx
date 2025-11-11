@@ -4,8 +4,9 @@ import { useHistory } from "react-router-dom";
 import { Target, Plus, ArrowDownCircle } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { goalsApi, transactionApi } from "../../services/api";
+import { goalsApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
+import { useBalance } from "../../services/BalanceContext";
 
 interface Goal {
   _id: string;
@@ -20,7 +21,7 @@ const Goals: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [balance, setBalance] = useState(0);
+  const { balance, loading: balanceLoading, refresh: refreshBalance } = useBalance();
   const [contributingGoal, setContributingGoal] = useState<Goal | null>(null);
   const [contributionAmount, setContributionAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -38,12 +39,8 @@ const Goals: React.FC = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
-      const data = await goalsApi.getAll();
-      setGoals(data);
-      
-      // Fetch balance
-      const summaryData = await transactionApi.getSummary();
-      setBalance(summaryData.balance);
+  const data = await goalsApi.getAll();
+  setGoals(data);
     } catch (error) {
       console.error("Error fetching goals:", error);
     } finally {
@@ -85,8 +82,11 @@ const Goals: React.FC = () => {
       // Contribute to goal
       await goalsApi.contribute(contributingGoal._id, amount);
 
-      // Invalidate all state since we modified backend
+  // Invalidate all state since we modified backend
       invalidateOnMutation();
+
+  // Immediately refresh balance to reflect the change
+  refreshBalance();
 
       setToastMessage(`Successfully contributed ${toCurrency(amount)} to ${contributingGoal.name}!`);
       setToastColor('success');
@@ -125,6 +125,7 @@ const Goals: React.FC = () => {
           <Header title="Saving Goals" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
             {/* Balance Display */}
+            {!balanceLoading && (
             <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-emerald-50">
               <div className="text-sm text-slate-600 mb-1">Current Balance</div>
               <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
@@ -136,6 +137,7 @@ const Goals: React.FC = () => {
                 </div>
               )}
             </div>
+            )}
 
             <div className="text-slate-500 text-sm mb-4">Track your savings goals and dedicate funds from your balance.</div>
             
