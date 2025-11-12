@@ -1,6 +1,5 @@
-// ...existing code...
 import React, { useEffect, useState } from "react";
-import { IonPage, IonContent, IonSpinner, IonList, IonItem, IonLabel, IonBadge, IonButton } from "@ionic/react";
+import { IonPage, IonContent, IonSpinner, IonList, IonItem, IonBadge, IonButton } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { Bell, Percent, AlertTriangle } from "lucide-react";
 import { notificationApi } from "../../services/api";
