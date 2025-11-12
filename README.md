@@ -204,6 +204,34 @@ The mock AI uses sophisticated algorithms to generate realistic savings recommen
   ```
 - `GET /auth/verify` - Verify authentication token
 
+## 🔔 Notification Triggers
+
+The application automatically monitors your financial activity and sends notifications when certain conditions are met to help you stay on track with your budget:
+
+### Conditions That Trigger Notifications
+
+1. **High Spending Alert (Income Ratio Warning)**
+   - **Trigger**: When your total expenses reach **80% or more** of your income for the current month
+   - **Requirement**: Only triggered when you have recorded income (income > 0)
+   - **Example**: If your monthly income is $3,000 and expenses reach $2,400 (80%), you'll receive a notification
+   - **Message Format**: "You've spent X% of your income this month. Please review your spending."
+   - **Purpose**: Helps prevent overspending and encourages budget review before exceeding income
+
+2. **Budget Limit Warning**
+   - **Trigger**: When spending in any budget category reaches **80% or more** of its allocated limit
+   - **Requirement**: Applies to any budget with a defined limit (limit > 0)
+   - **Example**: If you set a $500 dining budget and spend $400 (80%), you'll be notified
+   - **Message Format**: 'Budget "[Category]" has used X% (spent / limit).'
+   - **Purpose**: Provides early warning before exceeding budget limits in specific categories
+
+### How Notifications Work
+
+- Notifications are checked automatically when you visit the Dashboard
+- Each notification is only shown once per session to avoid spam
+- Notifications are stored in the database and can be viewed in the Notifications page
+- You can mark notifications as read or mark all as read at once
+- The system tracks notification history with timestamps for future reference
+
 ## 🔐 Authentication & Security
 
 ### Password Hashing Strategy ("Server Relief")
