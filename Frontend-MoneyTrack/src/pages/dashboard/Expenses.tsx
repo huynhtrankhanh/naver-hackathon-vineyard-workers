@@ -3,7 +3,7 @@ import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { transactionApi } from "../../services/api";
+import { transactionApi, authApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface CategoryExpense {
@@ -24,6 +24,14 @@ const Expenses: React.FC = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const sum = items.reduce((a, b) => a + b.amount, 0);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
+
+  const token = (() => {
+    try {
+      return (authApi as any).getToken?.() ?? localStorage.getItem("token");
+    } catch {
+      return localStorage.getItem("token");
+    }
+  })();
 
   const fetchExpenses = useCallback(async () => {
     try {

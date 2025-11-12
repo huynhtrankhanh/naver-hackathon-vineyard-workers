@@ -1,13 +1,14 @@
-import React, { useState, useCallback } from "react";
-import { IonPage, IonContent, IonSpinner } from "@ionic/react";
-import { Wallet, PiggyBank, PieChart, Gauge, Bell } from "lucide-react";
+import React, { useState, useCallback, useEffect } from "react";
+import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
+import { Wallet, PiggyBank, PieChart, Gauge, Bell, AlertTriangle, Percent } from "lucide-react";
 import { useHistory } from "react-router-dom";
 import TabBar from "../../components/dashboard/TabBar";
 import KpiCard from "../../components/dashboard/KpiCard";
 import Legend from "../../components/dashboard/Legend";
-import { transactionApi, goalsApi, budgetApi } from "../../services/api";
+import { transactionApi, goalsApi, budgetApi, authApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
+import { useNotifications } from "../../services/useNotifications";
 
 interface Transaction {
   _id: string;
@@ -41,6 +42,21 @@ const Dashboard: React.FC = () => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Notification state
+  const [notifyMessage, setNotifyMessage] = useState<string | null>(null);
+  const [notifyType, setNotifyType] = useState<'budget' | 'income' | 'info' | null>(null);
+
+  const { checkNotifications } = useNotifications();
+
+  const token = (() => {
+    try {
+      return (authApi as any).getToken?.() ?? localStorage.getItem("token");
+    } catch {
+      return localStorage.getItem("token");
+    }
+  })();
+  console.log("Dashboard token:", token);
 
   const fetchData = useCallback(async () => {
     try {
@@ -94,6 +110,22 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    async function runChecks() {
+      const msgs = await checkNotifications();
+      if (msgs && msgs.length > 0) {
+        const m = msgs[0];
+        setNotifyMessage(m);
+        // simple heuristic to decide icon type from message content
+        const lower = (m || '').toLowerCase();
+        if (lower.includes('budget')) setNotifyType('budget');
+        else if (lower.includes('income')) setNotifyType('income');
+        else setNotifyType('info');
+      }
+    }
+    if (token) runChecks();
+  }, [checkNotifications, income, expenses, budgets.length, token]);
+
   return (
     <IonPage>
       <IonContent className="bg-white">
@@ -107,7 +139,11 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="font-semibold">SmartMoney</div>
               </div>
-              <button className="h-9 w-9 grid place-items-center rounded-xl border border-slate-200 hover:bg-slate-50">
+              <button 
+                onClick={() => history.push("/notifications")}
+                className="h-9 w-9 grid place-items-center rounded-xl border border-slate-200 hover:bg-slate-50"
+                aria-label="Notifications"
+                >
                 <Bell className="h-5 w-5 text-slate-700" />
               </button>
             </div>
@@ -218,7 +254,7 @@ const Dashboard: React.FC = () => {
                           <div key={g._id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                               <div className="font-medium">{g.name}</div>
-                              <span className="text-sm text-slate-500">Target {toCurrency(g.target)}</span>
+                              <span className="text-sm text-slate-500">Target {toCurrency(g.target ?? 0)}</span>
                             </div>
                             <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                               <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, progress*100)}%` }} />
@@ -276,6 +312,13 @@ const Dashboard: React.FC = () => {
           {/* Bottom Tab Bar */}
           <TabBar active="dashboard" />
         </div>
+        <IonToast
+          isOpen={!!notifyMessage}
+          message={`${notifyType === 'budget' ? '📊 ' : notifyType === 'income' ? '⚠️ ' : '🔔 '}${notifyMessage || ''}`}
+          duration={5000}
+          onDidDismiss={() => setNotifyMessage(null)}
+          position="top"
+        />
       </IonContent>
     </IonPage>
   );

@@ -6,6 +6,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import transactionsRouter from './routes/transactions.js';
 import goalsRouter from './routes/goals.js';
 import budgetsRouter from './routes/budgets.js';
+import notificationRouter from './routes/notifications.js';
 import aiRouter from './routes/ai.js';
 import authRouter from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
@@ -29,6 +30,7 @@ app.use('/api/transactions', authMiddleware, transactionsRouter);
 app.use('/api/goals', authMiddleware, goalsRouter);
 app.use('/api/budgets', authMiddleware, budgetsRouter);
 app.use('/api/ai', authMiddleware, aiRouter);
+app.use('/api/notifications', authMiddleware, notificationRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

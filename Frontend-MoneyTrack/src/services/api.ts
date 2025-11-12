@@ -146,3 +146,20 @@ export const authApi = {
     return !!localStorage.getItem('authToken');
   },
 };
+
+// Notification API
+export const notificationApi = {
+  // Get all notifications for the user
+  getAll: () => apiCall<any[]>('/notifications'),
+  // Create a new notification
+  create: (payload: { type: string; message: string; meta?: Record<string, any> }) => 
+    apiCall<any>('/notifications', {
+      method: 'POST',
+      body: JSON.stringify(payload),  
+    }),
+  // Mark a notification as read
+  markAsRead: (id: string) =>
+    apiCall<any>(`/notifications/${id}/read`, {
+      method: 'PUT',
+    }),
+};

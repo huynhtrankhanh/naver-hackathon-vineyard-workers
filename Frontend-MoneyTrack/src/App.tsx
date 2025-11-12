@@ -17,6 +17,7 @@ import AddTransaction from "./pages/dashboard/AddTransaction";
 import Goals from "./pages/dashboard/Goals";
 import Profile from "./pages/dashboard/Profile";
 import SavingsOnboarding from "./pages/SavingsOnboarding";
+import Notifications from "./pages/dashboard/Notification";
 
 /* Core CSS */
 import "@ionic/react/css/core.css";
@@ -56,6 +57,7 @@ const App: React.FC = () => (
   <ProtectedRoute exact path="/add" component={AddTransaction} />
   <ProtectedRoute exact path="/goals" component={Goals} />
   <ProtectedRoute exact path="/profile" component={Profile} />
+  <ProtectedRoute exact path="/notifications" component={Notifications} />
   <ProtectedRoute exact path="/savings-onboarding" component={SavingsOnboarding} />
 
         {/* 3. DÙNG 'Redirect' (của v5) */}
