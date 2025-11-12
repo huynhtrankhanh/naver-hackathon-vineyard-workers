@@ -47,6 +47,43 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
+// Check if a recent notification of a specific type exists
+router.get('/check-recent', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any)?.id || (req.user as any)?.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    }
+
+    const { type, category } = req.query;
+    if (!type) {
+      return res.status(400).json({ message: 'Missing type parameter' });
+    }
+
+    // Check for notifications within the last 24 hours
+    const oneDayAgo = new Date();
+    oneDayAgo.setHours(oneDayAgo.getHours() - 24);
+
+    const query: any = {
+      userId,
+      type,
+      createdAt: { $gte: oneDayAgo }
+    };
+
+    // For budget notifications, also match the category
+    if (type === 'budget_limit' && category) {
+      query['meta.category'] = category;
+    }
+
+    const recentNotification = await Notification.findOne(query).sort({ createdAt: -1 });
+    
+    res.json({ exists: !!recentNotification });
+  } catch (error) {
+    console.error('Error checking recent notification:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Mark a notification as read
 router.put('/:id/read', authMiddleware, async (req: Request, res: Response) => {
   try {
