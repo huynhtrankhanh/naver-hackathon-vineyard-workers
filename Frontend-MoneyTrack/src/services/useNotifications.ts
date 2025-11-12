@@ -19,14 +19,34 @@ export function useNotifications() {
     return localStorage.getItem("token") || localStorage.getItem("authToken") || null;
   }
 
+  async function shouldCreateNotification(type: string, meta?: Record<string, any>): Promise<boolean> {
+    try {
+      // Use the efficient check-recent endpoint
+      const category = meta?.category;
+      const result = await notificationApi.checkRecent(type, category);
+      return !result.exists;
+    } catch (error) {
+      console.error("Error checking existing notifications:", error);
+      // If we can't check, err on the side of not creating to avoid spam
+      return false;
+    }
+  }
+
   async function pushNotificationToServer(type: string, message: string, meta?: Record<string, any>) {
+    // Check if we should create this notification
+    const shouldCreate = await shouldCreateNotification(type, meta);
+    if (!shouldCreate) {
+      console.log("Skipping notification creation - similar notification exists recently:", type);
+      return;
+    }
+
     const payload = {
       type,
       message,
       meta: meta ?? {},
     };
 
-    console.log("Pushing notification:", payload); // ← Xem payload
+    console.log("Pushing notification:", payload);
 
     try {
       await notificationApi.create(payload);
