@@ -1,6 +1,5 @@
-// ...existing code...
 import React, { useEffect, useState } from "react";
-import { IonPage, IonContent, IonSpinner, IonList, IonItem, IonLabel, IonBadge, IonButton } from "@ionic/react";
+import { IonPage, IonContent, IonSpinner, IonList, IonItem, IonBadge, IonButton } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { Bell, Percent, AlertTriangle } from "lucide-react";
 import { notificationApi } from "../../services/api";
@@ -39,7 +38,7 @@ const Notifications: React.FC = () => {
     setBusyId(id);
     try {
       await notificationApi.markAsRead(id);
-      setItems(prev => prev.map(p => (p._id === id ? { ...p, read: true } : p)));
+      setItems(prev => prev.map(p => (p._id === id ? { ...p, isRead: true } : p)));
     } catch (err) {
       console.error("Mark read failed", err);
     } finally {
@@ -49,7 +48,7 @@ const Notifications: React.FC = () => {
 
   // handle user selecting an item: mark read and navigate if meta.route present
   const handleSelect = async (notif: any) => {
-    if (!notif.read) {
+    if (!notif.isRead) {
       await markRead(notif._id);
     }
     if (notif.meta && notif.meta.route) {
@@ -59,8 +58,8 @@ const Notifications: React.FC = () => {
 
   const markAllRead = async () => {
     try {
-      await Promise.all(items.filter(i => !i.read).map(i => notificationApi.markAsRead(i._id)));
-      setItems(prev => prev.map(p => ({ ...p, read: true })));
+      await Promise.all(items.filter(i => !i.isRead).map(i => notificationApi.markAsRead(i._id)));
+      setItems(prev => prev.map(p => ({ ...p, isRead: true })));
     } catch (err) {
       console.error("Mark all read failed", err);
     }
@@ -91,18 +90,18 @@ const Notifications: React.FC = () => {
                   key={notif._id}
                   button
                   onClick={() => handleSelect(notif)}
-                  className={`py-3 ${notif.read ? "opacity-70" : "bg-white"}`}
+                  className={`py-3 ${notif.isRead ? "opacity-70" : "bg-white"}`}
                 >
                   <div className="flex items-start gap-3 w-full">
                     <div className="mt-1">{iconForType(notif.type)}</div>
                     <div className="flex-1">
-                      <div className={`font-medium ${notif.read ? "text-slate-700" : "text-slate-900"}`}>
+                      <div className={`font-medium ${notif.isRead ? "text-slate-700" : "text-slate-900"}`}>
                         {notif.message}
                       </div>
                       <div className="text-xs text-slate-500 mt-1">{new Date(notif.createdAt).toLocaleString()}</div>
                     </div>
                     <div className="ml-2 flex flex-col items-end gap-2">
-                      {!notif.read && (
+                      {!notif.isRead && (
                         <IonBadge color="danger">New</IonBadge>
                       )}
                       {/* keep an optional explicit button but it won't be necessary */}
@@ -114,7 +113,7 @@ const Notifications: React.FC = () => {
                           markRead(notif._id);
                         }}
                       >
-                        {notif.read ? "Read" : "Mark read"}
+                        {notif.isRead ? "Read" : "Mark read"}
                       </IonButton>
                     </div>
                   </div>
