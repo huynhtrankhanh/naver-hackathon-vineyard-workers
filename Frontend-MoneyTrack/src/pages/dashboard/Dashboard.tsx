@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
-import { Wallet, PiggyBank, PieChart, Gauge, Bell, AlertTriangle, Percent } from "lucide-react";
+import { IonPage, IonContent, IonSpinner } from "@ionic/react";
+import { Wallet, PiggyBank, PieChart, Gauge, Bell } from "lucide-react";
 import { useHistory } from "react-router-dom";
 import TabBar from "../../components/dashboard/TabBar";
 import KpiCard from "../../components/dashboard/KpiCard";
 import Legend from "../../components/dashboard/Legend";
+import NotificationToast from "../../components/NotificationToast";
 import { transactionApi, goalsApi, budgetApi, authApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
@@ -312,12 +313,11 @@ const Dashboard: React.FC = () => {
           {/* Bottom Tab Bar */}
           <TabBar active="dashboard" />
         </div>
-        <IonToast
-          isOpen={!!notifyMessage}
-          message={`${notifyType === 'budget' ? '📊 ' : notifyType === 'income' ? '⚠️ ' : '🔔 '}${notifyMessage || ''}`}
-          duration={5000}
-          onDidDismiss={() => setNotifyMessage(null)}
-          position="top"
+        <NotificationToast
+          message={notifyMessage || ""}
+          type={notifyType}
+          onDismiss={() => setNotifyMessage(null)}
+          isVisible={!!notifyMessage}
         />
       </IonContent>
     </IonPage>
