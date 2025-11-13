@@ -53,7 +53,7 @@ const Goals: React.FC = () => {
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
   const [acceptingPlanId, setAcceptingPlanId] = useState<string | null>(null);
   
-  const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
+  const toCurrency = (v: number = 0) => v.toLocaleString("vi-VN") + " đ";
 
   const invalidateOnMutation = useInvalidateOnMutation();
 
@@ -184,7 +184,7 @@ const Goals: React.FC = () => {
           <Header title="Saving" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
             {/* Balance Display */}
-            {!balanceLoading && (
+            {!balanceLoading && balance !== undefined && (
             <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-emerald-50">
               <div className="text-sm text-slate-600 mb-1">Current Balance</div>
               <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
