@@ -50,7 +50,7 @@ export async function* streamClovaAPI(
   apiUrl?: string
 ): AsyncGenerator<ClovaStreamChunk> {
   const key = apiKey || process.env.CLOVA_API_KEY;
-  const url = apiUrl || process.env.CLOVA_API_URL || 'https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003';
+  const url = apiUrl || process.env.CLOVA_API_URL || 'https://clovastudio.stream.ntruss.com/v1/openai/chat/completions';
   
   if (!key) {
     throw new Error('CLOVA_API_KEY is not set');
@@ -58,12 +58,12 @@ export async function* streamClovaAPI(
   
   const requestBody = JSON.stringify({
     messages,
-    tools: tools || [],
+    tools: tools && tools.length > 0 ? tools : undefined,
     stream: true,
-    maxTokens: 2000,
+    max_tokens: 2000,
     temperature: 0.7,
-    topP: 0.8,
-    repeatPenalty: 1.2
+    top_p: 0.8,
+    model: 'HCX-005' // Use HCX-005 model as shown in docs
   });
   
   const urlObj = new URL(url);
@@ -76,8 +76,7 @@ export async function* streamClovaAPI(
     headers: {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(requestBody),
-      'X-NCP-CLOVASTUDIO-API-KEY': key,
-      'X-NCP-APIGW-API-KEY': key
+      'Authorization': `Bearer ${key}`
     }
   };
   
@@ -158,7 +157,7 @@ export async function callClovaAPI(
   apiUrl?: string
 ): Promise<any> {
   const key = apiKey || process.env.CLOVA_API_KEY;
-  const url = apiUrl || process.env.CLOVA_API_URL || 'https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003';
+  const url = apiUrl || process.env.CLOVA_API_URL || 'https://clovastudio.stream.ntruss.com/v1/openai/chat/completions';
   
   if (!key) {
     throw new Error('CLOVA_API_KEY is not set');
@@ -166,12 +165,12 @@ export async function callClovaAPI(
   
   const requestBody = JSON.stringify({
     messages,
-    tools: tools || [],
+    tools: tools && tools.length > 0 ? tools : undefined,
     stream: false,
-    maxTokens: 2000,
+    max_tokens: 2000,
     temperature: 0.7,
-    topP: 0.8,
-    repeatPenalty: 1.2
+    top_p: 0.8,
+    model: 'HCX-005'
   });
   
   const urlObj = new URL(url);
@@ -184,8 +183,7 @@ export async function callClovaAPI(
     headers: {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(requestBody),
-      'X-NCP-CLOVASTUDIO-API-KEY': key,
-      'X-NCP-APIGW-API-KEY': key
+      'Authorization': `Bearer ${key}`
     }
   };
   
