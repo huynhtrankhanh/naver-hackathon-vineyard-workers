@@ -91,7 +91,7 @@ export async function executePythonSandbox(
         child.kill('SIGKILL');
       }, timeout);
       
-      child.on('close', (code) => {
+      child.on('close', (code: number | null) => {
         clearTimeout(timeoutHandle);
         
         try {
@@ -127,7 +127,7 @@ export async function executePythonSandbox(
         }
       });
       
-      child.on('error', (err) => {
+      child.on('error', (err: Error) => {
         clearTimeout(timeoutHandle);
         
         try {
@@ -163,7 +163,7 @@ export async function executePythonSandbox(
 export async function isFirejailAvailable(): Promise<boolean> {
   return new Promise((resolve) => {
     const child = spawn('which', ['firejail']);
-    child.on('close', (code) => {
+    child.on('close', (code: number | null) => {
       resolve(code === 0);
     });
     child.on('error', () => {
