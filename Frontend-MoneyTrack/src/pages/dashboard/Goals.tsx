@@ -52,6 +52,10 @@ const Goals: React.FC = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
   const [acceptingPlanId, setAcceptingPlanId] = useState<string | null>(null);
+  const [showCreateGoalForm, setShowCreateGoalForm] = useState(false);
+  const [newGoalName, setNewGoalName] = useState('');
+  const [newGoalTarget, setNewGoalTarget] = useState('');
+  const [newGoalPriority, setNewGoalPriority] = useState<'low' | 'medium' | 'high'>('medium');
   
   const toCurrency = (v: number = 0) => v.toLocaleString("vi-VN") + " đ";
 
@@ -113,6 +117,56 @@ const Goals: React.FC = () => {
       setShowToast(true);
     } finally {
       setAcceptingPlanId(null);
+    }
+  };
+
+  const handleCreateGoalManually = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newGoalName.trim() || !newGoalTarget) {
+      setToastMessage('Please fill in all fields');
+      setToastColor('danger');
+      setShowToast(true);
+      return;
+    }
+
+    const target = parseFloat(newGoalTarget);
+    if (isNaN(target) || target <= 0) {
+      setToastMessage('Please enter a valid target amount');
+      setToastColor('danger');
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await goalsApi.create({
+        name: newGoalName.trim(),
+        target,
+        priority: newGoalPriority,
+        current: 0
+      });
+
+      setToastMessage('Saving goal created successfully!');
+      setToastColor('success');
+      setShowToast(true);
+
+      // Reset form
+      setNewGoalName('');
+      setNewGoalTarget('');
+      setNewGoalPriority('medium');
+      setShowCreateGoalForm(false);
+
+      // Refresh data
+      invalidateOnMutation();
+      await fetchGoals();
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      setToastMessage('Failed to create goal. Please try again.');
+      setToastColor('danger');
+      setShowToast(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -409,6 +463,94 @@ const Goals: React.FC = () => {
               </div>
             )}
 
+            {/* Manual Goal Creation Form */}
+            {showCreateGoalForm && (
+              <div className="rounded-2xl border-2 border-blue-500 p-4 shadow-lg mb-4 bg-white">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-lg">Create New Saving Goal</h3>
+                  <button
+                    onClick={() => {
+                      setShowCreateGoalForm(false);
+                      setNewGoalName('');
+                      setNewGoalTarget('');
+                      setNewGoalPriority('medium');
+                    }}
+                    className="text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <form onSubmit={handleCreateGoalManually} className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Goal Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newGoalName}
+                      onChange={(e) => setNewGoalName(e.target.value)}
+                      placeholder="e.g., Emergency Fund, New Car"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Target Amount (đ)
+                    </label>
+                    <input
+                      type="number"
+                      value={newGoalTarget}
+                      onChange={(e) => setNewGoalTarget(e.target.value)}
+                      placeholder="e.g., 10000000"
+                      min="1"
+                      step="1000"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Priority
+                    </label>
+                    <select
+                      value={newGoalPriority}
+                      onChange={(e) => setNewGoalPriority(e.target.value as 'low' | 'medium' | 'high')}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={submitting}
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {submitting ? 'Creating...' : 'Create Goal'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {!showCreateGoalForm && (
+                <button
+                  onClick={() => setShowCreateGoalForm(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 text-white py-3 font-medium shadow-md hover:bg-emerald-700"
+                >
+                  <Plus className="h-5 w-5" />
+                  Create Goal Manually
+                </button>
+              )}
+
             <button
               onClick={() => history.push("/savings-onboarding")}
               className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 text-white py-3 font-medium shadow-md hover:bg-blue-700"
@@ -416,6 +558,7 @@ const Goals: React.FC = () => {
               <Plus className="h-5 w-5" />
               Create Saving Plan with AI
             </button>
+            </div>
 
             <IonToast
               isOpen={showToast}
