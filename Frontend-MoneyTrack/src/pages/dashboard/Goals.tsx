@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
-import { Target, Plus, ArrowDownCircle } from "lucide-react";
+import { Target, Plus, ArrowDownCircle, Sparkles, CheckCircle, FileText } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { goalsApi } from "../../services/api";
+import { goalsApi, aiApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 
@@ -14,11 +14,34 @@ interface Goal {
   target: number;
   current: number;
   priority: string;
+  savingPlanId?: string;
+}
+
+interface SavingPlan {
+  _id: string;
+  goal: string;
+  intensity: string;
+  suggestedSavings: number;
+  streamingStatus: string;
+  proposedGoal?: {
+    name: string;
+    target: number;
+    priority: string;
+    accepted: boolean;
+    linkedGoalId?: string;
+  };
+  proposedBudgetLimits?: Array<{
+    category: string;
+    suggestedLimit: number;
+    reasoning?: string;
+  }>;
+  createdAt: string;
 }
 
 const Goals: React.FC = () => {
   const history = useHistory();
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { balance, loading: balanceLoading, refresh: refreshBalance } = useBalance();
@@ -28,6 +51,7 @@ const Goals: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
+  const [acceptingPlanId, setAcceptingPlanId] = useState<string | null>(null);
   
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
@@ -39,8 +63,8 @@ const Goals: React.FC = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
-  const data = await goalsApi.getAll();
-  setGoals(data);
+      const data = await goalsApi.getAll();
+      setGoals(data);
     } catch (error) {
       console.error("Error fetching goals:", error);
     } finally {
@@ -51,11 +75,46 @@ const Goals: React.FC = () => {
     }
   }, [isInitialLoad]);
 
+  const fetchSavingPlans = useCallback(async () => {
+    try {
+      const data = await aiApi.getAllPlans();
+      setSavingPlans(data);
+    } catch (error) {
+      console.error("Error fetching saving plans:", error);
+    }
+  }, []);
+
   // Use state invalidation hook
   useStateInvalidation({
     dataType: 'goals',
-    fetchData: fetchGoals,
+    fetchData: async () => {
+      await fetchGoals();
+      await fetchSavingPlans();
+    },
   });
+
+  const acceptProposedGoal = async (planId: string) => {
+    try {
+      setAcceptingPlanId(planId);
+      await aiApi.acceptGoal(planId);
+      
+      setToastMessage('Saving goal accepted and created successfully!');
+      setToastColor('success');
+      setShowToast(true);
+      
+      // Refresh data
+      invalidateOnMutation();
+      await fetchGoals();
+      await fetchSavingPlans();
+    } catch (error) {
+      console.error('Error accepting goal:', error);
+      setToastMessage('Failed to accept goal. Please try again.');
+      setToastColor('danger');
+      setShowToast(true);
+    } finally {
+      setAcceptingPlanId(null);
+    }
+  };
 
   const handleContribute = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,6 +251,89 @@ const Goals: React.FC = () => {
             ) : (
               <div className="text-center text-slate-500 py-8 mb-4">
                 No saving goals yet. Create one with AI!
+              </div>
+            )}
+
+            {/* Saving Plans Section */}
+            {savingPlans.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  AI Saving Plans
+                </h2>
+                <div className="space-y-3 mb-4">
+                  {savingPlans.map(plan => (
+                    <div key={plan._id} className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 shadow-sm">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="font-medium text-slate-900">{plan.goal}</div>
+                          <div className="text-xs text-slate-500 capitalize">{plan.intensity}</div>
+                        </div>
+                        <div className="text-sm text-blue-600 font-medium">
+                          {toCurrency(plan.suggestedSavings)}/mo
+                        </div>
+                      </div>
+                      
+                      {/* Proposed Goal */}
+                      {plan.proposedGoal && !plan.proposedGoal.accepted && (
+                        <div className="mt-3 p-3 bg-white rounded-xl border border-emerald-200">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <div className="text-sm font-medium text-emerald-700">Proposed Saving Goal</div>
+                              <div className="text-sm font-semibold text-slate-900">{plan.proposedGoal.name}</div>
+                              <div className="text-xs text-slate-600">
+                                Target: {toCurrency(plan.proposedGoal.target)} • {plan.proposedGoal.priority} priority
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => acceptProposedGoal(plan._id)}
+                            disabled={acceptingPlanId === plan._id}
+                            className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-600 text-white py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            {acceptingPlanId === plan._id ? (
+                              <>
+                                <IonSpinner name="crescent" className="h-4 w-4" />
+                                Accepting...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4" />
+                                Accept Goal
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      
+                      {plan.proposedGoal && plan.proposedGoal.accepted && (
+                        <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                          <div className="flex items-center gap-2 text-sm text-emerald-700">
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="font-medium">Goal accepted and created</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Proposed Budget Limits */}
+                      {plan.proposedBudgetLimits && plan.proposedBudgetLimits.length > 0 && (
+                        <div className="mt-3">
+                          <button
+                            onClick={() => history.push('/dashboard/budget')}
+                            className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700"
+                          >
+                            <FileText className="h-4 w-4" />
+                            View Proposed Budget Limits ({plan.proposedBudgetLimits.length})
+                          </button>
+                        </div>
+                      )}
+                      
+                      <div className="mt-2 text-xs text-slate-500">
+                        Created {new Date(plan.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
