@@ -12,7 +12,7 @@ const TabBar: React.FC<TabBarProps> = ({ active }) => {
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: PieChart, path: "/dashboard" },
     { id: "add", label: "Add", icon: Plus, path: "/add" },
-    { id: "goals", label: "Goals", icon: Sparkles, path: "/goals" },
+    { id: "goals", label: "Saving", icon: Sparkles, path: "/goals" },
     { id: "profile", label: "Profile", icon: User, path: "/profile" },
   ];
 

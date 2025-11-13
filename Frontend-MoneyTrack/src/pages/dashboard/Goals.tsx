@@ -122,7 +122,7 @@ const Goals: React.FC = () => {
     <IonPage>
       <IonContent className="bg-white">
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
-          <Header title="Saving Goals" onBack={() => history.push("/dashboard")} />
+          <Header title="Saving" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
             {/* Balance Display */}
             {!balanceLoading && (
@@ -139,7 +139,7 @@ const Goals: React.FC = () => {
             </div>
             )}
 
-            <div className="text-slate-500 text-sm mb-4">Track your savings goals and dedicate funds from your balance.</div>
+            <div className="text-slate-500 text-sm mb-4">Track your saving goals and dedicate funds from your balance.</div>
             
             {loading ? (
               <div className="flex justify-center items-center py-12">
@@ -191,7 +191,7 @@ const Goals: React.FC = () => {
               </div>
             ) : (
               <div className="text-center text-slate-500 py-8 mb-4">
-                No savings goals yet. Create one with AI!
+                No saving goals yet. Create one with AI!
               </div>
             )}
 
@@ -272,7 +272,7 @@ const Goals: React.FC = () => {
               className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 text-white py-3 font-medium shadow-md hover:bg-blue-700"
             >
               <Plus className="h-5 w-5" />
-              Create Savings Plan with AI
+              Create Saving Plan with AI
             </button>
 
             <IonToast

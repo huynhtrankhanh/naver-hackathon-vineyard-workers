@@ -125,7 +125,7 @@ const SavingsOnboarding: React.FC = () => {
                     Let the AI design your perfect budget.
                   </h1>
                   <p className="text-gray-500 text-lg leading-relaxed">
-                    We use smart technology to find savings you barely notice. How should we begin?
+                    We use smart technology to find saving opportunities you barely notice. How should we begin?
                   </p>
                 </div>
 
@@ -191,7 +191,7 @@ const SavingsOnboarding: React.FC = () => {
                         Step 1 of 3
                       </span>
                       <h2 className="text-2xl font-bold text-gray-900 mb-3">What's your top priority?</h2>
-                      <p className="text-gray-500 mb-6">This helps the AI decide the initial savings aggressiveness.</p>
+                      <p className="text-gray-500 mb-6">This helps the AI decide the initial saving aggressiveness.</p>
 
                       <div className="space-y-3 pb-6">
                         {[
@@ -229,7 +229,7 @@ const SavingsOnboarding: React.FC = () => {
                       <span className="text-indigo-600 font-semibold tracking-wider uppercase text-xs mb-2 block">
                         Step 2 of 3
                       </span>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-3">What's your monthly savings goal?</h2>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3">What's your monthly saving goal?</h2>
                       <p className="text-gray-500 mb-6">You can leave this blank, and the AI will suggest a goal for you.</p>
 
                       <div className="relative mb-8">
@@ -265,7 +265,7 @@ const SavingsOnboarding: React.FC = () => {
                       <div className="space-y-4 pb-6">
                         {[
                           { icon: Sprout, color: 'green', label: 'Just starting out', value: 'Just starting out', desc: 'Small changes. I prioritize comfort and flexibility.' },
-                          { icon: Scale, color: 'blue', label: 'Ideal target', value: 'Ideal target', desc: 'Aim to hit it. AI should balance savings and spending.' },
+                          { icon: Scale, color: 'blue', label: 'Ideal target', value: 'Ideal target', desc: 'Aim to hit it. AI should balance saving and spending.' },
                           { icon: Flame, color: 'orange', label: 'Must achieve', value: 'Must achieve', desc: 'Maximum priority. I\'m ready for aggressive cuts.' }
                         ].map((option) => {
                           const Icon = option.icon;
@@ -374,7 +374,7 @@ const SavingsOnboarding: React.FC = () => {
                     <div className="flex justify-between items-center mb-8">
                       <div>
                         <div className="text-blue-600 text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <Sparkles className="w-4 h-4" /> Suggested Savings
+                          <Sparkles className="w-4 h-4" /> Suggested Saving Amount
                         </div>
                         <div className="text-5xl font-black text-gray-900 tracking-tight">
                           ${aiResult.suggestedSavings}
@@ -458,7 +458,7 @@ const SavingsOnboarding: React.FC = () => {
                   >
                     <ArrowLeft className="w-6 h-6" />
                   </button>
-                  <h2 className="flex-1 text-lg font-bold text-gray-900 ml-4">Detailed Savings Advice</h2>
+                  <h2 className="flex-1 text-lg font-bold text-gray-900 ml-4">Detailed Saving Advice</h2>
                 </div>
                 
                 <div className="flex-1 p-6 overflow-y-auto prose prose-slate max-w-none">
