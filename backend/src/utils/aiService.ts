@@ -157,7 +157,9 @@ Guidelines:
       { role: 'user', content: 'Please analyze my financial situation and create a personalized saving plan for me.' }
     ];
     
-    const tools = getToolDefinitions();
+    // Temporarily disable tools to test API
+    // const tools = getToolDefinitions();
+    const tools: any[] = [];
     
     // Execute with tool calling loop
     let toolCallIteration = 0;
