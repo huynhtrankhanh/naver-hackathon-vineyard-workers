@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory } from "react-router-dom";
-import { Target, Plus, ArrowDownCircle } from "lucide-react";
+import { Target, Plus, ArrowDownCircle, Sparkles, CheckCircle, FileText } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { goalsApi } from "../../services/api";
+import { goalsApi, aiApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 
@@ -14,11 +14,34 @@ interface Goal {
   target: number;
   current: number;
   priority: string;
+  savingPlanId?: string;
+}
+
+interface SavingPlan {
+  _id: string;
+  goal: string;
+  intensity: string;
+  suggestedSavings: number;
+  streamingStatus: string;
+  proposedGoal?: {
+    name: string;
+    target: number;
+    priority: string;
+    accepted: boolean;
+    linkedGoalId?: string;
+  };
+  proposedBudgetLimits?: Array<{
+    category: string;
+    suggestedLimit: number;
+    reasoning?: string;
+  }>;
+  createdAt: string;
 }
 
 const Goals: React.FC = () => {
   const history = useHistory();
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { balance, loading: balanceLoading, refresh: refreshBalance } = useBalance();
@@ -28,8 +51,13 @@ const Goals: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
+  const [acceptingPlanId, setAcceptingPlanId] = useState<string | null>(null);
+  const [showCreateGoalForm, setShowCreateGoalForm] = useState(false);
+  const [newGoalName, setNewGoalName] = useState('');
+  const [newGoalTarget, setNewGoalTarget] = useState('');
+  const [newGoalPriority, setNewGoalPriority] = useState<'low' | 'medium' | 'high'>('medium');
   
-  const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
+  const toCurrency = (v: number = 0) => v.toLocaleString("vi-VN") + " đ";
 
   const invalidateOnMutation = useInvalidateOnMutation();
 
@@ -39,8 +67,8 @@ const Goals: React.FC = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
-  const data = await goalsApi.getAll();
-  setGoals(data);
+      const data = await goalsApi.getAll();
+      setGoals(data);
     } catch (error) {
       console.error("Error fetching goals:", error);
     } finally {
@@ -51,11 +79,96 @@ const Goals: React.FC = () => {
     }
   }, [isInitialLoad]);
 
+  const fetchSavingPlans = useCallback(async () => {
+    try {
+      const data = await aiApi.getAllPlans();
+      setSavingPlans(data);
+    } catch (error) {
+      console.error("Error fetching saving plans:", error);
+    }
+  }, []);
+
   // Use state invalidation hook
   useStateInvalidation({
     dataType: 'goals',
-    fetchData: fetchGoals,
+    fetchData: async () => {
+      await fetchGoals();
+      await fetchSavingPlans();
+    },
   });
+
+  const acceptProposedGoal = async (planId: string) => {
+    try {
+      setAcceptingPlanId(planId);
+      await aiApi.acceptGoal(planId);
+      
+      setToastMessage('Saving goal accepted and created successfully!');
+      setToastColor('success');
+      setShowToast(true);
+      
+      // Refresh data
+      invalidateOnMutation();
+      await fetchGoals();
+      await fetchSavingPlans();
+    } catch (error) {
+      console.error('Error accepting goal:', error);
+      setToastMessage('Failed to accept goal. Please try again.');
+      setToastColor('danger');
+      setShowToast(true);
+    } finally {
+      setAcceptingPlanId(null);
+    }
+  };
+
+  const handleCreateGoalManually = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newGoalName.trim() || !newGoalTarget) {
+      setToastMessage('Please fill in all fields');
+      setToastColor('danger');
+      setShowToast(true);
+      return;
+    }
+
+    const target = parseFloat(newGoalTarget);
+    if (isNaN(target) || target <= 0) {
+      setToastMessage('Please enter a valid target amount');
+      setToastColor('danger');
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await goalsApi.create({
+        name: newGoalName.trim(),
+        target,
+        priority: newGoalPriority,
+        current: 0
+      });
+
+      setToastMessage('Saving goal created successfully!');
+      setToastColor('success');
+      setShowToast(true);
+
+      // Reset form
+      setNewGoalName('');
+      setNewGoalTarget('');
+      setNewGoalPriority('medium');
+      setShowCreateGoalForm(false);
+
+      // Refresh data
+      invalidateOnMutation();
+      await fetchGoals();
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      setToastMessage('Failed to create goal. Please try again.');
+      setToastColor('danger');
+      setShowToast(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleContribute = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,10 +235,10 @@ const Goals: React.FC = () => {
     <IonPage>
       <IonContent className="bg-white">
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
-          <Header title="Saving Goals" onBack={() => history.push("/dashboard")} />
+          <Header title="Saving" onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
             {/* Balance Display */}
-            {!balanceLoading && (
+            {!balanceLoading && balance !== undefined && (
             <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-emerald-50">
               <div className="text-sm text-slate-600 mb-1">Current Balance</div>
               <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
@@ -139,7 +252,7 @@ const Goals: React.FC = () => {
             </div>
             )}
 
-            <div className="text-slate-500 text-sm mb-4">Track your savings goals and dedicate funds from your balance.</div>
+            <div className="text-slate-500 text-sm mb-4">Track your saving goals and dedicate funds from your balance.</div>
             
             {loading ? (
               <div className="flex justify-center items-center py-12">
@@ -191,7 +304,90 @@ const Goals: React.FC = () => {
               </div>
             ) : (
               <div className="text-center text-slate-500 py-8 mb-4">
-                No savings goals yet. Create one with AI!
+                No saving goals yet. Create one with AI!
+              </div>
+            )}
+
+            {/* Saving Plans Section */}
+            {savingPlans.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  AI Saving Plans
+                </h2>
+                <div className="space-y-3 mb-4">
+                  {savingPlans.map(plan => (
+                    <div key={plan._id} className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 shadow-sm">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="font-medium text-slate-900">{plan.goal}</div>
+                          <div className="text-xs text-slate-500 capitalize">{plan.intensity}</div>
+                        </div>
+                        <div className="text-sm text-blue-600 font-medium">
+                          {toCurrency(plan.suggestedSavings)}/mo
+                        </div>
+                      </div>
+                      
+                      {/* Proposed Goal */}
+                      {plan.proposedGoal && !plan.proposedGoal.accepted && (
+                        <div className="mt-3 p-3 bg-white rounded-xl border border-emerald-200">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <div className="text-sm font-medium text-emerald-700">Proposed Saving Goal</div>
+                              <div className="text-sm font-semibold text-slate-900">{plan.proposedGoal.name}</div>
+                              <div className="text-xs text-slate-600">
+                                Target: {toCurrency(plan.proposedGoal.target)} • {plan.proposedGoal.priority} priority
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => acceptProposedGoal(plan._id)}
+                            disabled={acceptingPlanId === plan._id}
+                            className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-600 text-white py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            {acceptingPlanId === plan._id ? (
+                              <>
+                                <IonSpinner name="crescent" className="h-4 w-4" />
+                                Accepting...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4" />
+                                Accept Goal
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      
+                      {plan.proposedGoal && plan.proposedGoal.accepted && (
+                        <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                          <div className="flex items-center gap-2 text-sm text-emerald-700">
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="font-medium">Goal accepted and created</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Proposed Budget Limits */}
+                      {plan.proposedBudgetLimits && plan.proposedBudgetLimits.length > 0 && (
+                        <div className="mt-3">
+                          <button
+                            onClick={() => history.push('/dashboard/budget')}
+                            className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700"
+                          >
+                            <FileText className="h-4 w-4" />
+                            View Proposed Budget Limits ({plan.proposedBudgetLimits.length})
+                          </button>
+                        </div>
+                      )}
+                      
+                      <div className="mt-2 text-xs text-slate-500">
+                        Created {new Date(plan.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -267,13 +463,102 @@ const Goals: React.FC = () => {
               </div>
             )}
 
+            {/* Manual Goal Creation Form */}
+            {showCreateGoalForm && (
+              <div className="rounded-2xl border-2 border-blue-500 p-4 shadow-lg mb-4 bg-white">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-lg">Create New Saving Goal</h3>
+                  <button
+                    onClick={() => {
+                      setShowCreateGoalForm(false);
+                      setNewGoalName('');
+                      setNewGoalTarget('');
+                      setNewGoalPriority('medium');
+                    }}
+                    className="text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <form onSubmit={handleCreateGoalManually} className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Goal Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newGoalName}
+                      onChange={(e) => setNewGoalName(e.target.value)}
+                      placeholder="e.g., Emergency Fund, New Car"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Target Amount (đ)
+                    </label>
+                    <input
+                      type="number"
+                      value={newGoalTarget}
+                      onChange={(e) => setNewGoalTarget(e.target.value)}
+                      placeholder="e.g., 10000000"
+                      min="1"
+                      step="1000"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Priority
+                    </label>
+                    <select
+                      value={newGoalPriority}
+                      onChange={(e) => setNewGoalPriority(e.target.value as 'low' | 'medium' | 'high')}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={submitting}
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {submitting ? 'Creating...' : 'Create Goal'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {!showCreateGoalForm && (
+                <button
+                  onClick={() => setShowCreateGoalForm(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 text-white py-3 font-medium shadow-md hover:bg-emerald-700"
+                >
+                  <Plus className="h-5 w-5" />
+                  Create Goal Manually
+                </button>
+              )}
+
             <button
               onClick={() => history.push("/savings-onboarding")}
               className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 text-white py-3 font-medium shadow-md hover:bg-blue-700"
             >
               <Plus className="h-5 w-5" />
-              Create Savings Plan with AI
+              Create Saving Plan with AI
             </button>
+            </div>
 
             <IonToast
               isOpen={showToast}

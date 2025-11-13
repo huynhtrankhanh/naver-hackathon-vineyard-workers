@@ -17,10 +17,16 @@ declare global {
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
+    // Try to get token from header first, then from query parameter (for SSE)
     const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ')
+    let token = authHeader.startsWith('Bearer ')
       ? authHeader.slice('Bearer '.length).trim()
       : undefined;
+    
+    // Fallback to query parameter for SSE endpoints
+    if (!token && req.query.token && typeof req.query.token === 'string') {
+      token = req.query.token;
+    }
 
     if (!token) {
       return res.status(401).json({ message: 'Authentication required' });

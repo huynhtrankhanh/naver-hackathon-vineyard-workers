@@ -95,19 +95,77 @@ export const budgetApi = {
   }),
 };
 
-// AI API (Mock)
+// AI API with streaming support
 export const aiApi = {
-  generateSavingsPlan: (data: {
+  generateSavingsPlan: async (data: {
     goal: string;
     savingsGoal?: number;
     intensity: string;
     notes?: string;
-  }) => apiCall<any>('/ai/generate', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
+    useMock?: boolean;
+  }) => {
+    const result = await apiCall<any>('/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    // If using mock, result will be the complete plan (status 201)
+    // If using real AI, result will contain planId and streamUrl (status 202)
+    return result;
+  },
+  
+  // Stream AI generation progress using Server-Sent Events
+  streamProgress: (planId: string, onMessage: (data: any) => void, onComplete: (data: any) => void, onError: (error: any) => void) => {
+    const token = getAuthToken();
+    const eventSource = new EventSource(`${API_BASE_URL}/ai/stream/${planId}`, {
+      withCredentials: true,
+    });
+    
+    // Note: EventSource doesn't support custom headers, so we'll need to handle auth differently
+    // For now, we'll rely on cookies or pass token as query param if needed
+    const url = token 
+      ? `${API_BASE_URL}/ai/stream/${planId}?token=${encodeURIComponent(token)}`
+      : `${API_BASE_URL}/ai/stream/${planId}`;
+    
+    const es = new EventSource(url);
+    
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'message') {
+          onMessage(data.message);
+        } else if (data.type === 'status') {
+          onMessage(`Status: ${data.status} - ${data.message}`);
+        } else if (data.type === 'complete') {
+          onComplete(data.plan || data.data);
+          es.close();
+        } else if (data.type === 'error') {
+          onError(data.error);
+          es.close();
+        }
+      } catch (e) {
+        console.error('Failed to parse SSE data:', e);
+      }
+    };
+    
+    es.onerror = (error) => {
+      console.error('SSE error:', error);
+      onError('Connection error');
+      es.close();
+    };
+    
+    return es;
+  },
+  
   getLatestPlan: () => apiCall<any>('/ai/latest'),
   getAllPlans: () => apiCall<any[]>('/ai'),
+  getPlanById: (id: string) => apiCall<any>(`/ai/${id}`),
+  
+  acceptGoal: (planId: string) => apiCall<any>(`/ai/${planId}/accept-goal`, {
+    method: 'POST',
+  }),
+  
   getAdvice: (context: string) => apiCall<{ advice: string }>('/ai/advice', {
     method: 'POST',
     body: JSON.stringify({ context }),

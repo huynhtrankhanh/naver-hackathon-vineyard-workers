@@ -1,13 +1,13 @@
 # SmartMoney - Naver Hackathon Vineyard Workers
 
-A comprehensive money tracking and AI-powered savings recommendation app built with React (Ionic), Express, and MongoDB.
+A comprehensive money tracking and AI-powered saving recommendation app built with React (Ionic), Express, and MongoDB.
 
 ## 🎯 Features
 
 ### Completed ✅
 - **Username/Password Authentication** - Secure authentication with argon2id client-side hashing and SHA256 server-side hashing
 - **Protected API Endpoints** - All backend routes require authentication
-- **AI-Powered Savings Wizard** - Interactive 3-step onboarding to create personalized savings plans
+- **AI-Powered Saving Wizard** - Interactive 3-step onboarding to create personalized saving plans
 - **Mock AI Backend** - Sophisticated mock AI using Markov chains and random number generation
 - **Full-Stack Architecture** - React frontend with Express + MongoDB backend
 - **RESTful API** - Complete CRUD operations for transactions, goals, and budgets
@@ -110,7 +110,7 @@ naver-hackathon-vineyard-workers/
 ├── Frontend-MoneyTrack/          # React + Ionic Frontend
 │   ├── src/
 │   │   ├── pages/                # Page components
-│   │   │   ├── SavingsOnboarding.tsx   # NEW: AI savings wizard
+│   │   │   ├── SavingsOnboarding.tsx   # NEW: AI saving wizard
 │   │   │   └── dashboard/        # Dashboard pages
 │   │   ├── services/             # NEW: API service layer
 │   │   │   └── api.ts            # Backend API integration
@@ -138,7 +138,7 @@ naver-hackathon-vineyard-workers/
 
 ## 🤖 Mock AI Implementation
 
-The mock AI uses sophisticated algorithms to generate realistic savings recommendations:
+The mock AI uses sophisticated algorithms to generate realistic saving recommendations:
 
 ### Markov Chain Selection
 - Categories are selected using Markov-like random walks through spending category chains
@@ -146,7 +146,7 @@ The mock AI uses sophisticated algorithms to generate realistic savings recommen
 - The algorithm avoids duplicate categories across recommendations
 
 ### Random Number Generation
-- Savings amounts are calculated with intensity-based multipliers:
+- Saving amounts are calculated with intensity-based multipliers:
   - **Just starting out**: 60-90% of goal
   - **Ideal target**: 90-110% of goal
   - **Must achieve**: 110-140% of goal
