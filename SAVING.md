@@ -21,4 +21,12 @@
   * You are given an API key in the prompt. Do not commit the key to the repository.
   * Remind me to revoke the API key when you're done.
   * You are to use this API: https://api.ncloud-docs.com/docs/en/clovastudio-openaicompatibility
-  * Because the AI can take a while to run, the client might go offline during AI generation.
+  * Because the AI can take a while to run, the client might go offline during AI generation. So:
+    * The server should stream the AI generation process to the client
+    * The client can reconnect at any time. Even when the app is closed and opened again, the client can still reconnect and get past and presentd data
+  * The AI is given these tools:
+    * Tools to read ALL USER DATA. The AI can read anything the user can access.
+    * A severely restricted Python interpreter that can't perform internet access or read arbitrary files. The interpreter is limited to 6s of wall clock time and 256MB of RAM. To enforce these restrictions, use Firejail.
+    * A tool to propose new budget limits
+    * A tool to propose a new saving plan
+* Both the backend and the frontend need to be modified to accommodate this new feature.
