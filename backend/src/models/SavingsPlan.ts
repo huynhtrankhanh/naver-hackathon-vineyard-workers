@@ -13,6 +13,23 @@ export interface ISavingsPlan extends Document {
     percentage?: number;
   }>;
   markdownAdvice?: string;
+  // New fields for proposals
+  proposedGoal?: {
+    name: string;
+    target: number;
+    priority: string;
+    accepted: boolean;
+    linkedGoalId?: mongoose.Types.ObjectId;
+  };
+  proposedBudgetLimits?: Array<{
+    category: string;
+    suggestedLimit: number;
+    currentLimit?: number;
+    reasoning?: string;
+  }>;
+  // AI generation tracking
+  streamingStatus?: 'pending' | 'streaming' | 'completed' | 'failed';
+  generationProgress?: string;
 }
 
 const SavingsPlanSchema: Schema = new Schema({
@@ -27,7 +44,24 @@ const SavingsPlanSchema: Schema = new Schema({
     category: { type: String, required: true },
     percentage: { type: Number }
   }],
-  markdownAdvice: { type: String }
+  markdownAdvice: { type: String },
+  // New fields for proposals
+  proposedGoal: {
+    name: { type: String },
+    target: { type: Number },
+    priority: { type: String },
+    accepted: { type: Boolean, default: false },
+    linkedGoalId: { type: Schema.Types.ObjectId, ref: 'Goal' }
+  },
+  proposedBudgetLimits: [{
+    category: { type: String, required: true },
+    suggestedLimit: { type: Number, required: true },
+    currentLimit: { type: Number },
+    reasoning: { type: String }
+  }],
+  // AI generation tracking
+  streamingStatus: { type: String, enum: ['pending', 'streaming', 'completed', 'failed'], default: 'completed' },
+  generationProgress: { type: String }
 }, { timestamps: true });
 
 export default mongoose.model<ISavingsPlan>('SavingsPlan', SavingsPlanSchema);
