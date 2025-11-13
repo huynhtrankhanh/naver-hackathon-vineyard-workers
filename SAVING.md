@@ -20,3 +20,5 @@
 * Mechanism for AI generation of saving plans
   * You are given an API key in the prompt. Do not commit the key to the repository.
   * Remind me to revoke the API key when you're done.
+  * You are to use this API: https://api.ncloud-docs.com/docs/en/clovastudio-openaicompatibility
+  * Because the AI can take a while to run, the client might go offline during AI generation.
