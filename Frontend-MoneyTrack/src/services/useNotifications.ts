@@ -93,7 +93,7 @@ export function useNotifications() {
             const key = `budget_${b._id}`;
             if (!notified.current.has(key)) {
               const percent = Math.round(pct * 100);
-              const msg = `Budget "${b.category}" has used ${percent}% (${Math.round(b.spent)} / ${Math.round(b.limit)}).`;
+              const msg = `You've used ${percent}% (${Math.round(b.spent)} / ${Math.round(b.limit)}) of your ${b.category} budget.`;
                 messages.push(msg);
               notified.current.add(key);
               pushNotificationToServer("budget_limit", msg, { category: b.category, percent, spent: b.spent, limit: b.limit });
