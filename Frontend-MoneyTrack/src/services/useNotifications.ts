@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRef } from "react";
 import { transactionApi, budgetApi, authApi, notificationApi } from "./api";
 
@@ -16,10 +17,15 @@ export function useNotifications() {
         return (authApi as any).getToken();
       }
     } catch {}
-    return localStorage.getItem("token") || localStorage.getItem("authToken") || null;
+    return (
+      localStorage.getItem("token") || localStorage.getItem("authToken") || null
+    );
   }
 
-  async function shouldCreateNotification(type: string, meta?: Record<string, any>): Promise<boolean> {
+  async function shouldCreateNotification(
+    type: string,
+    meta?: Record<string, any>
+  ): Promise<boolean> {
     try {
       // Use the efficient check-recent endpoint
       const category = meta?.category;
@@ -32,11 +38,18 @@ export function useNotifications() {
     }
   }
 
-  async function pushNotificationToServer(type: string, message: string, meta?: Record<string, any>) {
+  async function pushNotificationToServer(
+    type: string,
+    message: string,
+    meta?: Record<string, any>
+  ) {
     // Check if we should create this notification
     const shouldCreate = await shouldCreateNotification(type, meta);
     if (!shouldCreate) {
-      console.log("Skipping notification creation - similar notification exists recently:", type);
+      console.log(
+        "Skipping notification creation - similar notification exists recently:",
+        type
+      );
       return;
     }
 
@@ -75,10 +88,16 @@ export function useNotifications() {
         const ratio = expenses / income;
         const key = `income_ratio_${Math.floor(ratio * 100)}`;
         if (ratio >= 0.8 && !notified.current.has("income_80")) {
-          const msg = `You've spent ${Math.round(ratio * 100)}% of your income this month. Please review your spending.`;
+          const msg = `You've spent ${Math.round(
+            ratio * 100
+          )}% of your income this month. Please review your spending.`;
           messages.push(msg);
           notified.current.add("income_80");
-          pushNotificationToServer("income_ratio", msg, { ratio, income, expenses } );  
+          pushNotificationToServer("income_ratio", msg, {
+            ratio,
+            income,
+            expenses,
+          });
         }
       }
 
@@ -93,15 +112,22 @@ export function useNotifications() {
             const key = `budget_${b._id}`;
             if (!notified.current.has(key)) {
               const percent = Math.round(pct * 100);
-              const msg = `You've used ${percent}% (${Math.round(b.spent)} / ${Math.round(b.limit)}) of your ${b.category} budget.`;
-                messages.push(msg);
+              const msg = `You've used ${percent}% (${Math.round(
+                b.spent
+              )} / ${Math.round(b.limit)}) of your ${b.category} budget.`;
+              messages.push(msg);
               notified.current.add(key);
-              pushNotificationToServer("budget_limit", msg, { category: b.category, percent, spent: b.spent, limit: b.limit });
+              pushNotificationToServer("budget_limit", msg, {
+                category: b.category,
+                percent,
+                spent: b.spent,
+                limit: b.limit,
+              });
             }
           }
         });
       }
-    }  catch (error: any) {
+    } catch (error: any) {
       // If unauthorized, silently ignore (user likely logged out / token expired)
       const status = error?.status || error?.response?.status;
       if (status === 401 || status === 403) {

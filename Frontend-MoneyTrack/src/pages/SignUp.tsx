@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import {
   IonPage,
@@ -57,7 +58,9 @@ const SignUp: React.FC = () => {
       // Navigate to dashboard
       history.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Registration failed. Username may already exist.");
+      setError(
+        err.message || "Registration failed. Username may already exist."
+      );
       setShowError(true);
     } finally {
       setLoading(false);
@@ -89,8 +92,12 @@ const SignUp: React.FC = () => {
           {/* Content */}
           <main className="mx-auto w-full max-w-md flex-1 px-4 py-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-              <p className="text-gray-500">Sign up to start tracking your finances</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Create Account
+              </h1>
+              <p className="text-gray-500">
+                Sign up to start tracking your finances
+              </p>
             </div>
 
             <IonInput
@@ -123,9 +130,9 @@ const SignUp: React.FC = () => {
               onIonChange={(e) => setConfirmPassword(e.detail.value!)}
             />
 
-            <IonButton 
-              expand="block" 
-              className="mt-6" 
+            <IonButton
+              expand="block"
+              className="mt-6"
               onClick={handleSignUp}
               disabled={loading}
             >

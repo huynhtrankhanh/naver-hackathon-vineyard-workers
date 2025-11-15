@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import {
   IonPage,
@@ -14,6 +15,7 @@ import { useHistory } from "react-router-dom";
 import { Wallet, ArrowLeft } from "lucide-react";
 import { hashPassword } from "../utils/crypto";
 import { authApi } from "../services/api";
+import SpeechRecorder from "../components/SpeechRecorder";
 
 const SignIn: React.FC = () => {
   const history = useHistory();
@@ -52,9 +54,16 @@ const SignIn: React.FC = () => {
       setLoading(false);
     }
   };
+  const handleError = (message: string) => {
+    console.error(">>> LỖI GHI ÂM:", message);
+  };
+  const handleText = (text: string) => {
+    console.log(">>> TEXT NHẬN ĐƯỢC:", text);
+  };
 
   return (
     <IonPage>
+      <SpeechRecorder onError={handleError} onTextReceived={handleText} />
       <IonContent className="bg-white">
         <div className="min-h-screen bg-white flex flex-col">
           {/* Header */}
@@ -78,8 +87,12 @@ const SignIn: React.FC = () => {
           {/* Content */}
           <main className="mx-auto w-full max-w-md flex-1 px-4 py-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-              <p className="text-gray-500">Sign in to continue to your account</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome Back
+              </h1>
+              <p className="text-gray-500">
+                Sign in to continue to your account
+              </p>
             </div>
 
             <IonInput
@@ -109,9 +122,9 @@ const SignIn: React.FC = () => {
               </div>
             </div>
 
-            <IonButton 
-              expand="block" 
-              className="mt-6" 
+            <IonButton
+              expand="block"
+              className="mt-6"
               onClick={handleLogin}
               disabled={loading}
             >
