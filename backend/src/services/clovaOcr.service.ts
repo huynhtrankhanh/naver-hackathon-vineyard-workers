@@ -9,8 +9,6 @@ if (!OCR_API_URL || !OCR_SECRET_KEY) {
     throw new Error("Vui lòng kiểm tra lại CLOVA_OCR_API_URL và CLOVA_OCR_SECRET_KEY trong file .env");
 }
 
-// THAY THẾ TOÀN BỘ HÀM normalizeOcrResult BẰNG PHIÊN BẢN TỔNG HỢP NÀY
-
 function normalizeOcrResult(ocrData: any) {
     const imageResult = ocrData.images?.[0];
     if (imageResult?.inferResult === 'ERROR') {
@@ -22,58 +20,70 @@ function normalizeOcrResult(ocrData: any) {
         return { merchant: "Không đọc được", date: "N/A", total: 0, items: [] };
     }
 
-    // --- BẮT ĐẦU PHIÊN BẢN TỔNG HỢP CUỐI CÙNG ---
-
     const Y_TOLERANCE = 15;
     const items: { name: string; price: number }[] = [];
     const imageWidth = imageResult.convertedImageInfo.width;
+    
+    fields.sort((a: any, b: any) => a.boundingPoly.vertices[0].y - b.boundingPoly.vertices[0].y);
 
-    // 1. TỰ ĐỘNG PHÁT HIỆN WATERMARK
-    const wordFrequencies: { [key: string]: number } = {};
-    for (const field of fields) {
-        const word = field.inferText.toLowerCase();
-        wordFrequencies[word] = (wordFrequencies[word] || 0) + 1;
-    }
-    const watermarkWords = new Set<string>();
-    for (const word in wordFrequencies) {
-        if (wordFrequencies[word] > 5 && word.length > 2 && isNaN(parseInt(word))) {
-            watermarkWords.add(word);
-        }
-    }
-    console.log("DEBUG 1: Watermark tìm thấy:", Array.from(watermarkWords));
-    const cleanedFields = fields.filter((field: any) => !watermarkWords.has(field.inferText.toLowerCase()));
-    console.log(`DEBUG 2: Số field ban đầu: ${fields.length}, Sau khi lọc: ${cleanedFields.length}`);
-    // Sắp xếp các field đã sạch từ trên xuống
-    cleanedFields.sort((a: any, b: any) => a.boundingPoly.vertices[0].y - b.boundingPoly.vertices[0].y);
-
-    // 2. TÌM RANH GIỚI HEADER VÀ FOOTER (trên dữ liệu đã sạch)
-    const headerEndKeywords = ['date', 'time', 'qty', 'item', 'desc', 'description', 'price', 'amt'];
+    const headerEndKeywords = ['date', 'time', 'qty', 'item', 'desc', 'description', 'amt'];
     const footerStartKeywords = ['total', 'tổng', 'sub-total', 'subtotal', 'tax', 'vat', 'change', 'amount', 'balance'];
     
     let headerEndY = 0;
-    const lastHeaderField = cleanedFields.findLast((f: any) => headerEndKeywords.some(kw => f.inferText.toLowerCase().includes(kw)));
+    const lastHeaderField = fields.findLast((f: any) => headerEndKeywords.some(kw => f.inferText.toLowerCase().includes(kw)));
     if (lastHeaderField) headerEndY = lastHeaderField.boundingPoly.vertices[2].y;
 
     let footerStartY = Infinity;
-    const firstFooterField = cleanedFields.find((f: any) => footerStartKeywords.some(kw => f.inferText.toLowerCase().includes(kw)));
+    const firstFooterField = fields.find((f: any) => footerStartKeywords.some(kw => f.inferText.toLowerCase().includes(kw)));
     if (firstFooterField) footerStartY = firstFooterField.boundingPoly.vertices[0].y;
-     console.log(`DEBUG 3: Ranh giới Header-Y: ${headerEndY}, Ranh giới Footer-Y: ${footerStartY}`);
-    // HÀM KIỂM TRA GIÁ TIỀN ĐƠN GIẢN VÀ HIỆU QUẢ
-    const isPrice = (field: any) => {
+
+    console.log(`DEBUG 3: Ranh giới Header-Y: ${headerEndY}, Ranh giới Footer-Y: ${footerStartY}`);
+
+    // HÀM PARSE GIÁ TIỀN THÔNG MINH - XỬ LÝ ĐA ĐỊNH DẠNG (PHIÊN BẢN HOÀN CHỈNH)
+    const parsePrice = (text: string): number => {
+        // 1. Dọn dẹp sơ bộ: thay ':' thành '.', xóa ký tự tiền tệ, khoảng trắng...
+        let cleanText = text.replace(':', '.').replace(/[$\s€VNDđ]/g, '');
+
+        const lastDot = cleanText.lastIndexOf('.');
+        const lastComma = cleanText.lastIndexOf(',');
+
+        // 2. Logic xác định dấu thập phân
+        // Trường hợp 1: Dấu phẩy là thập phân (kiểu VN/Châu Âu, ví dụ: "1.234,56")
+        if (lastComma > lastDot) {
+            // Xóa hết dấu chấm (phân cách hàng nghìn), rồi thay dấu phẩy bằng dấu chấm
+            cleanText = cleanText.replace(/\./g, '').replace(',', '.');
+        } 
+        // Trường hợp 2: Dấu chấm là thập phân (kiểu Mỹ, ví dụ: "1,234.56")
+        // Hoặc có nhiều dấu chấm (kiểu VN, ví dụ: "50.000" -> không có phần thập phân)
+        else {
+             // Nếu có nhiều hơn 1 dấu chấm, chúng là dấu phân cách hàng nghìn -> xóa hết
+            if ((cleanText.match(/\./g) || []).length > 1) {
+                 cleanText = cleanText.replace(/\./g, '');
+            }
+            // Xóa hết dấu phẩy (phân cách hàng nghìn)
+            cleanText = cleanText.replace(/,/g, '');
+        }
+        
+        const price = parseFloat(cleanText);
+        return isNaN(price) ? 0 : price;
+    }
+
+    const isPrice = (field: any): boolean => {
         const isRightSide = field.boundingPoly.vertices[0].x > imageWidth * 0.5;
+        // Chỉ cần có số là đủ, hàm parsePrice sẽ xử lý phần còn lại
         const containsNumber = /\d/.test(field.inferText);
-        const numericValue = parseFloat(field.inferText.replace(/[^0-9.]/g, ''));
-        return isRightSide && containsNumber && !isNaN(numericValue) && numericValue >= 0;
+        return isRightSide && containsNumber;
     };
 
-    // 3. Bóc tách Items chỉ trong vùng BODY bằng "Phân cụm"
-    const itemRegionFields = cleanedFields.filter((field: any) => 
+    const itemRegionFields = fields.filter((field: any) => 
         (headerEndY === 0 || field.boundingPoly.vertices[0].y > headerEndY) &&
         field.boundingPoly.vertices[2].y < footerStartY
     );
+
     console.log(`DEBUG 4: Tìm thấy ${itemRegionFields.length} field trong vùng item.`);
     const priceFieldsInItemRegion = itemRegionFields.filter(isPrice);
     console.log(`DEBUG 5: Trong đó, có ${priceFieldsInItemRegion.length} field là giá tiền.`);
+
     for (const priceField of priceFieldsInItemRegion) {
         const priceCenterY = (priceField.boundingPoly.vertices[0].y + priceField.boundingPoly.vertices[2].y) / 2;
         
@@ -87,7 +97,6 @@ function normalizeOcrResult(ocrData: any) {
         if (nameParts.length > 0) {
             nameParts.sort((a: any, b: any) => a.boundingPoly.vertices[0].x - b.boundingPoly.vertices[0].x);
             
-            // LOGIC PHÂN CỤM THEO KHOẢNG CÁCH (TÍCH HỢP LẠI)
             const avgCharWidth = nameParts.reduce((sum: number, p: any) => sum + (p.boundingPoly.vertices[1].x - p.boundingPoly.vertices[0].x) / (p.inferText.length || 1), 0) / nameParts.length;
             const SPACE_THRESHOLD = avgCharWidth * 4;
 
@@ -114,7 +123,6 @@ function normalizeOcrResult(ocrData: any) {
                 clusters.push(currentCluster);
             }
             
-            // CHỌN CỤM TỐT NHẤT: Ưu tiên cụm có nhiều chữ cái nhất
             let bestCluster = clusters[0];
             let maxLetterCount = 0;
             
@@ -130,7 +138,7 @@ function normalizeOcrResult(ocrData: any) {
             if (bestCluster) {
                 let itemName = bestCluster.map((part: any) => part.inferText).join(' ');
                 itemName = itemName.replace(/^\d+\s*[xX×]\s*/, '').trim();
-                const price = parseFloat(priceField.inferText.replace(/[^0-9.]/g, ''));
+                const price = parsePrice(priceField.inferText);
                 
                 if (itemName && /[a-zA-Z]/.test(itemName) && !/^\#\d+$/.test(itemName)) {
                     items.push({ name: itemName, price });
@@ -141,16 +149,16 @@ function normalizeOcrResult(ocrData: any) {
     const finalItems = Array.from(new Set(items.map((item: any) => JSON.stringify(item))))
                            .map((str: string) => JSON.parse(str));
     console.log("DEBUG 6: Items cuối cùng tìm được:", finalItems);                   
-    // 4. Tự tính tổng từ items
+    
     const total = finalItems.reduce((sum: number, item: any) => sum + item.price, 0);
+    // Làm tròn tổng đến 2 chữ số thập phân
     const finalTotal = Math.round(total * 100) / 100;
 
-    // 5. Tìm các thông tin còn lại
     const dateRegex = /(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/;
-    const dateField = cleanedFields.find((f: any) => dateRegex.test(f.inferText));
+    const dateField = fields.find((f: any) => dateRegex.test(f.inferText));
     const date = dateField ? dateField.inferText.match(dateRegex)![0] : 'N/A';
     
-    const headerFields = cleanedFields.filter((f:any) => headerEndY === 0 || f.boundingPoly.vertices[2].y < headerEndY);
+    const headerFields = fields.filter((f:any) => headerEndY === 0 || f.boundingPoly.vertices[2].y < headerEndY);
     const merchant = headerFields.find((f: any) => /[a-zA-Z]/.test(f.inferText) && !f.inferText.includes('*'))?.inferText || "Không rõ";
 
     return {
@@ -161,7 +169,7 @@ function normalizeOcrResult(ocrData: any) {
         raw: ocrData 
     };
 }
-// Hàm export chính không thay đổi
+
 export const analyzeReceiptFromBuffer = async (imageBuffer: Buffer) => {
     
     const requestJson = {
