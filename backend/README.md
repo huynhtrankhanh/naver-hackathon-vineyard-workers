@@ -32,6 +32,7 @@ cp .env.example .env
 ```
 
 Environment variables:
+
 - `PORT` - Server port (default: 3001)
 - `MONGODB_URI` - MongoDB connection string (default: mongodb://localhost:27017/moneytrack)
 - `NODE_ENV` - Environment (development/production)
@@ -39,11 +40,13 @@ Environment variables:
 ### Running the Server
 
 Development mode with auto-reload:
+
 ```bash
 npm run dev
 ```
 
 Build for production:
+
 ```bash
 npm run build
 npm start
@@ -52,9 +55,11 @@ npm start
 ## API Endpoints
 
 ### Health Check
+
 - `GET /api/health` - Check server status
 
 ### Transactions
+
 - `GET /api/transactions` - Get all transactions
 - `GET /api/transactions/:id` - Get transaction by ID
 - `POST /api/transactions` - Create new transaction
@@ -63,6 +68,7 @@ npm start
 - `GET /api/transactions/stats/summary` - Get income/expense summary
 
 ### Goals
+
 - `GET /api/goals` - Get all goals
 - `GET /api/goals/:id` - Get goal by ID
 - `POST /api/goals` - Create new goal
@@ -70,6 +76,7 @@ npm start
 - `DELETE /api/goals/:id` - Delete goal
 
 ### Budgets
+
 - `GET /api/budgets` - Get all budgets
 - `GET /api/budgets/month/:month` - Get budgets for specific month
 - `POST /api/budgets` - Create new budget
@@ -77,16 +84,20 @@ npm start
 - `DELETE /api/budgets/:id` - Delete budget
 
 ### AI (Mock API)
+
 - `POST /api/ai/generate` - Generate savings plan using mock AI
   - Request body: `{ goal, savingsGoal?, intensity, notes? }`
   - Returns: Savings plan with suggested amount and recommendations
 - `GET /api/ai/latest` - Get latest savings plan
 - `GET /api/ai` - Get all savings plans
 - `POST /api/ai/advice` - Get AI-generated financial advice
+- `POST /api/ai/speech-to-text` - AI change speech to text'
+- `POST /api/ai/parse-text` - get AI generated transaction from text'
 
 ## Mock AI Implementation
 
 The mock AI uses:
+
 - **Markov Chain** for selecting spending categories to reduce or protect
 - **Random Number Generation** influenced by intensity level for calculating savings amounts
 - **Pattern Matching** on user notes to adjust recommendations

@@ -1,14 +1,7 @@
-//import dotenv from 'dotenv';
-// Load environment variables
-//dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-<<<<<<< Updated upstream
-
-=======
-//import dotenv from 'dotenv';
->>>>>>> Stashed changes
+import dotenv from 'dotenv';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import transactionsRouter from './routes/transactions.js';
 import goalsRouter from './routes/goals.js';
@@ -17,17 +10,9 @@ import notificationRouter from './routes/notifications.js';
 import aiRouter from './routes/ai.js';
 import authRouter from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
-<<<<<<< Updated upstream
-import multer from 'multer';
-import { analyzeReceiptFromBuffer } from './services/clovaOcr.service.js';
-
-=======
-//dotenv.config();
+dotenv.config();
 import ocrRouter from './routes/ocr.js';
 // Load environment variables
->>>>>>> Stashed changes
-
-
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -35,11 +20,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Cấu hình Multer để nhận file và lưu trong bộ nhớ
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // Giới hạn 10MB
-});
+
 // Public routes (no auth required)
 app.use('/api/auth', authRouter);
 
@@ -49,26 +30,7 @@ app.use('/api/goals', authMiddleware, goalsRouter);
 app.use('/api/budgets', authMiddleware, budgetsRouter);
 app.use('/api/ai', authMiddleware, aiRouter);
 app.use('/api/notifications', authMiddleware, notificationRouter);
-<<<<<<< Updated upstream
-app.post('/api/ocr/receipt', authMiddleware, upload.single('receiptImage'), async (req, res) => {
-  console.log("Đã nhận được yêu cầu upload hóa đơn...");
-
-  if (!req.file) {
-    return res.status(400).json({ error: 'Không tìm thấy file ảnh. Hãy chắc chắn bạn gửi file với key là "receiptImage".' });
-  }
-
-  try {
-    const imageBuffer = req.file.buffer;
-    const result = await analyzeReceiptFromBuffer(imageBuffer);
-    res.status(200).json(result);
-  } catch (error: any) {
-    console.error("Có lỗi trong quá trình xử lý OCR:", error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-=======
 app.use('/api/ocr', ocrRouter);
->>>>>>> Stashed changes
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend server is running' });

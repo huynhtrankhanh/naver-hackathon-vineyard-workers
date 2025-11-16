@@ -1,12 +1,16 @@
-import React from 'react';
-import { Route, Redirect, RouteProps } from 'react-router-dom';
-import { authApi } from '../services/api';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from "react";
+import { Route, Redirect, RouteProps } from "react-router-dom";
+import { authApi } from "../services/api";
 
 interface ProtectedRouteProps extends RouteProps {
   component: any;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component, ...rest }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  component: Component,
+  ...rest
+}) => {
   return (
     <Route
       {...rest}
@@ -14,7 +18,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component, .
         authApi.isAuthenticated() ? (
           <Component {...props} />
         ) : (
-          <Redirect to={{ pathname: '/login', state: { from: props.location } }} />
+          <Redirect
+            to={{ pathname: "/login", state: { from: props.location } }}
+          />
         )
       }
     />
