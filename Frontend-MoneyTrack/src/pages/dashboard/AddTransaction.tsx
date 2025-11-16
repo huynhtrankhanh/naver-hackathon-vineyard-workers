@@ -9,6 +9,10 @@ import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi, budgetApi, ocrApi } from "../../services/api";
 import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
+<<<<<<< Updated upstream
+=======
+import { mic, camera } from "ionicons/icons";
+>>>>>>> Stashed changes
 
 // Interface cho các mục đã quét
 interface ScannedItem {
@@ -174,6 +178,7 @@ const AddTransaction: React.FC = () => {
                 </div>
             </div>
 
+<<<<<<< Updated upstream
             {loading && <div className="flex justify-center p-8"><IonSpinner name="crescent" /></div>}
 
             {/* HIỂN THỊ CÓ ĐIỀU KIỆN */}
@@ -209,6 +214,112 @@ const AddTransaction: React.FC = () => {
                           <div className="flex justify-between font-bold text-lg"><span>Tổng cộng ({scannedItems.length} mục):</span><span>{toCurrency(totalScannedAmount)}</span></div>
                           <IonButton onClick={handleSubmitScanned} expand="block" className="mt-4">Thêm {scannedItems.length} Giao dịch</IonButton>
                         </div>
+=======
+            <IonButton
+              fill="outline"
+              expand="block"
+              onClick={() => history.push("/add-voice")}
+              className="mb-4"
+            >
+              <IonIcon icon={mic} slot="start" />
+              Add by Voice
+            </IonButton>
+            <IonButton
+              fill="outline"
+              expand="block"
+              onClick={() => history.push("/add-receipt")} // Điều hướng đến trang mới
+              className="mb-4"
+            >
+              <IonIcon icon={camera} slot="start" />
+              Add by Receipt (OCR)
+            </IonButton>
+            <p className="text-center text-gray-500 my-2">Or enter manualy</p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Type
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setType("expense");
+                      setCategory("");
+                    }}
+                    className={`py-3 px-4 rounded-xl font-medium transition-colors ${
+                      type === "expense"
+                        ? "bg-rose-600 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    Expense
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setType("income");
+                      setCategory("");
+                    }}
+                    className={`py-3 px-4 rounded-xl font-medium transition-colors ${
+                      type === "income"
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    Income
+                  </button>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  Title
+                </label>
+                <input
+                  id="title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Coffee at Highlands"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  Category
+                </label>
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none bg-white"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Budget Limit Info */}
+                {type === "expense" && selectedBudget && (
+                  <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
+                    <div className="text-sm font-medium text-blue-900 mb-2">
+                      Budget for {selectedBudget.category}
+>>>>>>> Stashed changes
                     </div>
                 )
               )}

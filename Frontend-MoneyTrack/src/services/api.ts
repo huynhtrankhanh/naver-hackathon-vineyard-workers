@@ -163,9 +163,12 @@ export const notificationApi = {
       method: 'PUT',
     }),
 };
+<<<<<<< Updated upstream
 // Dán đoạn code này vào cuối file services/api.ts
 
 // OCR API
+=======
+>>>>>>> Stashed changes
 export const ocrApi = {
   /**
    * Tải file ảnh hóa đơn lên backend để phân tích.
@@ -197,7 +200,11 @@ export const ocrApi = {
         const errorData = await response.json();
         throw new Error(errorData.error || `API call failed: ${response.statusText}`);
       }
+<<<<<<< Updated upstream
       
+=======
+
+>>>>>>> Stashed changes
       const result = await response.json();
       console.log("Backend đã trả về:", result);
       return result;
@@ -207,4 +214,8 @@ export const ocrApi = {
       throw error; // Ném lỗi ra ngoài để component bắt
     }
   }
+<<<<<<< Updated upstream
 };
+=======
+};
+>>>>>>> Stashed changes

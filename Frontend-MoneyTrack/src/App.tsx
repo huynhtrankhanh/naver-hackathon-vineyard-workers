@@ -18,7 +18,12 @@ import Goals from "./pages/dashboard/Goals";
 import Profile from "./pages/dashboard/Profile";
 import SavingsOnboarding from "./pages/SavingsOnboarding";
 import Notifications from "./pages/dashboard/Notification";
+<<<<<<< Updated upstream
 
+=======
+import AddTransactionVoice from "./pages/dashboard/AddTransactionVoice";
+import AddReceipt from "./pages/dashboard/AddReceipt";
+>>>>>>> Stashed changes
 /* Core CSS */
 import "@ionic/react/css/core.css";
 
@@ -45,6 +50,7 @@ const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
       <BalanceProvider>
+<<<<<<< Updated upstream
       <IonRouterOutlet>
         {/* 2. DÙNG 'component' và 'exact' (của v5) */}
         <Route exact path="/splash" component={Splash} />
@@ -59,6 +65,44 @@ const App: React.FC = () => (
   <ProtectedRoute exact path="/profile" component={Profile} />
   <ProtectedRoute exact path="/notifications" component={Notifications} />
   <ProtectedRoute exact path="/savings-onboarding" component={SavingsOnboarding} />
+=======
+        <IonRouterOutlet>
+          {/* 2. DÙNG 'component' và 'exact' (của v5) */}
+          <Route exact path="/splash" component={Splash} />
+          <Route exact path="/login" component={SignIn} />
+          <Route exact path="/signup" component={SignUp} />
+          <ProtectedRoute exact path="/dashboard" component={Dashboard} />
+          <ProtectedRoute exact path="/dashboard/income" component={Income} />
+          <ProtectedRoute
+            exact
+            path="/dashboard/expenses"
+            component={Expenses}
+          />
+          <ProtectedRoute exact path="/dashboard/budget" component={Budget} />
+          <ProtectedRoute exact path="/add" component={AddTransaction} />
+          <ProtectedRoute
+            exact
+            path="/add-voice"
+            component={AddTransactionVoice}
+          />
+          <ProtectedRoute
+            exact
+            path="/add-receipt"
+            component={AddReceipt}
+          />
+          <ProtectedRoute exact path="/goals" component={Goals} />
+          <ProtectedRoute exact path="/profile" component={Profile} />
+          <ProtectedRoute
+            exact
+            path="/notifications"
+            component={Notifications}
+          />
+          <ProtectedRoute
+            exact
+            path="/savings-onboarding"
+            component={SavingsOnboarding}
+          />
+>>>>>>> Stashed changes
 
         {/* 3. DÙNG 'Redirect' (của v5) */}
         <Route exact path="/">

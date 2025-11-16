@@ -4,7 +4,11 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+<<<<<<< Updated upstream
 
+=======
+//import dotenv from 'dotenv';
+>>>>>>> Stashed changes
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import transactionsRouter from './routes/transactions.js';
 import goalsRouter from './routes/goals.js';
@@ -13,9 +17,15 @@ import notificationRouter from './routes/notifications.js';
 import aiRouter from './routes/ai.js';
 import authRouter from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
+<<<<<<< Updated upstream
 import multer from 'multer';
 import { analyzeReceiptFromBuffer } from './services/clovaOcr.service.js';
 
+=======
+//dotenv.config();
+import ocrRouter from './routes/ocr.js';
+// Load environment variables
+>>>>>>> Stashed changes
 
 
 const app = express();
@@ -39,6 +49,7 @@ app.use('/api/goals', authMiddleware, goalsRouter);
 app.use('/api/budgets', authMiddleware, budgetsRouter);
 app.use('/api/ai', authMiddleware, aiRouter);
 app.use('/api/notifications', authMiddleware, notificationRouter);
+<<<<<<< Updated upstream
 app.post('/api/ocr/receipt', authMiddleware, upload.single('receiptImage'), async (req, res) => {
   console.log("Đã nhận được yêu cầu upload hóa đơn...");
 
@@ -55,6 +66,9 @@ app.post('/api/ocr/receipt', authMiddleware, upload.single('receiptImage'), asyn
     res.status(500).json({ error: error.message });
   }
 });
+=======
+app.use('/api/ocr', ocrRouter);
+>>>>>>> Stashed changes
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend server is running' });
