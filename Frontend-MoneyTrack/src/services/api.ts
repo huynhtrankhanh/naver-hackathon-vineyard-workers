@@ -163,3 +163,48 @@ export const notificationApi = {
       method: 'PUT',
     }),
 };
+// Dán đoạn code này vào cuối file services/api.ts
+
+// OCR API
+export const ocrApi = {
+  /**
+   * Tải file ảnh hóa đơn lên backend để phân tích.
+   * @param file - File object của ảnh hóa đơn.
+   * @returns Promise chứa dữ liệu đã được phân tích.
+   */
+  analyzeReceipt: async (file: File) => {
+    const formData = new FormData();
+    formData.append('receiptImage', file); // Key này phải khớp với backend
+
+    const token = getAuthToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // ta phải dùng fetch() trực tiếp ở đây vì apiCall mặc định là 'application/json'
+    // Còn upload file cần 'multipart/form-data' và để trình duyệt tự đặt header
+    try {
+      console.log("Đang gửi file lên backend endpoint: /ocr/receipt");
+      const response = await fetch(`${API_BASE_URL}/ocr/receipt`, {
+        method: 'POST',
+        body: formData,
+        headers: headers, // gửi Authorization header, Content-Type để trình duyệt tự xử lý
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API call failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log("Backend đã trả về:", result);
+      return result;
+
+    } catch (error) {
+      console.error("Lỗi khi gọi API phân tích hóa đơn:", error);
+      throw error; // Ném lỗi ra ngoài để component bắt
+    }
+  }
+};

@@ -26,8 +26,8 @@ function normalizeOcrResult(ocrData: any) {
     
     fields.sort((a: any, b: any) => a.boundingPoly.vertices[0].y - b.boundingPoly.vertices[0].y);
 
-    const headerEndKeywords = ['date', 'time', 'qty', 'item', 'desc', 'description', 'amt'];
-    const footerStartKeywords = ['total', 'tổng', 'sub-total', 'subtotal', 'tax', 'vat', 'change', 'amount', 'balance'];
+    const headerEndKeywords = ['date', 'time', 'qty', 'item', 'desc', 'description', 'amt', 'sl', 'đvt', 'giá', 't tiền', 'số lượng','thành tiền'];
+    const footerStartKeywords = ['total', 'tổng', 'sub-total', 'subtotal', 'tax', 'vat', 'change', 'amount', 'balance','tiền hàng', 'giảm giá','cộng'];
     
     let headerEndY = 0;
     const lastHeaderField = fields.findLast((f: any) => headerEndKeywords.some(kw => f.inferText.toLowerCase().includes(kw)));
