@@ -1,7 +1,7 @@
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import uploadImage from '../middleware/imageUpload.middleware.js'; // Giả sử middleware multer của chị tên là 'upload'
-import { analyzeReceiptFromBuffer } from '../utils/ocr.service.js'; // Import từ file service chị vừa tạo
+import { analyzeReceiptWithLLM } from '../utils/clovaX.service.js'; // 
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.post('/receipt', authMiddleware, uploadImage.single('receiptImage'), asyn
 
     try {
         // Gọi hàm phân tích OCR từ file service
-        const result = await analyzeReceiptFromBuffer(req.file.buffer);
+        const result = await analyzeReceiptWithLLM(req.file.buffer);
         // Trả kết quả JSON về cho frontend
         res.json(result);
     } catch (error: any) {
