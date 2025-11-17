@@ -14,6 +14,7 @@ import Income from "./pages/dashboard/Income";
 import Expenses from "./pages/dashboard/Expenses";
 import Budget from "./pages/dashboard/Budget";
 import AddTransaction from "./pages/dashboard/AddTransaction";
+import EditTransaction from "./pages/dashboard/EditTransaction";
 import Goals from "./pages/dashboard/Goals";
 import Profile from "./pages/dashboard/Profile";
 import SavingsOnboarding from "./pages/SavingsOnboarding";
@@ -60,6 +61,11 @@ const App: React.FC = () => (
           />
           <ProtectedRoute exact path="/dashboard/budget" component={Budget} />
           <ProtectedRoute exact path="/add" component={AddTransaction} />
+          <ProtectedRoute
+            exact
+            path="/edit-transaction/:id"
+            component={EditTransaction}
+          />
           <ProtectedRoute
             exact
             path="/add-voice"
