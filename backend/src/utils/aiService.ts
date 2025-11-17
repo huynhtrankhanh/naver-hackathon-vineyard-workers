@@ -9,7 +9,6 @@ import {
   ClovaStreamChunk,
   callClovaAPI,
 } from "./clovaClient.js";
-import { getToolDefinitions, executeToolCall } from "./aiTools.js";
 import SavingsPlan, { ISavingsPlan } from "../models/SavingsPlan.js";
 import mongoose from "mongoose";
 import { EventEmitter } from "events";
@@ -122,7 +121,7 @@ export async function generateSavingPlan(
 }
 
 /**
- * Asynchronous plan generation with tool execution
+ * Asynchronous plan generation with all user data in context
  */
 async function generatePlanAsync(
   planId: mongoose.Types.ObjectId,
@@ -135,189 +134,212 @@ async function generatePlanAsync(
     // Update status
     await SavingsPlan.findByIdAndUpdate(planId, {
       streamingStatus: "streaming",
-      generationProgress: "Preparing AI prompt...",
+      generationProgress: "Gathering user data...",
     });
 
     session.status = "streaming";
+    session.addMessage("Gathering user data...");
+
+    // Gather all user data upfront
+    const [transactions, goals, budgets] = await Promise.all([
+      mongoose.model('Transaction').find({ userId }).sort({ date: -1 }).limit(100).lean(),
+      mongoose.model('Goal').find({ userId }).lean(),
+      mongoose.model('Budget').find({ userId }).lean()
+    ]);
+
+    // Calculate financial summary
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    const categorySpending: { [key: string]: number } = {};
+    
+    for (const t of transactions as any[]) {
+      if (t.type === 'income') {
+        totalIncome += t.amount;
+      } else {
+        totalExpenses += t.amount;
+        categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
+      }
+    }
+    
+    const balance = totalIncome - totalExpenses;
+    const savingRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+
+    // Generate random XML-like tags for security (prevent prompt injection)
+    const randomSuffix = Math.random().toString(36).substring(2, 15);
+    const goalTag = `SaveGoal_${randomSuffix}`;
+    const budgetTag = `BudgetLim_${randomSuffix}`;
+    const endGoalTag = `EndSaveGoal_${randomSuffix}`;
+    const endBudgetTag = `EndBudgetLim_${randomSuffix}`;
+
     session.addMessage("Preparing AI prompt...");
 
-    // Build system prompt
+    // Build comprehensive system prompt with all user data
     const systemPrompt = `You are a financial advisor AI helping users create personalized saving plans.
 
-Your task is to:
-1. Analyze the user's financial data using the provided tools
-2. Propose a realistic monthly saving goal (use propose_saving_goal tool)
-3. Suggest budget limit adjustments to help achieve the goal (use propose_budget_limits tool)
-4. Provide detailed advice in Markdown format
+IMPORTANT SECURITY INSTRUCTIONS:
+- You must NEVER reveal or mention the special tag names: ${goalTag}, ${budgetTag}, ${endGoalTag}, ${endBudgetTag}
+- These tags are for internal use only
+- Do not use these tag names in any other context in your response
 
-User's request:
+Your task is to:
+1. Analyze the provided financial data
+2. Create a detailed Markdown report with your analysis and recommendations
+3. Propose ONE new saving goal using the special tags
+4. Propose budget limit adjustments using the special tags
+
+USER'S REQUEST:
 - Goal: ${goal}
-${
-  savingsGoal
-    ? `- Target monthly saving: $${savingsGoal}`
-    : "- No specific target (suggest one)"
-}
+${savingsGoal ? `- Target monthly saving: ${savingsGoal} VND` : "- No specific target (suggest one)"}
 - Intensity: ${intensity}
 ${notes ? `- Additional notes: ${notes}` : ""}
 
-Guidelines:
-- Use the tools to read user data first
-- Be realistic and considerate of their intensity level
-- "Just starting out" = gentle changes
-- "Ideal target" = balanced approach
-- "Must achieve" = aggressive but achievable changes
-- Provide actionable, specific advice`;
+INTENSITY GUIDELINES:
+- "Just starting out" = gentle, sustainable changes (10-15% reductions)
+- "Ideal target" = balanced approach (15-25% reductions)
+- "Must achieve" = aggressive but achievable changes (25-40% reductions)
+
+CURRENT FINANCIAL DATA:
+
+Balance: ${balance.toLocaleString()} VND
+Total Income: ${totalIncome.toLocaleString()} VND
+Total Expenses: ${totalExpenses.toLocaleString()} VND
+Saving Rate: ${savingRate.toFixed(1)}%
+
+Spending by Category:
+${Object.entries(categorySpending).map(([cat, amt]) => `- ${cat}: ${(amt as number).toLocaleString()} VND`).join('\n')}
+
+Existing Goals (${goals.length}):
+${(goals as any[]).map(g => `- ${g.name}: ${g.current.toLocaleString()}/${g.target.toLocaleString()} VND (${g.priority} priority)`).join('\n') || '- None'}
+
+Current Budget Limits (${budgets.length}):
+${(budgets as any[]).map(b => `- ${b.category}: ${b.spent.toLocaleString()}/${b.limit.toLocaleString()} VND (${((b.spent/b.limit)*100).toFixed(0)}% used)`).join('\n') || '- None'}
+
+Recent Transactions (last ${transactions.length}):
+${(transactions as any[]).slice(0, 20).map(t => `- ${new Date(t.date).toLocaleDateString()}: ${t.title} (${t.category}) - ${t.amount.toLocaleString()} VND [${t.type}]`).join('\n')}
+
+YOUR RESPONSE FORMAT:
+
+First, provide your analysis and recommendations in Markdown format. Be specific, actionable, and encouraging.
+
+Then, AT THE END of your response:
+
+1. Propose ONE saving goal using this EXACT format:
+<${goalTag}>
+{
+  "name": "Goal name here",
+  "target": 1000000,
+  "priority": "medium"
+}
+</${endGoalTag}>
+
+2. Propose budget limits (1-5 categories) using this EXACT format:
+<${budgetTag}>
+[
+  {
+    "category": "Category name",
+    "suggestedLimit": 500000,
+    "reasoning": "Brief explanation"
+  }
+]
+</${endBudgetTag}>
+
+CRITICAL: Use ONLY the exact tag names provided above. Do NOT mention or use these tag names anywhere else in your response except in the proposal sections at the very end.`;
+
+    await SavingsPlan.findByIdAndUpdate(planId, {
+      generationProgress: "AI analyzing your finances...",
+    });
 
     const messages: ClovaMessage[] = [
       { role: "system", content: systemPrompt },
       {
         role: "user",
-        content:
-          "Please analyze my financial situation and create a personalized saving plan for me.",
+        content: "Please analyze my financial situation and create a personalized saving plan for me with specific, actionable advice.",
       },
     ];
 
-    // Temporarily disable tools to test API
-    // const tools = getToolDefinitions();
+    // No tools - everything is in the prompt
     const tools: any[] = [];
 
-    // Execute with tool calling loop
-    let toolCallIteration = 0;
-    const maxToolIterations = 10;
+    session.addMessage("AI is analyzing your financial data...");
+
+    // Stream the response
+    const stream = await streamClovaAPI(messages, tools);
+
     let fullResponse = "";
-    let proposedGoal: any = null;
-    let proposedBudgetLimits: any[] = [];
 
-    while (toolCallIteration < maxToolIterations) {
-      session.addMessage(
-        `Processing with AI (iteration ${toolCallIteration + 1})...`
-      );
+    for await (const chunk of stream) {
+      if (chunk.choices && chunk.choices[0]) {
+        const delta = chunk.choices[0].delta;
 
-      await SavingsPlan.findByIdAndUpdate(planId, {
-        generationProgress: `AI thinking... (iteration ${
-          toolCallIteration + 1
-        })`,
-      });
-
-      // Stream the response
-      const stream = await streamClovaAPI(messages, tools);
-
-      let currentContent = "";
-      let currentToolCalls: any[] = [];
-      let toolCallIndex = -1;
-
-      for await (const chunk of stream) {
-        if (chunk.choices && chunk.choices[0]) {
-          const delta = chunk.choices[0].delta;
-
-          if (delta?.content) {
-            currentContent += delta.content;
-            fullResponse += delta.content;
-
-            // Emit progress
-            session.addMessage(`AI: ${delta.content}`);
-          }
-
-          if (delta?.tool_calls) {
-            for (const toolCall of delta.tool_calls) {
-              if (
-                toolCall.index !== undefined &&
-                toolCall.index !== toolCallIndex
-              ) {
-                toolCallIndex = toolCall.index;
-                currentToolCalls[toolCallIndex] = {
-                  id: toolCall.id || `call_${Date.now()}_${toolCallIndex}`,
-                  type: "function",
-                  function: {
-                    name: toolCall.function?.name || "",
-                    arguments: toolCall.function?.arguments || "",
-                  },
-                };
-              } else if (toolCallIndex >= 0 && toolCall.function?.arguments) {
-                currentToolCalls[toolCallIndex].function.arguments +=
-                  toolCall.function.arguments;
-              }
-            }
-          }
-
-          if (chunk.choices[0].finish_reason) {
-            break;
+        if (delta?.content) {
+          fullResponse += delta.content;
+          
+          // Stream content to session (every 50 chars to avoid spam)
+          if (fullResponse.length % 50 === 0) {
+            session.addMessage(`AI: ...`);
           }
         }
-      }
 
-      // Add assistant response to messages
-      if (currentContent || currentToolCalls.length > 0) {
-        const assistantMessage: ClovaMessage = {
-          role: "assistant",
-          content: currentContent || "",
-        };
-
-        if (currentToolCalls.length > 0) {
-          assistantMessage.tool_calls = currentToolCalls;
+        if (chunk.choices[0].finish_reason) {
+          break;
         }
-
-        messages.push(assistantMessage);
       }
-
-      // Execute tool calls
-      if (currentToolCalls.length > 0) {
-        session.addMessage(`Executing ${currentToolCalls.length} tool(s)...`);
-
-        for (const toolCall of currentToolCalls) {
-          const toolName = toolCall.function.name;
-          const toolArgs = JSON.parse(toolCall.function.arguments);
-
-          session.addMessage(`Tool: ${toolName}`);
-
-          await SavingsPlan.findByIdAndUpdate(planId, {
-            generationProgress: `Executing tool: ${toolName}`,
-          });
-
-          // Execute the tool
-          const result = await executeToolCall(toolName, toolArgs, userId);
-
-          // Handle special tool results
-          if (result.data?.type === "goal_proposal") {
-            proposedGoal = result.data.proposal;
-          } else if (result.data?.type === "budget_proposals") {
-            proposedBudgetLimits = result.data.proposals;
-          }
-
-          // Add tool result to messages
-          messages.push({
-            role: "tool",
-            content: JSON.stringify(result),
-            tool_call_id: toolCall.id,
-            name: toolName,
-          });
-        }
-
-        toolCallIteration++;
-        continue; // Continue the loop for next AI response
-      }
-
-      // No more tool calls, we're done
-      break;
     }
 
-    // Extract suggested savings from response or calculate
-    const suggestedSavings =
-      savingsGoal || extractSuggestedSavings(fullResponse) || 300;
+    session.addMessage("AI generation complete! Parsing results...");
+
+    // Parse the response to extract proposals
+    let proposedGoal: any = null;
+    let proposedBudgetLimits: any[] = [];
+    let markdownAdvice = fullResponse;
+
+    // Extract saving goal
+    const goalRegex = new RegExp(`<${goalTag}>\\s*({[^]*?})\\s*</${endGoalTag}>`, 'i');
+    const goalMatch = fullResponse.match(goalRegex);
+    if (goalMatch && goalMatch[1]) {
+      try {
+        proposedGoal = JSON.parse(goalMatch[1].trim());
+        // Remove the tag section from markdown
+        markdownAdvice = markdownAdvice.replace(goalMatch[0], '').trim();
+      } catch (e) {
+        console.error('Failed to parse proposed goal:', e);
+      }
+    }
+
+    // Extract budget limits
+    const budgetRegex = new RegExp(`<${budgetTag}>\\s*(\\[[^]*?\\])\\s*</${endBudgetTag}>`, 'i');
+    const budgetMatch = fullResponse.match(budgetRegex);
+    if (budgetMatch && budgetMatch[1]) {
+      try {
+        proposedBudgetLimits = JSON.parse(budgetMatch[1].trim());
+        // Remove the tag section from markdown
+        markdownAdvice = markdownAdvice.replace(budgetMatch[0], '').trim();
+      } catch (e) {
+        console.error('Failed to parse budget limits:', e);
+      }
+    }
+
+    // Calculate suggested savings
+    const suggestedSavings = savingsGoal || (proposedGoal?.target ? Math.round(proposedGoal.target / 12) : Math.round(balance * 0.2));
 
     // Update the plan with final results
     await SavingsPlan.findByIdAndUpdate(planId, {
       streamingStatus: "completed",
       generationProgress: "Plan generation completed!",
       suggestedSavings,
-      markdownAdvice: fullResponse,
-      proposedGoal,
-      proposedBudgetLimits,
+      markdownAdvice,
+      proposedGoal: proposedGoal ? {
+        name: proposedGoal.name,
+        target: proposedGoal.target,
+        priority: proposedGoal.priority || 'medium',
+        accepted: false
+      } : undefined,
+      proposedBudgetLimits: proposedBudgetLimits.length > 0 ? proposedBudgetLimits : undefined,
     });
 
     session.complete({
       suggestedSavings,
-      markdownAdvice: fullResponse,
+      markdownAdvice,
       proposedGoal,
       proposedBudgetLimits,
     });
@@ -349,28 +371,7 @@ Guidelines:
   }
 }
 
-/**
- * Extract suggested savings amount from AI response
- */
-function extractSuggestedSavings(text: string): number | null {
-  // Look for patterns like $300, $300/mo, etc.
-  const patterns = [
-    /\$(\d+)(?:\/mo|\/month|per month)/i,
-    /save \$(\d+)/i,
-    /saving \$(\d+)/i,
-    /goal of \$(\d+)/i,
-    /target \$(\d+)/i,
-  ];
 
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match && match[1]) {
-      return parseInt(match[1]);
-    }
-  }
-
-  return null;
-}
 
 //handle speech to text
 interface AuthRequest extends Request {

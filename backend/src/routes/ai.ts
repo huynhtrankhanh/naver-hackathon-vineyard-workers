@@ -3,10 +3,6 @@ import mongoose from "mongoose";
 import SavingsPlan from "../models/SavingsPlan.js";
 import Goal from "../models/Goal.js";
 import {
-  generateMockSavingsPlan,
-  generateFinancialAdvice,
-} from "../utils/mockAI.js";
-import {
   generateSavingPlan,
   getGenerationSession,
 } from "../utils/aiService.js";
@@ -21,7 +17,7 @@ const router = express.Router();
 // Generate AI saving plan with real AI (with streaming support)
 router.post("/generate", async (req: Request, res: Response) => {
   try {
-    const { goal, savingsGoal, intensity, notes, useMock } = req.body;
+    const { goal, savingsGoal, intensity, notes } = req.body;
 
     // Validate required fields
     if (!goal || !intensity) {
@@ -30,37 +26,14 @@ router.post("/generate", async (req: Request, res: Response) => {
       });
     }
 
-    const userId = new mongoose.Types.ObjectId(req.user!.id);
-
-    // Use mock AI if requested or if Clova API key is not set
-    if (useMock || !process.env.CLOVA_API_KEY) {
-      console.log("Using mock AI generation...");
-
-      // Use mock AI to generate the plan
-      const aiResult = generateMockSavingsPlan({
-        goal,
-        savingsGoal,
-        intensity,
-        notes,
+    // Validate Clova API key is set
+    if (!process.env.CLOVA_API_KEY) {
+      return res.status(500).json({
+        message: "Clova API key is not configured",
       });
-
-      const planData = {
-        goal,
-        savingsGoal,
-        intensity,
-        notes,
-        userId,
-        suggestedSavings: aiResult.suggestedSavings,
-        recommendations: aiResult.recommendations,
-        markdownAdvice: aiResult.markdownAdvice,
-      };
-
-      // Save the generated plan to the database
-      const savingsPlan = new SavingsPlan(planData);
-      const savedPlan = await savingsPlan.save();
-
-      return res.status(201).json(savedPlan);
     }
+
+    const userId = new mongoose.Types.ObjectId(req.user!.id);
 
     // Use real AI with Clova Studio
     console.log("Using Clova Studio AI generation...");
@@ -263,16 +236,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// Get AI-generated financial advice (Mock AI endpoint)
-router.post("/advice", async (req: Request, res: Response) => {
-  try {
-    const { context } = req.body;
-    const advice = generateFinancialAdvice(context || "general");
-    res.json({ advice });
-  } catch (error) {
-    res.status(500).json({ message: "Error generating advice", error });
-  }
-});
+
 
 // Accept proposed saving goal from a plan
 router.post("/:id/accept-goal", async (req: Request, res: Response) => {

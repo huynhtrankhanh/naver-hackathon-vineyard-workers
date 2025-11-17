@@ -63,7 +63,8 @@ export async function* streamClovaAPI(
     max_tokens: 2000,
     temperature: 0.7,
     top_p: 0.8,
-    model: 'HCX-005' // Use HCX-005 model as shown in docs
+    model: 'HCX-007', // Use HCX-007 model with reasoning capability
+    reasoning_effort: 'high' // Set reasoning effort to high as per requirements
   });
   
   const urlObj = new URL(url);
@@ -170,7 +171,8 @@ export async function callClovaAPI(
     max_tokens: 2000,
     temperature: 0.7,
     top_p: 0.8,
-    model: 'HCX-005'
+    model: 'HCX-007', // Use HCX-007 model with reasoning capability
+    reasoning_effort: 'high' // Set reasoning effort to high as per requirements
   });
   
   const urlObj = new URL(url);
