@@ -46,6 +46,9 @@ const EditTransaction: React.FC = () => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  // Store original transaction data for balance calculation
+  const [originalAmount, setOriginalAmount] = useState<number>(0);
+  const [originalType, setOriginalType] = useState<"income" | "expense">("expense");
   const {
     balance,
     loading: balanceLoading,
@@ -66,6 +69,9 @@ const EditTransaction: React.FC = () => {
         setCategory(transaction.category);
         setAmount(transaction.amount.toString());
         setType(transaction.type);
+        // Store original values for balance calculation
+        setOriginalAmount(transaction.amount);
+        setOriginalType(transaction.type);
       } catch (error) {
         console.error("Error fetching transaction:", error);
         setToastMessage("Failed to load transaction");
@@ -437,7 +443,20 @@ const EditTransaction: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-600">Transaction:</span>
+                        <span className="text-slate-600">Original transaction:</span>
+                        <span
+                          className={`font-medium ${
+                            originalType === "income"
+                              ? "text-emerald-600"
+                              : "text-rose-600"
+                          }`}
+                        >
+                          {originalType === "income" ? "+" : "-"}
+                          {toCurrency(originalAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">New transaction:</span>
                         <span
                           className={`font-medium ${
                             type === "income"
@@ -455,17 +474,45 @@ const EditTransaction: React.FC = () => {
                         </span>
                         <span
                           className={`font-bold ${
-                            (type === "income"
-                              ? balance + parseFloat(amount)
-                              : balance - parseFloat(amount)) < 0
+                            (() => {
+                              // Calculate: current balance - original transaction + new transaction
+                              let newBalance = balance;
+                              // Remove old transaction effect
+                              if (originalType === "income") {
+                                newBalance -= originalAmount;
+                              } else {
+                                newBalance += originalAmount;
+                              }
+                              // Add new transaction effect
+                              if (type === "income") {
+                                newBalance += parseFloat(amount);
+                              } else {
+                                newBalance -= parseFloat(amount);
+                              }
+                              return newBalance < 0;
+                            })()
                               ? "text-rose-600"
                               : "text-slate-900"
                           }`}
                         >
                           {toCurrency(
-                            type === "income"
-                              ? balance + parseFloat(amount)
-                              : balance - parseFloat(amount)
+                            (() => {
+                              // Calculate: current balance - original transaction + new transaction
+                              let newBalance = balance;
+                              // Remove old transaction effect
+                              if (originalType === "income") {
+                                newBalance -= originalAmount;
+                              } else {
+                                newBalance += originalAmount;
+                              }
+                              // Add new transaction effect
+                              if (type === "income") {
+                                newBalance += parseFloat(amount);
+                              } else {
+                                newBalance -= parseFloat(amount);
+                              }
+                              return newBalance;
+                            })()
                           )}
                         </span>
                       </div>
