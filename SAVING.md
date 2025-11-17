@@ -1,5 +1,4 @@
 # Requirements for the Saving feature
-* Consistency in UI and documentation: the adjectival use of "savings" must be replaced with "saving". This must be implemented immediately.
 * There are saving goals and saving plans
 * The Goals tab should be renamed to Saving
 * The Saving tab is home to both saving goals and saving plans
