@@ -14,12 +14,29 @@ const clova = new OpenAI({
     apiKey: CLOVA_API_KEY,
     baseURL: 'https://clovastudio.stream.ntruss.com/v1/openai', // Endpoint tương thích OpenAI
 });
+const USD_TO_VND_RATE = 25000; 
 // Hàm chính để phân tích hóa đơn bằng LLM (HCX-005) 
+
 export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
     const model = 'HCX-005';
     const imageBase64 = imageBuffer.toString('base64');
-    const user_prompt = `Từ hình ảnh hóa đơn đính kèm, hãy bóc tách thông tin bao gồm: tên cửa hàng, tổng số tiền cuối cùng, và danh sách tất cả các món hàng kèm theo giá tiền. Trả về kết quả dưới dạng một đối tượng JSON có cấu trúc như sau: { "merchant": "tên cửa hàng", "total": số tiền tổng, "items": [{ "name": "tên món hàng", "price": giá tiền }] }. Bỏ qua các dòng thuế, giảm giá. Nếu không đọc được tên cửa hàng, hãy điền "Cửa hàng bán lẻ". Chỉ trả về JSON, không giải thích gì thêm.`;
+        const user_prompt = `From the attached receipt image, act as a meticulous data extraction expert. Your task is to extract the merchant's name, the final total amount, and a list of all purchased items.
 
+**Follow these rules strictly:**
+1.  **Item Definition:** Treat EACH line that has a distinct price on the right-hand side as a SEPARATE item. Do not merge items from different lines, even if their names seem related.
+2.  **Output Format:** Return the result ONLY as a single, valid JSON object. Do not add any extra text or explanations. The JSON structure must be exactly:
+    \`\`\`json
+    {
+      "merchant": "string",
+      "total": number,
+      "items": [
+        { "name": "string", "price": number }
+      ]
+    }
+    \`\`\`
+3.  **Exclusions:** Explicitly ignore any lines related to "Total", "Cash", "Change", "Tax", "VAT", "Discount", "Subtotal" from the items list.
+4.  **Default Values:** If the merchant name cannot be found, use the string "Retail Store".
+`;
     try {
         console.log("Đang gửi yêu cầu đến CLOVA (chế độ tương thích OpenAI)...");
         const response = await clova.chat.completions.create({
@@ -48,12 +65,26 @@ export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
         if (!jsonMatch) {
             throw new Error("AI không trả về định dạng JSON hợp lệ.");
         }
+        const resultFromAI = JSON.parse(jsonMatch[0]);
+
+                console.log("Kết quả gốc từ AI (USD):", resultFromAI);
+
+        const convertedItems = resultFromAI.items.map((item: { name: string, price: number }) => ({
+            ...item,
+            price: Math.round(item.price * USD_TO_VND_RATE) // Quy đổi và làm tròn
+        }));
+
+        const convertedTotal = convertedItems.reduce((sum: number, item: { price: number }) => sum + item.price, 0);
+
+        const finalResult = {
+            ...resultFromAI,
+            items: convertedItems,
+            total: convertedTotal, // Cập nhật lại total sau khi quy đổi
+        };
+        console.log("Kết quả cuối cùng (VND):", finalResult);
+        return finalResult;
         
-        const result = JSON.parse(jsonMatch[0]);
-        console.log("CLOVA (OpenAI compat) đã trả về kết quả đã parse:", result);
-        return result;
-        
-    } catch (error: any) {
+    }  catch (error: any) {
         console.error("Lỗi khi gọi API CLOVA (OpenAI compat):", error);
         throw new Error('Không thể phân tích hóa đơn bằng AI.');
     }

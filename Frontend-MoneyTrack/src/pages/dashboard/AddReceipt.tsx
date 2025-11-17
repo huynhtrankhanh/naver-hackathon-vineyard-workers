@@ -36,9 +36,9 @@ const ReceiptUploader: React.FC<{
 
   return (
     <div className="text-center p-4">
-      <p className="text-slate-600 mb-4">Tải lên ảnh hóa đơn để tạo nhiều giao dịch tự động.</p>
+      <p className="text-slate-600 mb-4">Upload an invoice image to automatically generate multiple transactions.</p>
        <label htmlFor="ocr-upload-button" className="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">
-        Chọn File Hóa Đơn
+        Select Invoice File
       </label>
       <input id="ocr-upload-button" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
     </div>
@@ -100,7 +100,7 @@ const AddReceipt: React.FC = () => {
       }
     }
     invalidateOnMutation(); refreshBalance();
-    setToastMessage(`Đã thêm ${successCount} giao dịch.`); setToastColor('success'); setShowToast(true);
+    setToastMessage(`Added ${successCount} transactions.`); setToastColor('success'); setShowToast(true);
     setTimeout(() => history.push('/dashboard'), 2000);
   };
 
@@ -128,10 +128,10 @@ const AddReceipt: React.FC = () => {
                     </div>
                   </div>
                 ))}
-                <button onClick={addItem} className="w-full flex items-center justify-center gap-2 py-2 text-sm text-blue-600 font-medium hover:bg-blue-50 rounded-lg"><IonIcon icon={addCircleOutline} />Thêm mục khác</button>
+                <button onClick={addItem} className="w-full flex items-center justify-center gap-2 py-2 text-sm text-blue-600 font-medium hover:bg-blue-50 rounded-lg"><IonIcon icon={addCircleOutline} />Add another item</button>
                 <div className="border-t border-slate-200 pt-4 mt-4">
-                  <div className="flex justify-between font-bold text-lg"><span>Tổng cộng ({scannedItems.length} mục):</span><span>{toCurrency(totalAmount)}</span></div>
-                  <IonButton onClick={handleSubmitAll} expand="block" className="mt-4">Thêm {scannedItems.length} Giao dịch</IonButton>
+                  <div className="flex justify-between font-bold text-lg"><span>Total ({scannedItems.length} items):</span><span>{toCurrency(totalAmount)}</span></div>
+                  <IonButton onClick={handleSubmitAll} expand="block" className="mt-4">Add {scannedItems.length} Transaction</IonButton>
                 </div>
               </div>
             )}
