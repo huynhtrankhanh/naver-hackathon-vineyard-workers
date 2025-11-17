@@ -416,7 +416,7 @@ const EditTransaction: React.FC = () => {
                 </label>
                 <input
                   id="amount"
-                  type="number"
+                  type="tel"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0"
