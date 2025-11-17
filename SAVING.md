@@ -21,12 +21,13 @@
   * You are given an API key in the prompt. Do not commit the key to the repository.
   * Remind me to revoke the API key when you're done.
   * You are to use this API: https://api.ncloud-docs.com/docs/en/clovastudio-openaicompatibility
+  * To read the API documentation, just install Puppeteer and navigate the website. Don't use your MCP tool because it can't access the internet.
+  * Use HCX-007 with reasoning effort set to high
   * Because the AI can take a while to run, the client might go offline during AI generation. So:
     * The server should stream the AI generation process to the client
     * The client can reconnect at any time. Even when the app is closed and opened again, the client can still reconnect and get past and presentd data
-  * The AI is given these tools:
-    * Tools to read ALL USER DATA. The AI can read anything the user can access.
-    * A severely restricted Python interpreter that can't perform internet access or read arbitrary files. The interpreter is limited to 6s of wall clock time and 256MB of RAM. To enforce these restrictions, use Firejail.
-    * A tool to propose new budget limits
-    * A tool to propose a new saving plan
+  * The mock AI API should be deleted entirely
+  * The AI is given all user data upfront. All user data is provided to the AI in the context window.
+  * The AI is instructed to provide analysis in Markdown and this information is to be included in the saving plan. Additionally, the AI can propose a new saving goal and several new budget limits. These proposals have to be in a machine-readable form. In order for the AI to provide this information in a machine-readable form, please use a pseudo-XML tag like <SavingGoalProposal> and <BudgetLimitProposal>, but the tag name should be randomized to prevent prompt injection attacks. And the AI must not use the secret tag names in other contexts, because the random tag name must be secret.
 * Both the backend and the frontend need to be modified to accommodate this new feature.
+* You have to test the changes.
