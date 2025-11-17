@@ -58,7 +58,6 @@ const Dashboard: React.FC = () => {
       return localStorage.getItem("token");
     }
   })();
-  console.log("Dashboard token:", token);
 
   const fetchData = useCallback(async () => {
     try {
