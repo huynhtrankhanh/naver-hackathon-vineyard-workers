@@ -239,6 +239,7 @@ const SavingsOnboarding: React.FC = () => {
                           placeholder="300"
                           value={wizardData.savingsGoal}
                           onChange={(e) => setWizardData({ ...wizardData, savingsGoal: e.target.value })}
+                          pattern="[0-9]*"
                           className="w-full text-center text-5xl font-black text-gray-900 bg-white border-2 border-gray-200 focus:border-indigo-500 rounded-2xl py-5 px-16 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                         />
                         <span className="absolute right-6 top-1/2 -translate-y-1/2 text-lg font-medium text-gray-400">/mo</span>
