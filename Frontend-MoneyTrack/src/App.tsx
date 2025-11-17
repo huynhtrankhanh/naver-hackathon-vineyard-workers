@@ -18,6 +18,7 @@ import EditTransaction from "./pages/dashboard/EditTransaction";
 import Goals from "./pages/dashboard/Goals";
 import Profile from "./pages/dashboard/Profile";
 import SavingsOnboarding from "./pages/SavingsOnboarding";
+import SavingPlanDetail from "./pages/dashboard/SavingPlanDetail";
 import Notifications from "./pages/dashboard/Notification";
 import AddTransactionVoice from "./pages/dashboard/AddTransactionVoice";
 
@@ -73,6 +74,11 @@ const App: React.FC = () => (
           />
           <ProtectedRoute exact path="/goals" component={Goals} />
           <ProtectedRoute exact path="/profile" component={Profile} />
+          <ProtectedRoute
+            exact
+            path="/saving-plan/:id"
+            component={SavingPlanDetail}
+          />
           <ProtectedRoute
             exact
             path="/notifications"

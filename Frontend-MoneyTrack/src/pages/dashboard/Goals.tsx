@@ -317,7 +317,11 @@ const Goals: React.FC = () => {
                 </h2>
                 <div className="space-y-3 mb-4">
                   {savingPlans.map(plan => (
-                    <div key={plan._id} className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 shadow-sm">
+                    <div 
+                      key={plan._id} 
+                      className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 shadow-sm cursor-pointer hover:border-blue-300 transition-colors"
+                      onClick={() => history.push(`/saving-plan/${plan._id}`)}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <div className="font-medium text-slate-900">{plan.goal}</div>
@@ -330,7 +334,7 @@ const Goals: React.FC = () => {
                       
                       {/* Proposed Goal */}
                       {plan.proposedGoal && !plan.proposedGoal.accepted && (
-                        <div className="mt-3 p-3 bg-white rounded-xl border border-emerald-200">
+                        <div className="mt-3 p-3 bg-white rounded-xl border border-emerald-200" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-start justify-between mb-2">
                             <div>
                               <div className="text-sm font-medium text-emerald-700">Proposed Saving Goal</div>
@@ -341,7 +345,10 @@ const Goals: React.FC = () => {
                             </div>
                           </div>
                           <button
-                            onClick={() => acceptProposedGoal(plan._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              acceptProposedGoal(plan._id);
+                            }}
                             disabled={acceptingPlanId === plan._id}
                             className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-600 text-white py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
                           >
@@ -371,9 +378,12 @@ const Goals: React.FC = () => {
                       
                       {/* Proposed Budget Limits */}
                       {plan.proposedBudgetLimits && plan.proposedBudgetLimits.length > 0 && (
-                        <div className="mt-3">
+                        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
                           <button
-                            onClick={() => history.push('/dashboard/budget')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              history.push('/dashboard/budget');
+                            }}
                             className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700"
                           >
                             <FileText className="h-4 w-4" />
@@ -382,8 +392,13 @@ const Goals: React.FC = () => {
                         </div>
                       )}
                       
-                      <div className="mt-2 text-xs text-slate-500">
-                        Created {new Date(plan.createdAt).toLocaleDateString()}
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="text-xs text-slate-500">
+                          Created {new Date(plan.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-blue-600 font-medium">
+                          Click to view details →
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -498,7 +513,7 @@ const Goals: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Target Amount (đ)
+                      Target Amount (VND)
                     </label>
                     <input
                       type="tel"
