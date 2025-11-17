@@ -60,10 +60,13 @@ export async function* streamClovaAPI(
     messages,
     tools: tools && tools.length > 0 ? tools : undefined,
     stream: true,
-    max_completion_tokens: 16000, // Very high limit - let the model decide when to stop
+    max_completion_tokens: 16000, // High limit to allow reasoning + content generation
     temperature: 0.7,
     top_p: 0.8,
-    model: 'HCX-007' // Use HCX-007 model with built-in reasoning capability
+    model: 'HCX-007', // Use HCX-007 model with reasoning capability
+    reasoning: {
+      effort: 'high' // Enable reasoning for better instruction adherence
+    }
   });
   
   const urlObj = new URL(url);
@@ -168,10 +171,13 @@ export async function callClovaAPI(
     messages,
     tools: tools && tools.length > 0 ? tools : undefined,
     stream: false,
-    max_completion_tokens: 16000, // Very high limit - let the model decide when to stop
+    max_completion_tokens: 16000, // High limit to allow reasoning + content generation
     temperature: 0.7,
     top_p: 0.8,
-    model: 'HCX-007' // Use HCX-007 model with built-in reasoning capability
+    model: 'HCX-007', // Use HCX-007 model with reasoning capability
+    reasoning: {
+      effort: 'high' // Enable reasoning for better instruction adherence
+    }
   });
   
   const urlObj = new URL(url);
