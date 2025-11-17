@@ -259,7 +259,7 @@ const SavingsOnboarding: React.FC = () => {
                       <p className="text-gray-500 mb-6">You can leave this blank, and the AI will suggest a goal for you.</p>
 
                       <div className="relative mb-8">
-                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold text-gray-300">$</span>
+                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold text-gray-300">VND</span>
                         <input
                           type="tel"
                           placeholder="300"
