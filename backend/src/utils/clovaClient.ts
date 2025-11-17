@@ -60,11 +60,13 @@ export async function* streamClovaAPI(
     messages,
     tools: tools && tools.length > 0 ? tools : undefined,
     stream: true,
-    max_tokens: 2000,
+    max_completion_tokens: 2000, // Use max_completion_tokens as per OpenAI compatibility
     temperature: 0.7,
     top_p: 0.8,
     model: 'HCX-007', // Use HCX-007 model with reasoning capability
-    reasoning_effort: 'high' // Set reasoning effort to high as per requirements
+    reasoning: {
+      effort: 'high' // Set reasoning effort to high as per requirements
+    }
   });
   
   const urlObj = new URL(url);
@@ -113,6 +115,14 @@ export async function* streamClovaAPI(
               try {
                 const jsonStr = trimmed.substring(6);
                 const data = JSON.parse(jsonStr);
+                
+                // Handle HCX-007 reasoning model - convert reasoning_content to content for compatibility
+                if (data.choices && data.choices[0]?.delta?.reasoning_content) {
+                  // Skip reasoning content, wait for actual content
+                  // We could expose reasoning separately if needed
+                  continue;
+                }
+                
                 yield data;
               } catch (e) {
                 console.error('Failed to parse SSE data:', trimmed, e);
@@ -168,11 +178,13 @@ export async function callClovaAPI(
     messages,
     tools: tools && tools.length > 0 ? tools : undefined,
     stream: false,
-    max_tokens: 2000,
+    max_completion_tokens: 2000, // Use max_completion_tokens as per OpenAI compatibility
     temperature: 0.7,
     top_p: 0.8,
     model: 'HCX-007', // Use HCX-007 model with reasoning capability
-    reasoning_effort: 'high' // Set reasoning effort to high as per requirements
+    reasoning: {
+      effort: 'high' // Set reasoning effort to high as per requirements
+    }
   });
   
   const urlObj = new URL(url);
