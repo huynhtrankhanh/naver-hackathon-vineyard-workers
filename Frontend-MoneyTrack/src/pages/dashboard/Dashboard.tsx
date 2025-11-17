@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { IonPage, IonContent, IonSpinner } from "@ionic/react";
+import { IonPage, IonContent, IonSpinner, IonFab, IonFabButton, IonIcon } from "@ionic/react";
+import { mic } from "ionicons/icons";
 import { Wallet, PiggyBank, PieChart, Gauge, Bell } from "lucide-react";
 import { useHistory } from "react-router-dom";
 import TabBar from "../../components/dashboard/TabBar";
@@ -323,6 +324,13 @@ const Dashboard: React.FC = () => {
           onDismiss={() => setNotifyMessage(null)}
           isVisible={!!notifyMessage}
         />
+        
+        {/* Floating Action Button for Voice Recognition */}
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton onClick={() => history.push("/add-voice")}>
+            <IonIcon icon={mic} />
+          </IonFabButton>
+        </IonFab>
       </IonContent>
     </IonPage>
   );

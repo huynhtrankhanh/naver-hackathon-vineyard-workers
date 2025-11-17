@@ -15,7 +15,6 @@ import { useHistory } from "react-router-dom";
 import { Wallet, ArrowLeft } from "lucide-react";
 import { hashPassword } from "../utils/crypto";
 import { authApi } from "../services/api";
-import SpeechRecorder from "../components/SpeechRecorder";
 
 const SignIn: React.FC = () => {
   const history = useHistory();
@@ -54,16 +53,9 @@ const SignIn: React.FC = () => {
       setLoading(false);
     }
   };
-  const handleError = (message: string) => {
-    console.error(">>> LỖI GHI ÂM:", message);
-  };
-  const handleText = (text: string) => {
-    console.log(">>> TEXT NHẬN ĐƯỢC:", text);
-  };
 
   return (
     <IonPage>
-      <SpeechRecorder onError={handleError} onTextReceived={handleText} />
       <IonContent className="bg-white">
         <div className="min-h-screen bg-white flex flex-col">
           {/* Header */}
