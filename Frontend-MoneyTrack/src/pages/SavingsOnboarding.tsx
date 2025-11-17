@@ -235,7 +235,7 @@ const SavingsOnboarding: React.FC = () => {
                       <div className="relative mb-8">
                         <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold text-gray-300">$</span>
                         <input
-                          type="tel"
+                          type="number"
                           placeholder="300"
                           value={wizardData.savingsGoal}
                           onChange={(e) => setWizardData({ ...wizardData, savingsGoal: e.target.value })}

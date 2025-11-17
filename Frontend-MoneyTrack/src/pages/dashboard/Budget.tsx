@@ -284,7 +284,7 @@ const Budget: React.FC = () => {
                         </label>
                         <input
                           id="edit-limit"
-                          type="tel"
+                          type="number"
                           value={limit}
                           onChange={(e) => setLimit(e.target.value)}
                           placeholder="0"
@@ -352,7 +352,7 @@ const Budget: React.FC = () => {
                         </label>
                         <input
                           id="limit"
-                          type="tel"
+                          type="number"
                           value={limit}
                           onChange={(e) => setLimit(e.target.value)}
                           placeholder="0"
