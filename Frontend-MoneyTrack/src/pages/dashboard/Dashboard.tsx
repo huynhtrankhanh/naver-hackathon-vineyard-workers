@@ -279,7 +279,11 @@ const Dashboard: React.FC = () => {
                         const isIncome = t.type === 'income';
                         const displayAmount = Math.abs(t.amount);
                         return (
-                          <li key={t._id} className="flex items-center justify-between px-4 py-3">
+                          <li 
+                            key={t._id} 
+                            className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                            onClick={() => history.push(`/edit-transaction/${t._id}`)}
+                          >
                             <div className="flex items-center gap-3">
                               <div className={`h-9 w-9 rounded-xl grid place-items-center ${isIncome ? "bg-emerald-50" : "bg-slate-50"}`}>
                                 {isIncome ? <PiggyBank className="h-5 w-5 text-emerald-600"/> : <Wallet className="h-5 w-5 text-slate-600"/>}

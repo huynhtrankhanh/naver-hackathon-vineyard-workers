@@ -71,7 +71,11 @@ const Income: React.FC = () => {
             ) : items.length > 0 ? (
               <ul className="rounded-2xl border border-slate-100 divide-y divide-slate-100 shadow-sm">
                 {items.map((i) => (
-                  <li key={i._id} className="px-4 py-3 flex items-center justify-between">
+                  <li 
+                    key={i._id} 
+                    className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+                    onClick={() => history.push(`/edit-transaction/${i._id}`)}
+                  >
                     <div>
                       <div className="font-medium">{i.title}</div>
                       <div className="text-xs text-slate-500">{i.category} • {formatDate(i.date)}</div>
