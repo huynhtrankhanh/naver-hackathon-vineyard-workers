@@ -421,7 +421,7 @@ const Goals: React.FC = () => {
                     </label>
                     <input
                       id="contribution-amount"
-                      type="number"
+                      type="tel"
                       value={contributionAmount}
                       onChange={(e) => setContributionAmount(e.target.value)}
                       placeholder="0"
@@ -500,7 +500,7 @@ const Goals: React.FC = () => {
                       Target Amount (đ)
                     </label>
                     <input
-                      type="number"
+                      type="tel"
                       value={newGoalTarget}
                       onChange={(e) => setNewGoalTarget(e.target.value)}
                       placeholder="e.g., 10000000"
