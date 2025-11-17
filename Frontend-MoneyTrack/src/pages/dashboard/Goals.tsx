@@ -425,6 +425,7 @@ const Goals: React.FC = () => {
                       value={contributionAmount}
                       onChange={(e) => setContributionAmount(e.target.value)}
                       placeholder="0"
+                      pattern="[0-9]*"
                       min="0"
                       max={balance}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-emerald-500 focus:outline-none"
@@ -504,6 +505,7 @@ const Goals: React.FC = () => {
                       value={newGoalTarget}
                       onChange={(e) => setNewGoalTarget(e.target.value)}
                       placeholder="e.g., 10000000"
+                      pattern="[0-9]*"
                       min="1"
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled={submitting}

@@ -288,6 +288,7 @@ const Budget: React.FC = () => {
                           value={limit}
                           onChange={(e) => setLimit(e.target.value)}
                           placeholder="0"
+                          pattern="[0-9]*"
                           min="0"
                           className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none"
                           required
@@ -356,6 +357,7 @@ const Budget: React.FC = () => {
                           value={limit}
                           onChange={(e) => setLimit(e.target.value)}
                           placeholder="0"
+                          pattern="[0-9]*"
                           min="0"
                           className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none"
                           required
