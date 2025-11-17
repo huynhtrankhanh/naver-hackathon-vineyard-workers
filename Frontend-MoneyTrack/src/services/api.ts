@@ -215,7 +215,7 @@ export const aiApi = {
       amount: number;
       type: string;
       date: string;
-    }>("/api/ai/parse-text", {
+    }>("/ai/parse-text", {
       method: "POST",
       body: JSON.stringify({ text }),
     });
