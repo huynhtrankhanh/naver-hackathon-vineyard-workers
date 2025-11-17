@@ -4,7 +4,7 @@ import { useHistory } from "react-router-dom";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { budgetApi } from "../../services/api";
+import { budgetApi, aiApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 
@@ -16,9 +16,20 @@ interface Budget {
   month: string;
 }
 
+interface SavingPlan {
+  _id: string;
+  proposedBudgetLimits?: Array<{
+    category: string;
+    suggestedLimit: number;
+    currentLimit?: number;
+    reasoning?: string;
+  }>;
+}
+
 const Budget: React.FC = () => {
   const history = useHistory();
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -55,8 +66,12 @@ const Budget: React.FC = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
-  const data = await budgetApi.getByMonth(currentMonth);
-  setBudgets(data);
+      const [budgetData, plansData] = await Promise.all([
+        budgetApi.getByMonth(currentMonth),
+        aiApi.getAllPlans()
+      ]);
+      setBudgets(budgetData);
+      setSavingPlans(plansData);
     } catch (error) {
       console.error("Error fetching budgets:", error);
     } finally {
@@ -191,6 +206,41 @@ const Budget: React.FC = () => {
     }
   };
 
+  // Get AI proposed limit for a category
+  const getProposedLimit = (category: string) => {
+    for (const plan of savingPlans) {
+      if (plan.proposedBudgetLimits) {
+        const proposal = plan.proposedBudgetLimits.find(p => p.category === category);
+        if (proposal) {
+          return proposal;
+        }
+      }
+    }
+    return null;
+  };
+
+  // Get all AI proposed limits (for categories without existing budgets)
+  const getNewProposedLimits = () => {
+    const existingCategories = new Set(budgets.map(b => b.category));
+    const proposals: Array<{
+      category: string;
+      suggestedLimit: number;
+      reasoning?: string;
+    }> = [];
+
+    for (const plan of savingPlans) {
+      if (plan.proposedBudgetLimits) {
+        for (const proposal of plan.proposedBudgetLimits) {
+          if (!existingCategories.has(proposal.category)) {
+            proposals.push(proposal);
+          }
+        }
+      }
+    }
+
+    return proposals;
+  };
+
   return (
     <IonPage>
       <IonContent className="bg-white">
@@ -227,6 +277,8 @@ const Budget: React.FC = () => {
                     {budgets.map(budget => {
                       const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
                       const isOverBudget = percentage > 100;
+                      const proposedLimit = getProposedLimit(budget.category);
+                      
                       return (
                         <div key={budget._id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
                           <div className="flex items-center justify-between mb-2">
@@ -263,6 +315,17 @@ const Budget: React.FC = () => {
                               {Math.round(percentage)}%
                             </span>
                           </div>
+                          
+                          {/* AI Proposed Limit */}
+                          {proposedLimit && (
+                            <div className="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                              <div className="text-xs font-medium text-blue-700 mb-1">✨ AI Suggested Limit</div>
+                              <div className="text-sm font-semibold text-slate-900">{toCurrency(proposedLimit.suggestedLimit)}</div>
+                              {proposedLimit.reasoning && (
+                                <div className="text-xs text-slate-600 mt-1">{proposedLimit.reasoning}</div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -270,6 +333,38 @@ const Budget: React.FC = () => {
                 ) : (
                   <div className="text-center text-slate-500 py-8 mb-4">
                     No budgets set for this month. Add one to start tracking!
+                  </div>
+                )}
+
+                {/* AI Proposed New Budget Categories */}
+                {getNewProposedLimits().length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-blue-600 mb-2 flex items-center gap-2">
+                      ✨ AI Suggested New Budget Categories
+                    </h3>
+                    <div className="space-y-3">
+                      {getNewProposedLimits().map((proposal, idx) => (
+                        <div key={idx} className="rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-4 shadow-sm">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="font-medium text-slate-900">{proposal.category}</div>
+                            <div className="text-sm font-semibold text-blue-600">{toCurrency(proposal.suggestedLimit)}</div>
+                          </div>
+                          {proposal.reasoning && (
+                            <div className="text-xs text-slate-600 mb-3">{proposal.reasoning}</div>
+                          )}
+                          <button
+                            onClick={() => {
+                              setCategory(proposal.category);
+                              setLimit(proposal.suggestedLimit.toString());
+                              setShowAddModal(true);
+                            }}
+                            className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+                          >
+                            Create Budget with this Limit
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
