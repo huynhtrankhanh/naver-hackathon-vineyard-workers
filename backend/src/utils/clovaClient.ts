@@ -60,12 +60,12 @@ export async function* streamClovaAPI(
     messages,
     tools: tools && tools.length > 0 ? tools : undefined,
     stream: true,
-    max_completion_tokens: 2000, // Use max_completion_tokens as per OpenAI compatibility
+    max_completion_tokens: 16000, // High limit to allow reasoning + content generation
     temperature: 0.7,
     top_p: 0.8,
     model: 'HCX-007', // Use HCX-007 model with reasoning capability
     reasoning: {
-      effort: 'high' // Set reasoning effort to high as per requirements
+      effort: 'high' // Enable reasoning for better instruction adherence
     }
   });
   
@@ -83,70 +83,20 @@ export async function* streamClovaAPI(
     }
   };
   
-  return new Promise((resolve, reject) => {
-    const req = https.request(options, (res) => {
-      if (res.statusCode !== 200) {
+  // Create a promise that will give us the response stream
+  const res = await new Promise<any>((resolve, reject) => {
+    const req = https.request(options, (response) => {
+      if (response.statusCode !== 200) {
         let errorData = '';
-        res.on('data', (chunk) => {
+        response.on('data', (chunk) => {
           errorData += chunk.toString();
         });
-        res.on('end', () => {
-          reject(new Error(`API request failed with status ${res.statusCode}: ${errorData}`));
+        response.on('end', () => {
+          reject(new Error(`API request failed with status ${response.statusCode}: ${errorData}`));
         });
         return;
       }
-      
-      // Create async generator from the stream
-      async function* generateChunks() {
-        let buffer = '';
-        
-        for await (const chunk of res) {
-          buffer += chunk.toString();
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-          
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed === 'data: [DONE]') {
-              continue;
-            }
-            
-            if (trimmed.startsWith('data: ')) {
-              try {
-                const jsonStr = trimmed.substring(6);
-                const data = JSON.parse(jsonStr);
-                
-                // Handle HCX-007 reasoning model - convert reasoning_content to content for compatibility
-                if (data.choices && data.choices[0]?.delta?.reasoning_content) {
-                  // Skip reasoning content, wait for actual content
-                  // We could expose reasoning separately if needed
-                  continue;
-                }
-                
-                yield data;
-              } catch (e) {
-                console.error('Failed to parse SSE data:', trimmed, e);
-              }
-            }
-          }
-        }
-        
-        // Process any remaining buffer
-        if (buffer.trim() && buffer.trim() !== 'data: [DONE]') {
-          const trimmed = buffer.trim();
-          if (trimmed.startsWith('data: ')) {
-            try {
-              const jsonStr = trimmed.substring(6);
-              const data = JSON.parse(jsonStr);
-              yield data;
-            } catch (e) {
-              console.error('Failed to parse final SSE data:', trimmed, e);
-            }
-          }
-        }
-      }
-      
-      resolve(generateChunks());
+      resolve(response);
     });
     
     req.on('error', (error) => {
@@ -156,6 +106,49 @@ export async function* streamClovaAPI(
     req.write(requestBody);
     req.end();
   });
+  
+  // Now stream the response
+  let buffer = '';
+  
+  for await (const chunk of res) {
+    buffer += chunk.toString();
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed === 'data: [DONE]') {
+        continue;
+      }
+      
+      if (trimmed.startsWith('data: ')) {
+        try {
+          const jsonStr = trimmed.substring(6);
+          const data = JSON.parse(jsonStr);
+          
+          // Always yield the data - HCX-007 model outputs both reasoning_content and content
+          // The consumer can choose which to use
+          yield data;
+        } catch (e) {
+          console.error('Failed to parse SSE data:', trimmed, e);
+        }
+      }
+    }
+  }
+  
+  // Process any remaining buffer
+  if (buffer.trim() && buffer.trim() !== 'data: [DONE]') {
+    const trimmed = buffer.trim();
+    if (trimmed.startsWith('data: ')) {
+      try {
+        const jsonStr = trimmed.substring(6);
+        const data = JSON.parse(jsonStr);
+        yield data;
+      } catch (e) {
+        console.error('Failed to parse final SSE data:', trimmed, e);
+      }
+    }
+  }
 }
 
 /**
@@ -178,12 +171,12 @@ export async function callClovaAPI(
     messages,
     tools: tools && tools.length > 0 ? tools : undefined,
     stream: false,
-    max_completion_tokens: 2000, // Use max_completion_tokens as per OpenAI compatibility
+    max_completion_tokens: 16000, // High limit to allow reasoning + content generation
     temperature: 0.7,
     top_p: 0.8,
     model: 'HCX-007', // Use HCX-007 model with reasoning capability
     reasoning: {
-      effort: 'high' // Set reasoning effort to high as per requirements
+      effort: 'high' // Enable reasoning for better instruction adherence
     }
   });
   

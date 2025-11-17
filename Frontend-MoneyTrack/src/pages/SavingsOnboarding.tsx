@@ -60,43 +60,69 @@ const SavingsOnboarding: React.FC = () => {
 
   const finishWizard = async () => {
     showScreen('loading');
-    
-    const loadingTexts = [
-      "Analyzing your inputs...",
-      "Cross-referencing spending models...",
-      "Searching for optimal budget cuts...",
-      "Finalizing your personalized plan..."
-    ];
-    
-    let textIndex = 0;
-    const interval = setInterval(() => {
-      textIndex++;
-      if (loadingTexts[textIndex]) {
-        setLoadingText(loadingTexts[textIndex]);
-      }
-    }, 800);
+    setLoadingText('Starting AI generation...');
 
     try {
-      // Call the backend AI API using the service
-      const data = await aiApi.generateSavingsPlan({
+      // Call the backend AI API - it returns planId immediately
+      const response = await aiApi.generateSavingsPlan({
         goal: wizardData.goal,
         savingsGoal: wizardData.savingsGoal ? parseInt(wizardData.savingsGoal) : undefined,
         intensity: wizardData.intensity,
         notes: wizardData.notes
       });
 
-      setAiResult(data);
-      
-      setTimeout(() => {
-        clearInterval(interval);
+      // Check if we got a planId (streaming) or complete result (mock)
+      if (response.planId) {
+        // Use streaming to get real-time updates
+        const planId = response.planId;
+        setLoadingText('AI is analyzing your financial data...');
+
+        // Poll for the plan status since Server-Sent Events can have auth issues
+        const pollPlan = async () => {
+          try {
+            const plan = await aiApi.getPlanById(planId);
+            
+            if (plan.streamingStatus === 'completed') {
+              // Transform to expected format
+              setAiResult({
+                goal: plan.goal,
+                savingsGoal: plan.savingsGoal,
+                intensity: plan.intensity,
+                notes: plan.notes,
+                suggestedSavings: plan.suggestedSavings,
+                recommendations: plan.recommendations || [],
+                markdownAdvice: plan.markdownAdvice
+              });
+              showScreen('result');
+            } else if (plan.streamingStatus === 'failed') {
+              throw new Error(plan.generationProgress || 'AI generation failed');
+            } else {
+              // Still generating, update loading text and poll again
+              if (plan.generationProgress) {
+                setLoadingText(plan.generationProgress);
+              }
+              setTimeout(pollPlan, 2000); // Poll every 2 seconds
+            }
+          } catch (error) {
+            console.error('Error polling plan:', error);
+            throw error;
+          }
+        };
+
+        // Start polling
+        await pollPlan();
+      } else {
+        // Mock response - complete result already available
+        setAiResult(response);
         showScreen('result');
-      }, 3500);
+      }
     } catch (error) {
       console.error('Error generating plan:', error);
-      clearInterval(interval);
-      // Show error or fallback
-      alert('Failed to generate plan. Please try again.');
-      showScreen('wizard');
+      setLoadingText('Failed to generate plan');
+      setTimeout(() => {
+        alert('Failed to generate plan. Please try again.');
+        showScreen('wizard');
+      }, 1000);
     }
   };
 
