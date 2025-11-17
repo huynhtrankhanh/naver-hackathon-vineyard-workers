@@ -217,6 +217,16 @@ ${(budgets as any[]).map(b => `- ${b.category}: ${b.spent.toLocaleString()}/${b.
 Recent Transactions (last ${transactions.length}):
 ${(transactions as any[]).slice(0, 20).map(t => `- ${new Date(t.date).toLocaleDateString()}: ${t.title} (${t.category}) - ${t.amount.toLocaleString()} VND [${t.type}]`).join('\n')}
 
+VALID BUDGET CATEGORIES (use ONLY these categories):
+- Food & Drinks
+- Transport
+- Shopping
+- Bills
+- Entertainment
+- Healthcare
+- Education
+- Other
+
 YOUR RESPONSE FORMAT:
 
 First, provide your analysis and recommendations in Markdown format. Be specific, actionable, and encouraging.
@@ -232,18 +242,27 @@ Then, AT THE END of your response:
 }
 </${endGoalTag}>
 
-2. Propose budget limits (1-5 categories) using this EXACT format:
+2. Propose budget limits (1-5 categories) using this EXACT format (MUST use valid category names from the list above):
 <${budgetTag}>
 [
   {
-    "category": "Category name",
+    "category": "Food & Drinks",
     "suggestedLimit": 500000,
+    "reasoning": "Brief explanation"
+  },
+  {
+    "category": "Entertainment",
+    "suggestedLimit": 300000,
     "reasoning": "Brief explanation"
   }
 ]
 </${endBudgetTag}>
 
-CRITICAL: Use ONLY the exact tag names provided above. Do NOT mention or use these tag names anywhere else in your response except in the proposal sections at the very end.`;
+CRITICAL RULES:
+- Use ONLY the exact tag names provided above
+- Do NOT mention or use these tag names anywhere else in your response except in the proposal sections at the very end
+- For budget limits, use ONLY the valid category names from the list: Food & Drinks, Transport, Shopping, Bills, Entertainment, Healthcare, Education, or Other
+- Do NOT create new category names or variations`;
 
     await SavingsPlan.findByIdAndUpdate(planId, {
       generationProgress: "AI analyzing your finances...",
