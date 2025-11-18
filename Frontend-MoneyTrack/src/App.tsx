@@ -1,3 +1,4 @@
+
 import React from "react";
 // 1. DÙNG 'Redirect' (của v5)
 import { Redirect, Route } from "react-router-dom";
@@ -6,6 +7,7 @@ import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
 /* Import các trang của bạn */
+import GoalsAll from "./pages/dashboard/GoalsAll";
 import Splash from "./pages/splash";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -22,6 +24,8 @@ import SavingPlanDetail from "./pages/dashboard/SavingPlanDetail";
 import Notifications from "./pages/dashboard/Notification";
 import AddTransactionVoice from "./pages/dashboard/AddTransactionVoice";
 import AddReceipt from "./pages/dashboard/AddReceipt";
+import SavingPlansAll from "./pages/dashboard/SavingPlansAll";
+          
 
 /* Core CSS */
 import "@ionic/react/css/core.css";
@@ -73,6 +77,7 @@ const App: React.FC = () => (
             path="/add-voice"
             component={AddTransactionVoice}
           />
+          <ProtectedRoute exact path="/goals/all" component={GoalsAll} />
 
           <ProtectedRoute
             exact
@@ -97,6 +102,7 @@ const App: React.FC = () => (
             path="/savings-onboarding"
             component={SavingsOnboarding}
           />
+          <ProtectedRoute exact path="/saving-plans/all" component={SavingPlansAll} />
 
           {/* 3. DÙNG 'Redirect' (của v5) */}
           <Route exact path="/">
