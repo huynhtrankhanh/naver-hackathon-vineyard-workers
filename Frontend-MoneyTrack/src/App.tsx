@@ -21,6 +21,7 @@ import SavingsOnboarding from "./pages/SavingsOnboarding";
 import SavingPlanDetail from "./pages/dashboard/SavingPlanDetail";
 import Notifications from "./pages/dashboard/Notification";
 import AddTransactionVoice from "./pages/dashboard/AddTransactionVoice";
+import AddReceipt from "./pages/dashboard/AddReceipt";
 
 /* Core CSS */
 import "@ionic/react/css/core.css";
@@ -72,6 +73,13 @@ const App: React.FC = () => (
             path="/add-voice"
             component={AddTransactionVoice}
           />
+
+          <ProtectedRoute
+            exact
+            path="/add-receipt"
+            component={AddReceipt}
+          />
+
           <ProtectedRoute exact path="/goals" component={Goals} />
           <ProtectedRoute exact path="/profile" component={Profile} />
           <ProtectedRoute

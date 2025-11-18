@@ -10,10 +10,9 @@ import notificationRouter from './routes/notifications.js';
 import aiRouter from './routes/ai.js';
 import authRouter from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
-
-// Load environment variables
 dotenv.config();
-
+import ocrRouter from './routes/ocr.js';
+// Load environment variables
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -31,7 +30,7 @@ app.use('/api/goals', authMiddleware, goalsRouter);
 app.use('/api/budgets', authMiddleware, budgetsRouter);
 app.use('/api/ai', authMiddleware, aiRouter);
 app.use('/api/notifications', authMiddleware, notificationRouter);
-
+app.use('/api/ocr', ocrRouter);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend server is running' });

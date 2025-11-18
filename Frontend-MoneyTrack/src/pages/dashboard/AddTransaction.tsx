@@ -13,7 +13,7 @@ import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi, budgetApi } from "../../services/api";
 import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
-import { mic } from "ionicons/icons";
+import { mic, camera } from "ionicons/icons";
 
 interface Budget {
   _id: string;
@@ -184,7 +184,15 @@ const AddTransaction: React.FC = () => {
               <IonIcon icon={mic} slot="start" />
               Add by Voice
             </IonButton>
-
+            <IonButton
+              fill="outline"
+              expand="block"
+              onClick={() => history.push("/add-receipt")} // Điều hướng đến trang mới
+              className="mb-4"
+            >
+              <IonIcon icon={camera} slot="start" />
+              Add by Receipt (OCR)
+            </IonButton>
             <p className="text-center text-gray-500 my-2">Or enter manualy</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
