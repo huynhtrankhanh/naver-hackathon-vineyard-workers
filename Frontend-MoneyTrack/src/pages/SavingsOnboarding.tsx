@@ -8,6 +8,7 @@ import { aiApi } from '../services/api';
 interface WizardData {
   goal: string;
   savingsGoal: string;
+  months: string;
   intensity: string;
   notes: string;
 }
@@ -26,29 +27,54 @@ interface AIResponse {
   markdownAdvice?: string;
 }
 
+const defaultCategories = [
+  'Food & Drinks',
+  'Transport',
+  'Shopping',
+  'Bills',
+  'Entertainment',
+  'Healthcare',
+  'Education',
+  'Other',
+  'Salary',
+  'Freelance',
+  'Investment',
+  'Gift',
+  'Bonus',
+];
+
+function getAllCategories() {
+  try {
+    const custom = JSON.parse(localStorage.getItem('customCategories') || '[]');
+    return Array.from(new Set([...defaultCategories, ...custom]));
+  } catch {
+    return defaultCategories;
+  }
+}
+
 const SavingsOnboarding: React.FC = () => {
   const history = useHistory();
-  const [currentScreen, setCurrentScreen] = useState<'welcome' | 'wizard' | 'loading' | 'result' | 'advice'>('welcome');
+  const [currentScreen, setCurrentScreen] = useState<'wizard' | 'loading' | 'result' | 'advice'>('wizard');
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>({
-    goal: 'Build a safety net',
+    goal: '',
     savingsGoal: '',
+    months: '',
     intensity: 'Ideal target',
     notes: ''
   });
+  const [allCategories] = useState<string[]>(getAllCategories());
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [aiResult, setAiResult] = useState<AIResponse | null>(null);
   const [loadingText, setLoadingText] = useState('Analyzing your inputs...');
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
-  const showScreen = (screen: 'welcome' | 'wizard' | 'loading' | 'result' | 'advice') => {
+  const showScreen = (screen: 'wizard' | 'loading' | 'result' | 'advice') => {
     setCurrentScreen(screen);
   };
 
-  const startWizard = () => {
-    setCurrentStep(1);
-    showScreen('wizard');
-  };
+  // No longer needed: startWizard
 
   const nextStep = () => {
     if (currentStep < totalSteps) {
@@ -64,11 +90,17 @@ const SavingsOnboarding: React.FC = () => {
 
     try {
       // Call the backend AI API - it returns planId immediately
+
+      // Tính toán savingsGoalPerMonth nếu có đủ dữ liệu
+      let savingsGoalPerMonth: number | undefined = undefined;
+      if (wizardData.savingsGoal && wizardData.months && !isNaN(Number(wizardData.savingsGoal)) && !isNaN(Number(wizardData.months)) && Number(wizardData.months) > 0) {
+        savingsGoalPerMonth = Math.ceil(Number(wizardData.savingsGoal) / Number(wizardData.months));
+      }
       const response = await aiApi.generateSavingsPlan({
         goal: wizardData.goal,
-        savingsGoal: wizardData.savingsGoal ? parseInt(wizardData.savingsGoal) : undefined,
+        savingsGoal: savingsGoalPerMonth,
         intensity: wizardData.intensity,
-        notes: wizardData.notes
+        notes: `Total goal: ${wizardData.savingsGoal} VND in ${wizardData.months} months. ` + wizardData.notes + (selectedCategories.length ? `\nCategories to save: ${selectedCategories.join(', ')}` : '')
       });
 
       // Check if we got a planId (streaming) or complete result (mock)
@@ -140,51 +172,7 @@ const SavingsOnboarding: React.FC = () => {
             {/* Status Bar Area */}
             <div className="h-12 shrink-0 bg-transparent z-10"></div>
 
-            {/* Welcome Screen */}
-            {currentScreen === 'welcome' && (
-              <div className="flex-1 flex flex-col p-6 pb-10 overflow-y-auto">
-                <div className="flex-1 flex flex-col justify-end pb-8 min-h-min">
-                  <div className="w-16 h-16 bg-gradient-to-tr from-violet-600 to-indigo-400 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-indigo-200/50">
-                    <Sparkles className="w-8 h-8 text-white" />
-                  </div>
-                  <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4 leading-tight">
-                    Let the AI design your perfect budget.
-                  </h1>
-                  <p className="text-gray-500 text-lg leading-relaxed">
-                    We use smart technology to find saving opportunities you barely notice. How should we begin?
-                  </p>
-                </div>
 
-                <div className="space-y-3 shrink-0">
-                  <button
-                    onClick={startWizard}
-                    className="relative w-full group text-left p-5 bg-gray-900 hover:bg-gray-800 text-white rounded-3xl transition-all duration-200 flex items-center gap-4 shadow-xl shadow-gray-200 active:scale-95"
-                  >
-                    <div className="bg-white/10 p-3 rounded-full text-indigo-300 shrink-0">
-                      <Bot className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg mb-0.5">Train the AI</h3>
-                      <p className="text-gray-400 text-sm leading-snug">Answer 3 simple questions</p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-gray-500/50" />
-                  </button>
-
-                  <button
-                    onClick={() => history.push('/dashboard')}
-                    className="w-full group text-left p-5 bg-white border-2 border-gray-100 hover:border-gray-200 text-gray-900 rounded-3xl transition-all duration-200 flex items-center gap-4 active:scale-95"
-                  >
-                    <div className="bg-gray-100 p-3 rounded-full text-gray-500 shrink-0">
-                      <Receipt className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg mb-0.5">Just start tracking</h3>
-                      <p className="text-gray-500 text-sm leading-snug">AI will learn from your spending habits</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Wizard Screen */}
             {currentScreen === 'wizard' && (
@@ -192,7 +180,7 @@ const SavingsOnboarding: React.FC = () => {
                 {/* Fixed Top Nav */}
                 <div className="px-6 py-4 flex items-center bg-white shrink-0">
                   <button
-                    onClick={() => showScreen('welcome')}
+                    onClick={() => history.push('/dashboard')}
                     className="p-2 -ml-2 text-gray-400 hover:text-gray-900 transition-colors"
                   >
                     <ArrowLeft className="w-6 h-6" />
@@ -210,81 +198,102 @@ const SavingsOnboarding: React.FC = () => {
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 p-6 overflow-y-auto overscroll-contain">
-                  {/* Step 1: Priority */}
+                  {/* Step 1: Priority (user input) */}
                   {currentStep === 1 && (
                     <div>
                       <span className="text-indigo-600 font-semibold tracking-wider uppercase text-xs mb-2 block">
-                        Step 1 of 3
+                        Step 1 of 4
                       </span>
                       <h2 className="text-2xl font-bold text-gray-900 mb-3">What's your top priority?</h2>
-                      <p className="text-gray-500 mb-6">This helps the AI decide the initial saving aggressiveness.</p>
-
-                      <div className="space-y-3 pb-6">
-                        {[
-                          { emoji: '🛡️', label: 'Build a safety net', value: 'Build a safety net' },
-                          { emoji: '🏡', label: 'Big Purchase (House, Car)', value: 'Big Purchase' },
-                          { emoji: '🏝️', label: 'Dream Vacation', value: 'Dream Vacation' },
-                          { emoji: '📈', label: 'General Investing', value: 'General Investing' }
-                        ].map((option) => (
-                          <label
-                            key={option.value}
-                            className={`flex items-center p-4 bg-white border-2 rounded-2xl cursor-pointer transition-all ${
-                              wizardData.goal === option.value
-                                ? 'border-indigo-600 shadow-lg shadow-indigo-100/50'
-                                : 'border-transparent'
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name="goal"
-                              className="hidden"
-                              checked={wizardData.goal === option.value}
-                              onChange={() => setWizardData({ ...wizardData, goal: option.value })}
-                            />
-                            <span className="text-2xl mr-4">{option.emoji}</span>
-                            <span className="font-bold text-gray-900 flex-1">{option.label}</span>
-                          </label>
-                        ))}
-                      </div>
+                      <p className="text-gray-500 mb-6">Describe your main savings goal. For example: "Build a safety net", "Buy a house", "Travel to Japan", ...</p>
+                      <input
+                        type="text"
+                        value={wizardData.goal}
+                        onChange={e => setWizardData({ ...wizardData, goal: e.target.value })}
+                        placeholder="e.g. Build a safety net, Buy a house, ..."
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:outline-none text-lg"
+                        required
+                        maxLength={100}
+                      />
                     </div>
                   )}
 
-                  {/* Step 2: Savings Goal Input */}
+                  {/* Step 2: Savings Goal & Months Input */}
                   {currentStep === 2 && (
                     <div>
                       <span className="text-indigo-600 font-semibold tracking-wider uppercase text-xs mb-2 block">
-                        Step 2 of 3
+                        Step 2 of 4
                       </span>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-3">What's your monthly saving goal?</h2>
-                      <p className="text-gray-500 mb-6">You can leave this blank, and the AI will suggest a goal for you.</p>
-
-                      <div className="relative mb-8">
-                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold text-gray-300">VND</span>
-                        <input
-                          type="tel"
-                          placeholder="300"
-                          value={wizardData.savingsGoal}
-                          onChange={(e) => setWizardData({ ...wizardData, savingsGoal: e.target.value })}
-                          pattern="[0-9]*"
-                          className="w-full text-center text-5xl font-black text-gray-900 bg-white border-2 border-gray-200 focus:border-indigo-500 rounded-2xl py-5 px-16 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        />
-                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-lg font-medium text-gray-400">/mo</span>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3">What is your total saving goal and in how many months?</h2>
+                      <p className="text-gray-500 mb-6">Enter the total amount you want to save and the number of months you want to achieve it. The AI will calculate a monthly target for you.</p>
+                      <div className="mb-5">
+                        <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="savingsGoalInput">Total saving goal</label>
+                        <div className="relative">
+                          <input
+                            id="savingsGoalInput"
+                            type="tel"
+                            placeholder="e.g. 10000000"
+                            value={wizardData.savingsGoal}
+                            onChange={e => setWizardData({ ...wizardData, savingsGoal: e.target.value })}
+                            pattern="[0-9]*"
+                            className="w-full text-2xl font-black text-gray-900 bg-white border-2 border-gray-200 focus:border-indigo-500 rounded-2xl py-3 pl-4 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base font-bold text-gray-300">VND</span>
+                        </div>
                       </div>
-
+                      <div className="mb-8">
+                        <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="monthsInput">Number of months</label>
+                        <div className="relative">
+                          <input
+                            id="monthsInput"
+                            type="tel"
+                            placeholder="e.g. 12"
+                            value={wizardData.months}
+                            onChange={e => setWizardData({ ...wizardData, months: e.target.value })}
+                            pattern="[0-9]*"
+                            className="w-full text-2xl font-black text-gray-900 bg-white border-2 border-gray-200 focus:border-indigo-500 rounded-2xl py-3 pl-4 pr-20 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                          />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base font-medium text-gray-400">months</span>
+                        </div>
+                      </div>
                       <div className="bg-indigo-50/50 p-4 rounded-2xl flex items-start gap-4 border border-indigo-200">
                         <Info className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" />
                         <p className="text-sm text-gray-700">
-                          This number is just a desire. In the next step, you'll tell the AI how **serious** you are about this goal.
+                          The AI will divide your total goal by the number of months to suggest a monthly saving target. You can leave either field blank for the AI to suggest.
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Step 3: Importance & Notes */}
+                  {/* Step 3: Chọn categories muốn tiết kiệm */}
                   {currentStep === 3 && (
                     <div>
                       <span className="text-indigo-600 font-semibold tracking-wider uppercase text-xs mb-2 block">
-                        Step 3 of 3 (Final Step)
+                        Step 3 of 4
+                      </span>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3">Which categories do you want to save on?</h2>
+                      <p className="text-gray-500 mb-6">Select the categories you want the AI to focus on for savings.</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {allCategories.map(cat => (
+                          <button
+                            key={cat}
+                            type="button"
+                            className={`px-4 py-2 rounded-full border text-sm font-medium transition-all ${selectedCategories.includes(cat) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'}`}
+                            onClick={() => setSelectedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedCategories.length === 0 && <div className="text-xs text-rose-500">Please select at least one category.</div>}
+                    </div>
+                  )}
+
+                  {/* Step 4: Importance & Notes */}
+                  {currentStep === 4 && (
+                    <div>
+                      <span className="text-indigo-600 font-semibold tracking-wider uppercase text-xs mb-2 block">
+                        Step 4 of 4 (Final Step)
                       </span>
                       <h2 className="text-2xl font-bold text-gray-900 mb-3">How important is this goal to you?</h2>
                       <p className="text-gray-500 mb-6">This tells the AI how much discipline to apply to hit your Step 2 number.</p>
@@ -353,6 +362,7 @@ const SavingsOnboarding: React.FC = () => {
                     className={`w-full py-4 text-white font-bold rounded-2xl text-lg transition-transform active:scale-95 flex items-center justify-center gap-2 ${
                       currentStep === totalSteps ? 'bg-indigo-600' : 'bg-black'
                     }`}
+                    disabled={currentStep === 3 && selectedCategories.length === 0}
                   >
                     {currentStep === totalSteps ? (
                       <>
