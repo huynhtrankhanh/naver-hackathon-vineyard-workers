@@ -6,23 +6,21 @@ import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi, authApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 
-interface CategoryExpense {
-  category: string;
-  amount: number;
-}
-
 interface Transaction {
+  _id?: string;
   type: string;
   category: string;
   amount: number;
+  date?: string;
+  note?: string;
 }
 
 const Expenses: React.FC = () => {
   const history = useHistory();
-  const [items, setItems] = useState<CategoryExpense[]>([]);
+  const [items, setItems] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const sum = items.reduce((a, b) => a + b.amount, 0);
+  const sum = items.reduce((a, b) => a + Math.abs(b.amount), 0);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
 
   const token = (() => {
@@ -35,27 +33,18 @@ const Expenses: React.FC = () => {
 
   const fetchExpenses = useCallback(async () => {
     try {
-      // Only show loading spinner on initial load, not on periodic refreshes
       if (isInitialLoad) {
         setLoading(true);
       }
       const transactions = await transactionApi.getAll();
       // Filter only expense transactions
       const expenseTransactions = transactions.filter((t: Transaction) => t.type === 'expense');
-      
-      // Group by category
-      const categoryMap = new Map<string, number>();
-      expenseTransactions.forEach((t: Transaction) => {
-        const current = categoryMap.get(t.category) || 0;
-        categoryMap.set(t.category, current + Math.abs(t.amount));
+      // Sort by date descending if date field exists
+      expenseTransactions.sort((a, b) => {
+        if (a.date && b.date) return b.date.localeCompare(a.date);
+        return 0;
       });
-      
-      // Convert to array and sort by amount descending
-      const categoryExpenses: CategoryExpense[] = Array.from(categoryMap.entries())
-        .map(([category, amount]) => ({ category, amount }))
-        .sort((a, b) => b.amount - a.amount);
-      
-      setItems(categoryExpenses);
+      setItems(expenseTransactions);
     } catch (error) {
       console.error("Error fetching expenses:", error);
     } finally {
@@ -88,10 +77,17 @@ const Expenses: React.FC = () => {
               </div>
             ) : items.length > 0 ? (
               <ul className="rounded-2xl border border-slate-100 divide-y divide-slate-100 shadow-sm">
-                {items.map((i, idx) => (
-                  <li key={idx} className="px-4 py-3 flex items-center justify-between">
-                    <div className="font-medium">{i.category}</div>
-                    <div className="text-sm font-semibold text-rose-600">-{toCurrency(i.amount)}</div>
+                {items.map((t) => (
+                  <li
+                    key={t._id}
+                    className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+                    onClick={() => t._id && history.push(`/edit-transaction/${t._id}`)}
+                  >
+                    <div>
+                      <div className="font-medium">{t.note || t.category}</div>
+                      <div className="text-xs text-slate-500">{t.category}{t.date ? ` • ${new Date(t.date).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' })}` : ''}</div>
+                    </div>
+                    <div className="text-sm font-semibold text-rose-600">-{toCurrency(Math.abs(t.amount))}</div>
                   </li>
                 ))}
               </ul>
