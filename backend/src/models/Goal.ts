@@ -7,6 +7,7 @@ export interface IGoal extends Document {
   priority: string;
   userId: mongoose.Types.ObjectId;
   savingPlanId?: mongoose.Types.ObjectId; // Link to the saving plan that proposed this goal
+  duration: number; // Số tháng hoàn thành mục tiêu
 }
 
 const GoalSchema: Schema = new Schema({
@@ -15,7 +16,8 @@ const GoalSchema: Schema = new Schema({
   current: { type: Number, default: 0 },
   priority: { type: String, default: 'medium' },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  savingPlanId: { type: Schema.Types.ObjectId, ref: 'SavingsPlan' }
+  savingPlanId: { type: Schema.Types.ObjectId, ref: 'SavingsPlan' },
+  duration: { type: Number, required: true } // Số tháng hoàn thành mục tiêu
 }, { timestamps: true });
 
 export default mongoose.model<IGoal>('Goal', GoalSchema);
