@@ -324,6 +324,15 @@ const Budget: React.FC = () => {
                               {proposedLimit.reasoning && (
                                 <div className="text-xs text-slate-600 mt-1">{proposedLimit.reasoning}</div>
                               )}
+                              <button
+                                onClick={() => {
+                                  setEditingBudget(budget);
+                                  setLimit(proposedLimit.suggestedLimit.toString());
+                                }}
+                                className="mt-2 w-full py-1.5 px-3 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700"
+                              >
+                                Apply Suggested Limit
+                              </button>
                             </div>
                           )}
                         </div>

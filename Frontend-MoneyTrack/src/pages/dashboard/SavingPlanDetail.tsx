@@ -224,7 +224,7 @@ const SavingPlanDetail: React.FC = () => {
                     onClick={() => history.push('/dashboard/budget')}
                     className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700"
                   >
-                    View Budget Page
+                    Modify Budget Limits
                   </button>
                 </div>
               </div>
