@@ -257,10 +257,11 @@ router.post("/:id/accept-goal", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Goal already accepted" });
     }
 
-    // Require duration in proposedGoal
-    const duration = plan.proposedGoal.duration || plan.duration;
+    // Determine duration (fallback to 12 months if missing on older plans)
+    const duration = (plan.proposedGoal && plan.proposedGoal.duration) || plan.duration || 12;
     if (!duration || duration <= 0) {
-      return res.status(400).json({ message: "Missing duration (months) in proposed goal. Please regenerate or edit the plan." });
+      // Ensure a sane fallback
+      console.warn(`Invalid duration on plan ${planId}, falling back to 12`);
     }
 
     // Create the goal

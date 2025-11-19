@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ISavingsPlan extends Document {
   goal: string;
   savingsGoal?: number;
+  duration?: number;
   intensity: string;
   notes?: string;
   userId: mongoose.Types.ObjectId;
@@ -36,6 +37,7 @@ export interface ISavingsPlan extends Document {
 const SavingsPlanSchema: Schema = new Schema({
   goal: { type: String, required: true },
   savingsGoal: { type: Number },
+  duration: { type: Number },
   intensity: { type: String, required: true },
   notes: { type: String },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
