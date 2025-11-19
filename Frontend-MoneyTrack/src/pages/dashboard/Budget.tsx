@@ -324,6 +324,15 @@ const Budget: React.FC = () => {
                               {proposedLimit.reasoning && (
                                 <div className="text-xs text-slate-600 mt-1">{proposedLimit.reasoning}</div>
                               )}
+                              <button
+                                onClick={() => {
+                                  setEditingBudget(budget);
+                                  setLimit(proposedLimit.suggestedLimit.toString());
+                                }}
+                                className="mt-2 w-full py-1.5 px-3 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700"
+                              >
+                                Apply Suggested Limit
+                              </button>
                             </div>
                           )}
                         </div>
@@ -337,7 +346,7 @@ const Budget: React.FC = () => {
                 )}
 
                 {/* AI Proposed New Budget Categories */}
-                {getNewProposedLimits().length > 0 && (
+                {getNewProposedLimits().length > 0 && !showAddModal && !editingBudget && (
                   <div className="mb-4">
                     <h3 className="text-sm font-semibold text-blue-600 mb-2 flex items-center gap-2">
                       ✨ AI Suggested New Budget Categories
