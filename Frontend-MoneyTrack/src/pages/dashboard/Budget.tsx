@@ -346,7 +346,7 @@ const Budget: React.FC = () => {
                 )}
 
                 {/* AI Proposed New Budget Categories */}
-                {getNewProposedLimits().length > 0 && (
+                {getNewProposedLimits().length > 0 && !showAddModal && !editingBudget && (
                   <div className="mb-4">
                     <h3 className="text-sm font-semibold text-blue-600 mb-2 flex items-center gap-2">
                       ✨ AI Suggested New Budget Categories
