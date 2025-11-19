@@ -257,6 +257,12 @@ router.post("/:id/accept-goal", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Goal already accepted" });
     }
 
+    // Require duration in proposedGoal
+    const duration = plan.proposedGoal.duration || plan.duration;
+    if (!duration || duration <= 0) {
+      return res.status(400).json({ message: "Missing duration (months) in proposed goal. Please regenerate or edit the plan." });
+    }
+
     // Create the goal
     const goal = new Goal({
       name: plan.proposedGoal.name,
@@ -265,6 +271,7 @@ router.post("/:id/accept-goal", async (req: Request, res: Response) => {
       current: 0,
       userId,
       savingPlanId: planId,
+      duration
     });
 
     await goal.save();
@@ -272,6 +279,7 @@ router.post("/:id/accept-goal", async (req: Request, res: Response) => {
     // Update plan to mark goal as accepted
     plan.proposedGoal.accepted = true;
     plan.proposedGoal.linkedGoalId = goal._id as mongoose.Types.ObjectId;
+    plan.proposedGoal.duration = duration;
     await plan.save();
 
     res.status(201).json({

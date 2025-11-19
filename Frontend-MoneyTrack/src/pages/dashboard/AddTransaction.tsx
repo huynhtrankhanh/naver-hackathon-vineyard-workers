@@ -28,6 +28,15 @@ const AddTransaction: React.FC = () => {
   const [type, setType] = useState<"income" | "expense">("expense");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
+  const [customCategories, setCustomCategories] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('customCategories') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -93,7 +102,7 @@ const AddTransaction: React.FC = () => {
     "Other",
   ];
 
-  const categories = type === "expense" ? expenseCategories : incomeCategories;
+  const categories = [...(type === "expense" ? expenseCategories : incomeCategories), ...customCategories];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,7 +271,15 @@ const AddTransaction: React.FC = () => {
                 <select
                   id="category"
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value === '__add_new__') {
+                      setShowNewCategoryInput(true);
+                      setCategory("");
+                    } else {
+                      setCategory(e.target.value);
+                      setShowNewCategoryInput(false);
+                    }
+                  }}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none bg-white"
                   required
                 >
@@ -272,7 +289,39 @@ const AddTransaction: React.FC = () => {
                       {cat}
                     </option>
                   ))}
+                  <option value="__add_new__">+ Add new category...</option>
                 </select>
+
+                {showNewCategoryInput && (
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={e => setNewCategory(e.target.value)}
+                      placeholder="Enter new category"
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium"
+                      onClick={() => {
+                        if (newCategory.trim() && !categories.includes(newCategory.trim())) {
+                          setCustomCategories(prev => {
+                            const updated = [...prev, newCategory.trim()];
+                            localStorage.setItem('customCategories', JSON.stringify(updated));
+                            return updated;
+                          });
+                          setCategory(newCategory.trim());
+                          setNewCategory("");
+                          setShowNewCategoryInput(false);
+                        }
+                      }}
+                      disabled={!newCategory.trim() || categories.includes(newCategory.trim())}
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
 
                 {/* Budget Limit Info */}
                 {type === "expense" && selectedBudget && (

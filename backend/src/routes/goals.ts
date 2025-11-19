@@ -33,7 +33,19 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user!.id);
-    const goal = new Goal({ ...req.body, userId });
+    const { name, target, priority, duration, savingPlanId } = req.body;
+    if (!name || !target || !duration) {
+      return res.status(400).json({ message: 'Missing required fields (name, target, duration)' });
+    }
+    const goal = new Goal({
+      name,
+      target,
+      current: 0,
+      priority: priority || 'medium',
+      userId,
+      savingPlanId,
+      duration
+    });
     const savedGoal = await goal.save();
     res.status(201).json(savedGoal);
   } catch (error) {

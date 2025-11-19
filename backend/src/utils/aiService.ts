@@ -351,7 +351,8 @@ CRITICAL RULES:
         name: proposedGoal.name,
         target: proposedGoal.target,
         priority: proposedGoal.priority || 'medium',
-        accepted: false
+        accepted: false,
+        duration: proposedGoal.duration || 12 // fallback 12 tháng nếu không có
       } : undefined,
       proposedBudgetLimits: proposedBudgetLimits.length > 0 ? proposedBudgetLimits : undefined,
     });

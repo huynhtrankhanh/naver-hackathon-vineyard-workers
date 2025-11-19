@@ -20,6 +20,7 @@ export interface ISavingsPlan extends Document {
     priority: string;
     accepted: boolean;
     linkedGoalId?: mongoose.Types.ObjectId;
+    duration?: number;
   };
   proposedBudgetLimits?: Array<{
     category: string;
@@ -51,7 +52,8 @@ const SavingsPlanSchema: Schema = new Schema({
     target: { type: Number },
     priority: { type: String },
     accepted: { type: Boolean, default: false },
-    linkedGoalId: { type: Schema.Types.ObjectId, ref: 'Goal' }
+    linkedGoalId: { type: Schema.Types.ObjectId, ref: 'Goal' },
+    duration: { type: Number }
   },
   proposedBudgetLimits: [{
     category: { type: String, required: true },
