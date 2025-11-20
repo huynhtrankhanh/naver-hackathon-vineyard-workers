@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   IonPage,
   IonContent,
@@ -10,7 +10,7 @@ import {
   IonCardContent,
   IonSpinner,
 } from "@ionic/react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { aiApi, transactionApi } from "../../services/api";
@@ -20,6 +20,7 @@ import SpeechRecorder from "../../components/SpeechRecorder";
 
 const AddTransactionVoice: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
 
   // SỬ DỤNG CÁC HOOKS TỪ 'AddTransaction.tsx'
   const { refresh: refreshBalance } = useBalance();
@@ -34,6 +35,15 @@ const AddTransactionVoice: React.FC = () => {
   // State để hiển thị kết quả (của trang này)
   const [sttResult, setSttResult] = useState("");
   const [nluResult, setNluResult] = useState<any>(null);
+
+  // Clear results when user navigates to this page
+  useEffect(() => {
+    if (location.pathname === "/add-voice") {
+      setSttResult("");
+      setNluResult(null);
+      setLoading(false);
+    }
+  }, [location.pathname]);
 
   // Hàm hiển thị thông báo
   const showToastNotification = (

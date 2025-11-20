@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IonPage, IonContent, IonButton, IonSpinner, IonToast, IonIcon } from "@ionic/react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { trashOutline, addCircleOutline } from 'ionicons/icons';
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
@@ -48,6 +48,7 @@ const ReceiptUploader: React.FC<{
 // Trang chính
 const AddReceipt: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -59,6 +60,14 @@ const AddReceipt: React.FC = () => {
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
   
   const expenseCategories = ['Food & Drinks', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Healthcare', 'Education', 'Other'];
+
+  // Clear scanned items when user navigates to this page
+  useEffect(() => {
+    if (location.pathname === "/add-receipt") {
+      setScannedItems([]);
+      setLoading(false);
+    }
+  }, [location.pathname]);
 
   const handleAnalysisComplete = (data: any) => {
     const itemsFromOcr = data.items.map((item: {name: string, price: number}) => ({

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
@@ -28,6 +28,7 @@ interface SavingPlan {
 
 const Budget: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +60,16 @@ const Budget: React.FC = () => {
     'Education',
     'Other'
   ];
+
+  // Clear modal form state when user navigates to this page
+  useEffect(() => {
+    if (location.pathname === "/dashboard/budget") {
+      setShowAddModal(false);
+      setEditingBudget(null);
+      setCategory('');
+      setLimit('');
+    }
+  }, [location.pathname]);
 
   const fetchBudgets = useCallback(async () => {
     try {
