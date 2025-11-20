@@ -26,23 +26,36 @@ export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
     
     const model = 'HCX-005';
     const imageBase64 = imageBuffer.toString('base64');
-        const user_prompt = `From the attached receipt image, act as a meticulous data extraction expert. Your task is to extract the merchant's name, the final total amount, and a list of all purchased items.
+        const user_prompt = `From the attached receipt image, act as a meticulous data extraction expert. Your task is to extract the merchant's name, the final total amount, and a list of all purchased items WITH their spending categories.
 
 **Follow these rules strictly:**
 1.  **Item Definition:** Treat EACH line that has a distinct price on the right-hand side as a SEPARATE item. Do not merge items from different lines, even if their names seem related.
-2.  **Output Format:** Return the result ONLY as a single, valid JSON object. Do not add any extra text or explanations. The JSON structure must be exactly:
+2.  **Category Detection:** For EACH item, determine the most appropriate spending category from this EXACT list:
+    - Food & Drinks (for food, beverages, groceries, restaurants, cafes)
+    - Transport (for taxi, bus, train, fuel, parking, vehicle maintenance)
+    - Shopping (for clothing, electronics, household items, general retail)
+    - Bills (for utilities, phone, internet, rent, insurance)
+    - Entertainment (for movies, games, hobbies, subscriptions, recreation)
+    - Healthcare (for medicine, doctor visits, pharmacy, medical supplies)
+    - Education (for books, courses, tuition, school supplies)
+    - Other (only if item doesn't fit any category above)
+3.  **Output Format:** Return the result ONLY as a single, valid JSON object. Do not add any extra text or explanations. The JSON structure must be exactly:
     \`\`\`json
     {
       "merchant": "string",
       "receiptLikelyInUSD": "boolean",
       "total": number,
       "items": [
-        { "name": "string", "price": number }
+        { "name": "string", "price": number, "category": "string" }
       ]
     }
     \`\`\`
-3.  **Exclusions:** Explicitly ignore any lines related to "Total", "Cash", "Change", "Tax", "VAT", "Discount", "Subtotal" from the items list.
-4.  **Default Values:** If the merchant name cannot be found, use the string "Retail Store".
+4.  **Exclusions:** Explicitly ignore any lines related to "Total", "Cash", "Change", "Tax", "VAT", "Discount", "Subtotal" from the items list.
+5.  **Default Values:** If the merchant name cannot be found, use the string "Retail Store".
+6.  **Category Rules:** 
+    - Use ONLY the exact category names listed in rule #2
+    - Be intelligent about categorization based on item names
+    - Default to "Other" only when truly uncertain
 `;
     try {
         console.log("Đang gửi yêu cầu đến CLOVA (chế độ tương thích OpenAI)...");
@@ -76,9 +89,10 @@ export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
 
                 console.log("Kết quả gốc từ AI (USD):", resultFromAI);
 
-        const convertedItems = resultFromAI.items.map((item: { name: string, price: number }) => ({
+        const convertedItems = resultFromAI.items.map((item: { name: string, price: number, category?: string }) => ({
             ...item,
-            price: Math.round(item.price * (resultFromAI.receiptLikelyInUSD ? USD_TO_VND_RATE : 1)) // Quy đổi và làm tròn
+            price: Math.round(item.price * (resultFromAI.receiptLikelyInUSD ? USD_TO_VND_RATE : 1)), // Quy đổi và làm tròn
+            category: item.category || 'Other' // Ensure category exists, default to 'Other'
         }));
 
         const convertedTotal = convertedItems.reduce((sum: number, item: { price: number }) => sum + item.price, 0);

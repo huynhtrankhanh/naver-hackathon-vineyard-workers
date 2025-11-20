@@ -70,8 +70,8 @@ const AddReceipt: React.FC = () => {
   }, [location.pathname]);
 
   const handleAnalysisComplete = (data: any) => {
-    const itemsFromOcr = data.items.map((item: {name: string, price: number}) => ({
-      id: crypto.randomUUID(), title: item.name, amount: item.price, category: 'Other'
+    const itemsFromOcr = data.items.map((item: {name: string, price: number, category?: string}) => ({
+      id: crypto.randomUUID(), title: item.name, amount: item.price, category: item.category || 'Other'
     }));
     setScannedItems(itemsFromOcr);
     setLoading(false);
