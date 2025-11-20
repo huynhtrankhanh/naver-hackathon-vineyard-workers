@@ -248,17 +248,22 @@ Then, AT THE END of your response:
   {
     "category": "Food & Drinks",
     "suggestedLimit": 500000,
-    "reasoning": "Brief explanation"
+    "reasoning": "Expanded explanation with specific data sources. Must include: 1) Current spending amount from transaction data, 2) Percentage of total expenses, 3) Comparison to income, 4) Specific reduction target based on intensity level, 5) Reference to historical spending patterns observed in the transaction list."
   },
   {
     "category": "Entertainment",
     "suggestedLimit": 300000,
-    "reasoning": "Brief explanation"
+    "reasoning": "Expanded explanation with specific data sources. Must include: 1) Current spending amount from transaction data, 2) Percentage of total expenses, 3) Comparison to income, 4) Specific reduction target based on intensity level, 5) Reference to historical spending patterns observed in the transaction list."
   }
 ]
 </${endBudgetTag}>
 
-CRITICAL RULES:
+CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
+- Each budget limit reasoning MUST be comprehensive (minimum 3-4 sentences)
+- MUST explicitly state the data source: "Based on your transaction history showing..."
+- MUST include specific numbers: current spending amount, percentage of expenses, income ratio
+- MUST reference the intensity level chosen by the user and how it affects the limit
+- MUST cite specific observations from the transaction data (e.g., "Your recent transactions show 15 purchases in this category...")
 - Use ONLY the exact tag names provided above
 - Do NOT mention or use these tag names anywhere else in your response except in the proposal sections at the very end
 - For budget limits, use ONLY the valid category names from the list: Food & Drinks, Transport, Shopping, Bills, Entertainment, Healthcare, Education, or Other
