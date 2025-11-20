@@ -34,6 +34,7 @@ export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
     \`\`\`json
     {
       "merchant": "string",
+      "receiptLikelyInUSD": "boolean",
       "total": number,
       "items": [
         { "name": "string", "price": number }
@@ -77,7 +78,7 @@ export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
 
         const convertedItems = resultFromAI.items.map((item: { name: string, price: number }) => ({
             ...item,
-            price: Math.round(item.price * USD_TO_VND_RATE) // Quy đổi và làm tròn
+            price: Math.round(item.price * (resultFromAI.receiptLikelyInUSD ? USD_TO_VND_RATE : 1)) // Quy đổi và làm tròn
         }));
 
         const convertedTotal = convertedItems.reduce((sum: number, item: { price: number }) => sum + item.price, 0);
