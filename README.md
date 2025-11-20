@@ -1,404 +1,453 @@
-# SmartMoney - Naver Hackathon Vineyard Workers
+# SmartMoney - AI-Powered Personal Finance Manager
 
-A comprehensive money tracking and AI-powered saving recommendation app built with React (Ionic), Express, and MongoDB.
+> An intelligent personal finance application that helps you track expenses, manage budgets, and achieve your savings goals with AI-powered insights.
 
-## 🎯 Features
+Built with React (Ionic), Express, TypeScript, and MongoDB. Powered by Naver Clova AI services.
 
-### Completed ✅
-- **Username/Password Authentication** - Secure authentication with argon2id client-side hashing and SHA256 server-side hashing
-- **Protected API Endpoints** - All backend routes require authentication
-- **AI-Powered Saving Wizard** - Interactive 3-step onboarding to create personalized saving plans
-- **Mock AI Backend** - Sophisticated mock AI using Markov chains and random number generation
-- **Full-Stack Architecture** - React frontend with Express + MongoDB backend
-- **RESTful API** - Complete CRUD operations for transactions, goals, and budgets
-- **Beautiful UI** - Modern, mobile-first design with Ionic components
+## ✨ Key Features
 
-## 📸 Application Screenshots
+### 💰 Transaction Management
+- **Multiple Input Methods**: Manual entry, receipt scanning (OCR), and voice input (STT)
+- **Smart Categorization**: AI-powered expense categorization
+- **Real-time Balance**: Automatic calculation of income, expenses, and available balance
+- **Transaction History**: View, edit, and delete past transactions
 
-### Authentication Pages
+### 🎯 Saving Goals & AI Plans
+- **Goal Tracking**: Set targets, track progress, dedicate funds from balance
+- **AI-Generated Plans**: Personalized savings recommendations powered by Naver Clova Studio HCX-007
+- **Smart Proposals**: AI suggests new goals and optimal budget limits
+- **Streaming Generation**: Real-time progress updates with reconnection support
 
-**Splash Screen**
+### 📊 Budget Management
+- **Category Budgets**: Set monthly spending limits per category
+- **Real-time Tracking**: Automatically calculated from transactions
+- **Smart Alerts**: Notifications at 80% threshold
+- **AI Optimization**: Get budget suggestions from AI analysis
 
-![Splash Screen](https://github.com/user-attachments/assets/3edd34ac-ade4-466b-90ab-c387d4c3df37)
+### 🔔 Intelligent Notifications
+- Budget warnings when reaching 80% of limit
+- High spending alerts relative to income
+- Goal progress updates
+- Mark as read/unread
 
-**Sign Up Page**
+### 🔐 Security & Privacy
+- **Two-layer Hashing**: argon2id (client) + SHA256 (server)
+- **Token Authentication**: Secure API access
+- **Site-specific Salt**: Prevents password database comparison attacks
+- **Python Sandbox**: Isolated AI code execution with Firejail
 
-![Sign Up](https://github.com/user-attachments/assets/af90beda-f601-4e94-b0cd-58f207b4b3a1)
+## 📸 Screenshots
 
-**Sign In Page**
+<table>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/01-splash-page.png" width="200" alt="Splash Screen"/><br/>
+      <sub><b>Splash Screen</b></sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/02-signup-page.png" width="200" alt="Sign Up"/><br/>
+      <sub><b>Sign Up</b></sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/03-signin-page.png" width="200" alt="Sign In"/><br/>
+      <sub><b>Sign In</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/04-dashboard-page.png" width="200" alt="Dashboard"/><br/>
+      <sub><b>Dashboard</b></sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/05-goals-page.png" width="200" alt="Saving Goals"/><br/>
+      <sub><b>Saving Goals</b></sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/06-savings-onboarding.png" width="200" alt="AI Wizard"/><br/>
+      <sub><b>AI Savings Wizard</b></sub>
+    </td>
+  </tr>
+</table>
 
-![Sign In](https://github.com/user-attachments/assets/63c1e9e5-35c2-4492-ab73-144cb8c8b7e3)
+## 🚀 Quick Start
 
-### Main Application Pages
+### Option 1: Docker (Recommended)
 
-**Dashboard**
+The fastest way to run SmartMoney with all services:
 
-![Dashboard](https://github.com/user-attachments/assets/3917409c-b796-4616-a95c-c07521cd670e)
-
-**Saving Goals**
-
-![Goals](https://github.com/user-attachments/assets/a09b3344-b0a5-4bf7-882f-fe2a0cab93e3)
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-**For Local Development:**
-- Node.js v20+
-- npm or yarn
-- MongoDB (optional - runs with in-memory fallback)
-
-**For Docker Deployment:**
-- Docker and Docker Compose
-
-### Installation
-
-1. **Clone the repository**
 ```bash
+# Clone the repository
 git clone https://github.com/huynhtrankhanh/naver-hackathon-vineyard-workers.git
 cd naver-hackathon-vineyard-workers
+
+# Start all services
+docker compose up -d
+
+# Access the app at http://localhost:3001
 ```
 
-2. **Install Backend Dependencies**
+**What's included:**
+- ✅ MongoDB database with persistent storage
+- ✅ Combined frontend + backend server
+- ✅ Automatic restart on failure
+- ✅ No manual dependency installation
+
+See [Docker Deployment Guide](docs/deployment/docker.md) for details.
+
+### Option 2: Local Development
+
+For development with hot reload:
+
+**1. Setup Backend**
 ```bash
 cd backend
 npm install
 cp .env.example .env
-```
-
-3. **Install Frontend Dependencies**
-```bash
-cd ../Frontend-MoneyTrack
-npm install
-```
-
-### Running the Application
-
-**Option 1: Run Backend and Frontend Separately**
-
-Terminal 1 - Backend:
-```bash
-cd backend
+# Edit .env with your API keys (optional)
 npm run dev
 # Backend runs on http://localhost:3001
 ```
 
-Terminal 2 - Frontend:
+**2. Setup Frontend** (in new terminal)
 ```bash
 cd Frontend-MoneyTrack
+npm install
 npm run dev
-# Frontend runs on http://localhost:5173 (or 5174)
+# Frontend runs on http://localhost:5173
 ```
 
-**Option 2: Production Build**
-```bash
-# Backend
-cd backend
-npm run build
-npm start
-
-# Frontend
-cd Frontend-MoneyTrack
-npm run build
-npm run preview
-```
-
-**Option 3: Using Docker Compose (Recommended for Production)** 🐳
-
-Docker Compose provides the easiest way to run the complete application with a persistent MongoDB database.
-
-Prerequisites:
-- Docker and Docker Compose installed
-
-Steps:
-```bash
-# Build and start all services (MongoDB + App)
-docker compose up -d
-
-# Check service status
-docker compose ps
-
-# View logs
-docker compose logs -f
-
-# Stop services
-docker compose down
-
-# Stop and remove volumes (⚠️ This will delete all data!)
-docker compose down -v
-```
-
-The application will be available at:
-- **Frontend & API**: http://localhost:3001
-- **MongoDB**: localhost:27017 (for direct database access)
-
-**Note**: The Docker setup includes:
-- ✅ Persistent MongoDB database with Docker volumes
-- ✅ Combined frontend + backend server
-- ✅ Automatic restart on failure
-- ✅ Production-optimized builds
-- ✅ No manual dependency installation required
-
-### Access the App
-
-**Local Development:**
+**3. Open App**
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3001/api
-- Savings Onboarding: http://localhost:5173/savings-onboarding
 
-**Docker Deployment:**
-- Frontend & Backend: http://localhost:3001
-- Backend API: http://localhost:3001/api
-- MongoDB: localhost:27017
+See [Developer Setup Guide](docs/developer-guide/setup.md) for detailed instructions.
 
+## 📋 Prerequisites
+
+### Required
+- **Node.js**: v20 or later
+- **npm**: v10 or later
+
+### Optional
+- **MongoDB**: v7.0+ (app uses MongoDB Memory Server by default)
+- **Docker & Docker Compose**: For containerized deployment
+- **Naver Cloud Platform Account**: For AI features (OCR, STT, Clova Studio)
 ## 📁 Project Structure
 
 ```
 naver-hackathon-vineyard-workers/
-├── Frontend-MoneyTrack/          # React + Ionic Frontend
+├── docs/                          # 📚 Documentation
+│   ├── user-guide/               # User documentation
+│   ├── developer-guide/          # Developer documentation
+│   ├── api-reference/            # API reference
+│   └── deployment/               # Deployment guides
+│
+├── Frontend-MoneyTrack/          # ⚛️ React + Ionic Frontend
 │   ├── src/
-│   │   ├── pages/                # Page components
-│   │   │   ├── SavingsOnboarding.tsx   # NEW: AI saving wizard
-│   │   │   └── dashboard/        # Dashboard pages
-│   │   ├── services/             # NEW: API service layer
-│   │   │   └── api.ts            # Backend API integration
-│   │   └── components/           # Reusable components
+│   │   ├── pages/               # Page components
+│   │   │   ├── splash.tsx
+│   │   │   ├── SignIn.tsx
+│   │   │   ├── SignUp.tsx
+│   │   │   ├── SavingsOnboarding.tsx  # AI wizard
+│   │   │   └── dashboard/       # Main app pages
+│   │   ├── services/            # API & state management
+│   │   │   ├── api.ts          # Backend API client
+│   │   │   ├── BalanceContext.tsx
+│   │   │   └── stateInvalidation.ts
+│   │   └── components/          # Reusable UI components
 │   └── package.json
 │
-└── backend/                      # NEW: Express + MongoDB Backend
-    ├── src/
-    │   ├── models/               # MongoDB schemas
-    │   │   ├── Transaction.ts
-    │   │   ├── Goal.ts
-    │   │   ├── Budget.ts
-    │   │   └── SavingsPlan.ts
-    │   ├── routes/               # API routes
-    │   │   ├── transactions.ts
-    │   │   ├── goals.ts
-    │   │   ├── budgets.ts
-    │   │   └── ai.ts             # Mock AI endpoint
-    │   ├── utils/
-    │   │   ├── mockAI.ts         # Markov chain AI logic
-    │   │   └── inMemoryStore.ts  # Fallback data store
-    │   └── server.ts             # Main server file
-    └── package.json
+├── backend/                      # 🚀 Express + MongoDB Backend
+│   ├── src/
+│   │   ├── models/              # Mongoose schemas
+│   │   │   ├── User.ts
+│   │   │   ├── Transaction.ts
+│   │   │   ├── Goal.ts
+│   │   │   ├── Budget.ts
+│   │   │   ├── SavingsPlan.ts
+│   │   │   └── Notification.ts
+│   │   ├── routes/              # API endpoints
+│   │   │   ├── auth.ts
+│   │   │   ├── transactions.ts
+│   │   │   ├── goals.ts
+│   │   │   ├── budgets.ts
+│   │   │   ├── ai.ts           # AI services
+│   │   │   ├── ocr.ts          # Receipt scanning
+│   │   │   └── notifications.ts
+│   │   ├── services/            # Business logic
+│   │   │   └── clovaOcr.service.ts
+│   │   ├── utils/               # Utilities
+│   │   │   ├── aiService.ts    # Clova Studio client
+│   │   │   ├── aiTools.ts      # AI function tools
+│   │   │   ├── clovaClient.ts
+│   │   │   ├── pythonSandbox.ts # Firejail isolation
+│   │   │   └── ocr.service.ts
+│   │   └── server.ts           # Main server
+│   └── package.json
+│
+├── screenshots/                  # 📸 App screenshots
+├── docker-compose.yml           # 🐳 Docker setup
+├── Dockerfile                   # Container definition
+└── README.md                    # This file
 ```
 
-## 🤖 Mock AI Implementation
+See [Architecture Overview](docs/developer-guide/architecture.md) for detailed system design.
+## 🤖 AI Integration
 
-The mock AI uses sophisticated algorithms to generate realistic saving recommendations:
+SmartMoney uses **Naver Clova Studio HCX-007** model with high reasoning effort to generate personalized saving plans.
 
-### Markov Chain Selection
-- Categories are selected using Markov-like random walks through spending category chains
-- Categories are grouped into: discretionary, essential, and flexible
-- The algorithm avoids duplicate categories across recommendations
+### How AI Works
 
-### Random Number Generation
-- Saving amounts are calculated with intensity-based multipliers:
-  - **Just starting out**: 60-90% of goal
-  - **Ideal target**: 90-110% of goal
-  - **Must achieve**: 110-140% of goal
-- Reduction percentages vary by intensity (10-35%)
+1. **Data Analysis**: AI reviews your transaction history, budgets, goals, and income
+2. **Tool Usage**: AI has access to 7 function tools to query your financial data
+3. **Plan Generation**: Creates personalized recommendations with reasoning
+4. **Proposals**: Suggests new saving goals and optimal budget limits
 
-### Context-Aware
-- Analyzes user notes for keywords (wedding, travel, etc.)
-- Adjusts recommendations based on detected context
-- Provides 2-3 actionable recommendations per plan
+### AI Features
 
-## 🔧 API Endpoints
+- **Receipt Scanning**: Naver Clova OCR extracts transaction data from images
+- **Voice Input**: Naver Clova X STT converts speech to text
+- **Smart Categorization**: AI categorizes expenses automatically
+- **Saving Plans**: Personalized monthly savings targets and spending recommendations
+- **Budget Optimization**: AI suggests category-specific budget limits
 
-### Backend API (http://localhost:3001/api)
+### Intensity Levels
 
-**Transactions**
-- `GET /transactions` - List all transactions
-- `POST /transactions` - Create transaction
-- `GET /transactions/stats/summary` - Get income/expense summary
+- **Just starting out**: Conservative (60-90% of goal)
+- **Ideal target**: Balanced (90-110% of goal) - Recommended
+- **Must achieve**: Aggressive (110-140% of goal)
 
-**Goals**
-- `GET /goals` - List all goals
-- `POST /goals` - Create goal
+### Streaming & Reconnection
 
-**Budgets**
-- `GET /budgets` - List all budgets
-- `GET /budgets/month/:month` - Get budgets by month
+- Real-time progress updates via Server-Sent Events (SSE)
+- Can close app during generation and reconnect later
+- Generation sessions persist until completed
 
-**AI (Mock)**
-- `POST /ai/generate` - Generate savings plan (protected)
-  ```json
-  {
-    "goal": "Build a safety net",
-    "savingsGoal": 300,
-    "intensity": "Ideal target",
-    "notes": "I have a wedding in June"
-  }
-  ```
-- `GET /ai/latest` - Get latest savings plan (protected)
-- `POST /ai/advice` - Get financial advice (protected)
+See [User Guide - AI Savings](docs/user-guide/features.md#ai-generated-saving-plans) for more details.
 
-**Authentication**
-- `POST /auth/register` - Register new user
-  ```json
-  {
-    "username": "john_doe",
-    "passwordHash": "argon2id_hash_from_client"
-  }
-  ```
-- `POST /auth/login` - Login user
-  ```json
-  {
-    "username": "john_doe",
-    "passwordHash": "argon2id_hash_from_client"
-  }
-  ```
-- `GET /auth/verify` - Verify authentication token
+## 🔧 Technology Stack
 
-## 🔔 Notification Triggers
+### Frontend
+- React 18, TypeScript, Ionic Framework 8
+- Vite, Tailwind CSS, Lucide Icons
+- libsodium-wrappers (argon2id hashing)
+- React Router, React Markdown
 
-The application automatically monitors your financial activity and sends notifications when certain conditions are met to help you stay on track with your budget:
+### Backend
+- Express.js 4, TypeScript, Node.js 20+
+- MongoDB 7+ with Mongoose ODM
+- MongoDB Memory Server (dev/test)
+- Naver Clova Studio (HCX-007)
+- Naver Clova OCR & STT
+- Firejail (Python sandbox)
+- OpenAI-compatible client, Axios
 
-### Conditions That Trigger Notifications
+### DevOps
+- Docker & Docker Compose
+- tsx (TypeScript execution)
+- ESLint, Vitest, Cypress
 
-1. **High Spending Alert (Income Ratio Warning)**
-   - **Trigger**: When your total expenses reach **80% or more** of your income for the current month
-   - **Requirement**: Only triggered when you have recorded income (income > 0)
-   - **Example**: If your monthly income is $3,000 and expenses reach $2,400 (80%), you'll receive a notification
-   - **Message Format**: "You've spent X% of your income this month. Please review your spending."
-   - **Purpose**: Helps prevent overspending and encourages budget review before exceeding income
+See [Architecture Overview](docs/developer-guide/architecture.md) for system design details.
 
-2. **Budget Limit Warning**
-   - **Trigger**: When spending in any budget category reaches **80% or more** of its allocated limit
-   - **Requirement**: Applies to any budget with a defined limit (limit > 0)
-   - **Example**: If you set a $500 dining budget and spend $400 (80%), you'll be notified
-   - **Message Format**: 'Budget "[Category]" has used X% (spent / limit).'
-   - **Purpose**: Provides early warning before exceeding budget limits in specific categories
+## 📖 Documentation
 
-### How Notifications Work
+- **[User Guide](docs/user-guide/getting-started.md)** - How to use SmartMoney
+- **[Developer Guide](docs/developer-guide/setup.md)** - Setup and development
+- **[API Reference](docs/api-reference/endpoints.md)** - Complete API documentation
+- **[Architecture](docs/developer-guide/architecture.md)** - System design and architecture
+- **[Deployment](docs/deployment/docker.md)** - Docker deployment guide
+- **[State Management](docs/developer-guide/state-management.md)** - Frontend state system
 
-- Notifications are checked automatically when you visit the Dashboard
-- Each notification is only shown once per session to avoid spam
-- Notifications are stored in the database and can be viewed in the Notifications page
-- You can mark notifications as read or mark all as read at once
-- The system tracks notification history with timestamps for future reference
+## 🔐 Security
 
-## 🔐 Authentication & Security
+### Password Security ("Server Relief" Strategy)
 
-### Password Hashing Strategy ("Server Relief")
-The application implements a two-layer password hashing approach:
+**Two-Layer Hashing:**
 
-1. **Client-Side (argon2id via libsodium)**:
-   - Password is hashed using argon2id algorithm
-   - Salt is derived from username + fixed site-specific salt
-   - Fixed site salt prevents cross-site password database comparison
+1. **Client-side** (argon2id via libsodium):
+   - Password hashed with argon2id algorithm
+   - Salt derived from: username + site-specific salt
    - Memory: 19MB, Iterations: 2, Parallelism: 1
    - Output: 64-character hex string
 
-2. **Server-Side (SHA256)**:
-   - Server receives the argon2id hash from client
+2. **Server-side** (SHA256):
+   - Server receives argon2id hash (never plaintext password)
    - Applies SHA256 to the received hash
-   - Stores the SHA256 hash in database
+   - Stores SHA256 hash in database
 
-This approach provides:
-- **Client-side protection**: Heavy computation (argon2id) runs on client, reducing server load
-- **Rainbow table resistance**: Username-derived salt makes pre-computed tables ineffective
-- **Cross-site protection**: Fixed site salt ensures leaked passwords can't be compared across sites
-- **Server verification**: SHA256 allows quick verification without storing the argon2id hash directly
+**Benefits:**
+- ✅ Heavy computation runs on client (reduces server load)
+- ✅ Rainbow table resistance (username-derived salt)
+- ✅ Cross-site protection (site-specific salt)
+- ✅ No plaintext passwords ever transmitted or stored
 
-## 🛠️ Technology Stack
+### Protected Resources
 
-### Frontend
-- **React 18** - UI library
-- **Ionic Framework 8** - Mobile UI components
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Lucide React** - Icons
-- **libsodium-wrappers** - Argon2id password hashing
+- All API endpoints (except auth) require authentication
+- Token-based authentication with Bearer scheme
+- User data isolated by userId (no cross-user access)
+- AI sandbox with resource limits (6s timeout, 256MB RAM)
 
-### Backend
-- **Express** - Web framework
-- **MongoDB + Mongoose** - Database
-- **TypeScript** - Type safety
-- **CORS** - Cross-origin support
-- **dotenv** - Environment configuration
-- **crypto (Node.js)** - SHA256 password hashing
+### Best Practices
 
-## 🔐 Security Notes
+- ✅ Environment variables for sensitive config
+- ✅ Input validation on all endpoints
+- ✅ CORS properly configured
+- ✅ No secrets in codebase
+- ⚠️ Rate limiting not implemented (future enhancement)
+- ⚠️ Token expiration not implemented (future enhancement)
 
-- ✅ **Authentication implemented** - Username/password authentication with argon2id + SHA256
-- ✅ **Protected API endpoints** - All data routes require valid authentication token
-- ✅ **Two-layer password hashing** - Argon2id on client, SHA256 on server
-- ✅ **Site-specific salt** - Prevents cross-site password database comparison
-- CORS is enabled for local development
-- Environment variables used for configuration
-- Input validation on backend routes
-- No sensitive data exposed in API responses
+See [Security Guide](docs/developer-guide/architecture.md#security-architecture) for details.
 
-## 📝 Development Notes
+## 🧪 Development
 
-### MongoDB Not Required
-The backend works without MongoDB by using an in-memory data store. This allows:
-- Quick setup for development/demos
-- Pre-populated mock data
-- Full API functionality without database
+### Running Tests
 
-### Environment Variables
-Create a `.env` file in the backend directory:
-```env
-PORT=3001
-MONGODB_URI=mongodb://localhost:27017/moneytrack
-NODE_ENV=development
+```bash
+# Frontend unit tests
+cd Frontend-MoneyTrack
+npm run test.unit
+
+# Frontend E2E tests
+npm run test.e2e
+
+# Backend tests (future)
+cd ../backend
+npm test
 ```
 
-Frontend environment (optional, in `Frontend-MoneyTrack/.env`):
+### Code Quality
+
+```bash
+# Lint frontend
+cd Frontend-MoneyTrack
+npm run lint
+
+# Build and check
+npm run build
+```
+
+### Environment Setup
+
+**Backend `.env`:**
+```env
+PORT=3001
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/moneytrack
+
+# Optional: Naver Cloud API keys for AI features
+CLOVA_API_KEY=your-key
+CLOVA_OCR_API_URL=your-url
+CLOVA_OCR_SECRET_KEY=your-key
+NAVER_CLIENT_ID=your-id
+NAVER_CLIENT_SECRET=your-secret
+```
+
+**Frontend `.env` (optional):**
 ```env
 VITE_API_URL=http://localhost:3001/api
 ```
 
-### Global Balance State (Desync Fix)
-- Balance is now managed globally via a React context provider `BalanceProvider` (`src/services/BalanceContext.tsx`).
-- It polls the backend summary endpoint every 5 seconds (only when the page is visible) using the shared state invalidation service.
-- Any backend mutation should call `useInvalidateOnMutation()` and optionally `useBalance().refresh()` to immediately reflect changes in balance.
-- Pages that display the balance (Dashboard, Budgets, Goals, Add Transaction) now read from `useBalance()` and no longer fetch the summary individually. This eliminates desync across screens.
+## 🚀 Deployment
 
-## 🎨 UI/UX Features
+### Docker Deployment
 
-- **Mobile-First Design** - Optimized for mobile devices
-- **Responsive Layout** - Works on desktop and mobile
-- **Smooth Animations** - Polished transitions between steps
-- **Progress Indicators** - Visual feedback throughout the wizard
-- **Loading States** - AI processing simulation with status updates
-- **Dark/Light Themes** - Result screen uses dark theme for emphasis
+See [Docker Deployment Guide](docs/deployment/docker.md) for:
+- Multi-container setup with MongoDB
+- Persistent data volumes
+- Environment configuration
+- Production best practices
 
-## 🚧 Future Enhancements
+### Manual Deployment
 
-- [ ] Real AI API integration (replace mock)
-- [x] User authentication (completed)
-- [ ] Transaction history visualization
-- [ ] Budget tracking dashboard
-- [ ] Spending analytics
-- [ ] Goal progress tracking
-- [ ] Push notifications
-- [ ] Export data (CSV/PDF)
+1. Build frontend: `cd Frontend-MoneyTrack && npm run build`
+2. Build backend: `cd backend && npm run build`
+3. Configure environment variables
+4. Set up MongoDB instance
+5. Run backend: `npm start`
+6. Serve frontend build with nginx or similar
+
+## 🗺️ Roadmap
+
+### Completed ✅
+- [x] User authentication with secure hashing
+- [x] Transaction tracking (manual, OCR, STT)
+- [x] Budget management with real-time tracking
+- [x] Saving goals with AI-generated plans
+- [x] Notifications system
+- [x] State management and sync
+- [x] Docker deployment
+- [x] Comprehensive documentation
+
+### In Progress 🔄
 - [ ] Password reset functionality
+- [ ] Export data (CSV/PDF)
+- [ ] Enhanced analytics
+
+### Future Enhancements 🔮
 - [ ] Two-factor authentication
+- [ ] Push notifications (PWA)
+- [ ] Multi-currency support
+- [ ] Spending trends and predictions
+- [ ] Bill reminders
+- [ ] Investment tracking
+- [ ] Mobile apps (React Native/Capacitor)
+- [ ] WebSocket real-time updates
+- [ ] GraphQL API
 
-## 📄 License
+## 🤝 Contributing
 
-MIT License - See LICENSE file for details
+We welcome contributions! Here's how to get started:
 
-## 👥 Contributors
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests and linting
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to your fork (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+See [Contributing Guide](docs/developer-guide/contributing.md) for detailed guidelines.
+
+## 📝 License
+
+MIT License - See [LICENSE](LICENSE) file for details.
+
+## 👥 Team
+
+**Naver Hackathon - Vineyard Workers**
 
 - Nguyễn Đỗ Chiến Thắng
 - Trần Đức Mạnh
 - Nguyễn Hà Nam Trân
 - Huỳnh Trần Khanh
+
+**AI Assistance:**
 - GitHub Copilot
-- ChatGPT
-- Gemini 2.5 Pro
+- ChatGPT (OpenAI)
+- Gemini 2.5 Pro (Google)
 
 ## 🙏 Acknowledgments
 
-- Naver Hackathon for the opportunity
-- Ionic Framework for the mobile UI components
-- MongoDB for the database
-- Express.js for the backend framework
+- **Naver Hackathon** for the opportunity
+- **Naver Cloud Platform** for AI services (Clova Studio, OCR, STT)
+- **Ionic Framework** for mobile UI components
+- **MongoDB** for the database
+- **Express.js** for the backend framework
+- Open source community for amazing tools and libraries
+
+## 📞 Support
+
+- **Documentation**: [docs/README.md](docs/README.md)
+- **Issues**: [GitHub Issues](https://github.com/huynhtrankhanh/naver-hackathon-vineyard-workers/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/huynhtrankhanh/naver-hackathon-vineyard-workers/discussions)
+
+---
+
+<p align="center">
+  Built with ❤️ by Team Vineyard Workers
+</p>
+
+<p align="center">
+  <strong>SmartMoney</strong> - Intelligent Personal Finance Management
+</p>
