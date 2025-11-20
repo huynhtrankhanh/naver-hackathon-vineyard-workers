@@ -28,19 +28,14 @@ interface AIResponse {
 }
 
 const defaultCategories = [
-  'Food & Drinks',
-  'Transport',
-  'Shopping',
-  'Bills',
-  'Entertainment',
-  'Healthcare',
-  'Education',
-  'Other',
-  'Salary',
-  'Freelance',
-  'Investment',
-  'Gift',
-  'Bonus',
+  "Food & Drinks",
+  "Transport",
+  "Shopping",
+  "Bills",
+  "Entertainment",
+  "Healthcare",
+  "Education",
+  "Other",
 ];
 
 function getAllCategories() {
