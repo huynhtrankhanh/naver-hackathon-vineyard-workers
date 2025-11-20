@@ -273,6 +273,17 @@ const Dashboard: React.FC = () => {
                   <section className="mt-5">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold">Recent Transactions</h3>
+                      <a
+                        href = "/dashboard/expenses"
+                        onClick = {
+                          (e) => {
+                            e.preventDefault();
+                            history.push("/dashboard/expenses");
+                          }}
+                          className = "text-sm text-blue-600 hover:underline"
+                          >
+                            View all
+                      </a>
                     </div>
                     <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white shadow-sm">
                       {transactions.map(t => {
