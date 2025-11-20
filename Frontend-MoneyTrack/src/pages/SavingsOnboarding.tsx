@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Sparkles, BrainCircuit, Receipt, Bot, ArrowLeft, ArrowRight, CheckCircle2, Sprout, Scale, Flame, Info, FileText } from 'lucide-react';
 import { aiApi } from '../services/api';
@@ -54,6 +54,7 @@ function getAllCategories() {
 
 const SavingsOnboarding: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const [currentScreen, setCurrentScreen] = useState<'wizard' | 'loading' | 'result' | 'advice'>('wizard');
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>({
@@ -69,6 +70,24 @@ const SavingsOnboarding: React.FC = () => {
   const [loadingText, setLoadingText] = useState('Analyzing your inputs...');
 
   const totalSteps = 4;
+
+  // Reset wizard state when user navigates to this page
+  useEffect(() => {
+    if (location.pathname === "/savings-onboarding") {
+      setCurrentScreen('wizard');
+      setCurrentStep(1);
+      setWizardData({
+        goal: '',
+        savingsGoal: '',
+        months: '',
+        intensity: 'Ideal target',
+        notes: ''
+      });
+      setSelectedCategories([]);
+      setAiResult(null);
+      setLoadingText('Analyzing your inputs...');
+    }
+  }, [location.pathname]);
 
   const showScreen = (screen: 'wizard' | 'loading' | 'result' | 'advice') => {
     setCurrentScreen(screen);

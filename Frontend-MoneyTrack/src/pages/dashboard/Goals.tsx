@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { Target, Plus, ArrowDownCircle, Sparkles, CheckCircle, FileText } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
@@ -41,6 +41,7 @@ interface SavingPlan {
 
 const Goals: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +63,19 @@ const Goals: React.FC = () => {
   const toCurrency = (v: number = 0) => v.toLocaleString("vi-VN") + " đ";
 
   const invalidateOnMutation = useInvalidateOnMutation();
+
+  // Clear form state when user navigates to this page
+  useEffect(() => {
+    if (location.pathname === "/goals") {
+      setShowCreateGoalForm(false);
+      setNewGoalName('');
+      setNewGoalTarget('');
+      setNewGoalPriority('medium');
+      setNewGoalDuration('');
+      setContributingGoal(null);
+      setContributionAmount('');
+    }
+  }, [location.pathname]);
 
   const fetchGoals = useCallback(async () => {
     try {

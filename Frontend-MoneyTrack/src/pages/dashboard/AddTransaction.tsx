@@ -7,7 +7,7 @@ import {
   IonToast,
   IonIcon,
 } from "@ionic/react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi, budgetApi } from "../../services/api";
@@ -25,6 +25,7 @@ interface Budget {
 
 const AddTransaction: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const [type, setType] = useState<"income" | "expense">("expense");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -53,6 +54,19 @@ const AddTransaction: React.FC = () => {
   const invalidateOnMutation = useInvalidateOnMutation();
 
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
+
+  // Clear form state when user navigates to this page
+  // Using location.pathname as dependency ensures this runs every time user visits /add
+  useEffect(() => {
+    if (location.pathname === "/add") {
+      setTitle("");
+      setCategory("");
+      setAmount("");
+      setType("expense");
+      setShowNewCategoryInput(false);
+      setNewCategory("");
+    }
+  }, [location.pathname]);
 
   // Balance comes from global context; no local fetch needed
 
