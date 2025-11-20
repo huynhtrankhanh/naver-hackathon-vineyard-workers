@@ -3,6 +3,8 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import transactionsRouter from './routes/transactions.js';
 import goalsRouter from './routes/goals.js';
 import budgetsRouter from './routes/budgets.js';
@@ -12,6 +14,11 @@ import authRouter from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
 dotenv.config();
 import ocrRouter from './routes/ocr.js';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Load environment variables
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -36,21 +43,36 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend server is running' });
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'MoneyTrack Backend API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      auth: '/api/auth',
-      transactions: '/api/transactions (protected)',
-      goals: '/api/goals (protected)',
-      budgets: '/api/budgets (protected)',
-      ai: '/api/ai (protected)'
+// Serve static files in production (frontend)
+if (process.env.NODE_ENV === 'production') {
+  const publicPath = path.join(__dirname, '..', 'public');
+  app.use(express.static(publicPath));
+  
+  // Serve index.html for all non-API routes (SPA routing)
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api')) {
+      return next();
     }
+    res.sendFile(path.join(publicPath, 'index.html'));
   });
-});
+} else {
+  // Root endpoint for development
+  app.get('/', (req, res) => {
+    res.json({ 
+      message: 'MoneyTrack Backend API',
+      version: '1.0.0',
+      endpoints: {
+        health: '/api/health',
+        auth: '/api/auth',
+        transactions: '/api/transactions (protected)',
+        goals: '/api/goals (protected)',
+        budgets: '/api/budgets (protected)',
+        ai: '/api/ai (protected)'
+      }
+    });
+  });
+}
 
 // MongoDB connection - use real MongoDB (memory server for testing)
 async function connectDB() {

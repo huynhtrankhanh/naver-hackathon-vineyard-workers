@@ -42,9 +42,14 @@ A comprehensive money tracking and AI-powered saving recommendation app built wi
 ## 🚀 Getting Started
 
 ### Prerequisites
+
+**For Local Development:**
 - Node.js v20+
 - npm or yarn
 - MongoDB (optional - runs with in-memory fallback)
+
+**For Docker Deployment:**
+- Docker and Docker Compose
 
 ### Installation
 
@@ -98,10 +103,53 @@ npm run build
 npm run preview
 ```
 
+**Option 3: Using Docker Compose (Recommended for Production)** 🐳
+
+Docker Compose provides the easiest way to run the complete application with a persistent MongoDB database.
+
+Prerequisites:
+- Docker and Docker Compose installed
+
+Steps:
+```bash
+# Build and start all services (MongoDB + App)
+docker compose up -d
+
+# Check service status
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+
+# Stop and remove volumes (⚠️ This will delete all data!)
+docker compose down -v
+```
+
+The application will be available at:
+- **Frontend & API**: http://localhost:3001
+- **MongoDB**: localhost:27017 (for direct database access)
+
+**Note**: The Docker setup includes:
+- ✅ Persistent MongoDB database with Docker volumes
+- ✅ Combined frontend + backend server
+- ✅ Automatic restart on failure
+- ✅ Production-optimized builds
+- ✅ No manual dependency installation required
+
 ### Access the App
+
+**Local Development:**
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3001/api
 - Savings Onboarding: http://localhost:5173/savings-onboarding
+
+**Docker Deployment:**
+- Frontend & Backend: http://localhost:3001
+- Backend API: http://localhost:3001/api
+- MongoDB: localhost:27017
 
 ## 📁 Project Structure
 

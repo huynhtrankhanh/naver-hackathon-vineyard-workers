@@ -1,0 +1,55 @@
+services:
+  # MongoDB database service
+  mongodb:
+    image: mongo:7.0
+    container_name: moneytrack-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: moneytrack
+    volumes:
+      # Persistent volume for MongoDB data
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - moneytrack-network
+
+  # Combined Frontend + Backend application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moneytrack-app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      MONGODB_URI: mongodb://mongodb:27017/moneytrack
+      NODE_ENV: production
+      # Optional: Add your API keys here or via .env file
+      # CLOVA_API_KEY: ${CLOVA_API_KEY}
+      # CLOVA_API_URL: ${CLOVA_API_URL}
+      # CLOVA_OCR_API_URL: ${CLOVA_OCR_API_URL}
+      # CLOVA_OCR_SECRET_KEY: ${CLOVA_OCR_SECRET_KEY}
+      # NAVER_CLIENT_ID: ${NAVER_CLIENT_ID}
+      # NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET}
+    depends_on:
+      - mongodb
+    networks:
+      - moneytrack-network
+    # Optional: Load environment variables from .env file
+    # env_file:
+    #   - .env
+
+volumes:
+  # Persistent volume for MongoDB data
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+networks:
+  moneytrack-network:
+    driver: bridge
