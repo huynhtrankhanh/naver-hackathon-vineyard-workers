@@ -27,22 +27,31 @@ export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
     const model = 'HCX-005';
     const imageBase64 = imageBuffer.toString('base64');
         const user_prompt = `From the attached receipt image, act as a meticulous data extraction expert. Your task is to extract the merchant's name, the final total amount, and a list of all purchased items.
-
+**VALID CATEGORIES:**
+- Food & Drinks
+- Transport
+- Shopping
+- Bills
+- Entertainment
+- Healthcare
+- Education
+- Other
 **Follow these rules strictly:**
 1.  **Item Definition:** Treat EACH line that has a distinct price on the right-hand side as a SEPARATE item. Do not merge items from different lines, even if their names seem related.
-2.  **Output Format:** Return the result ONLY as a single, valid JSON object. Do not add any extra text or explanations. The JSON structure must be exactly:
+2. **Item Extraction:** For each item, extract its name, price, and suggest a category from the VALID CATEGORIES list above based on the item name.
+3.  **Output Format:** Return the result ONLY as a single, valid JSON object. Do not add any extra text or explanations. The JSON structure must be exactly:
     \`\`\`json
     {
       "merchant": "string",
       "receiptLikelyInUSD": "boolean",
       "total": number,
       "items": [
-        { "name": "string", "price": number }
+        { "name": "string", "price": number,  "category": "string" }
       ]
     }
     \`\`\`
 3.  **Exclusions:** Explicitly ignore any lines related to "Total", "Cash", "Change", "Tax", "VAT", "Discount", "Subtotal" from the items list.
-4.  **Default Values:** If the merchant name cannot be found, use the string "Retail Store".
+4.  **Default Values:** If the merchant name cannot be found, use the string "Retail Store".If a category cannot be determined for an item, default it to "Other"
 `;
     try {
         console.log("Đang gửi yêu cầu đến CLOVA (chế độ tương thích OpenAI)...");
@@ -76,7 +85,7 @@ export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
 
                 console.log("Kết quả gốc từ AI (USD):", resultFromAI);
 
-        const convertedItems = resultFromAI.items.map((item: { name: string, price: number }) => ({
+        const convertedItems = resultFromAI.items.map((item: { name: string, price: number,category: string  }) => ({
             ...item,
             price: Math.round(item.price * (resultFromAI.receiptLikelyInUSD ? USD_TO_VND_RATE : 1)) // Quy đổi và làm tròn
         }));
