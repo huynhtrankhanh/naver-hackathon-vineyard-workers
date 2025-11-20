@@ -6,18 +6,24 @@ const CLOVA_API_KEY = process.env.CLOVA_API_KEY;
 // const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
 // const API_HOST = 'https://clovastudio.stream.ntruss.com'; 
 
-if (!CLOVA_API_KEY) {
-    throw new Error("Vui lòng kiểm tra lại CLOVA_API_KEY và NCP_APIGW_API_KEY trong file .env");
+let clova: OpenAI | null = null;
+
+// Initialize Clova client only if API key is available
+if (CLOVA_API_KEY) {
+    clova = new OpenAI({
+        apiKey: CLOVA_API_KEY,
+        baseURL: 'https://clovastudio.stream.ntruss.com/v1/openai', // Endpoint tương thích OpenAI
+    });
 }
 
-const clova = new OpenAI({
-    apiKey: CLOVA_API_KEY,
-    baseURL: 'https://clovastudio.stream.ntruss.com/v1/openai', // Endpoint tương thích OpenAI
-});
 const USD_TO_VND_RATE = 25000; 
 // Hàm chính để phân tích hóa đơn bằng LLM (HCX-005) 
 
 export const analyzeReceiptWithLLM = async (imageBuffer: Buffer) => {
+    if (!CLOVA_API_KEY || !clova) {
+        throw new Error("Vui lòng kiểm tra lại CLOVA_API_KEY và NCP_APIGW_API_KEY trong file .env");
+    }
+    
     const model = 'HCX-005';
     const imageBase64 = imageBuffer.toString('base64');
         const user_prompt = `From the attached receipt image, act as a meticulous data extraction expert. Your task is to extract the merchant's name, the final total amount, and a list of all purchased items.
