@@ -389,6 +389,7 @@ MIT License - See LICENSE file for details
 ## 👥 Contributors
 
 - Nguyễn Đỗ Chiến Thắng
+- Trần Đức Mạnh
 - Nguyễn Hà Nam Trân
 - Huỳnh Trần Khanh
 - GitHub Copilot
