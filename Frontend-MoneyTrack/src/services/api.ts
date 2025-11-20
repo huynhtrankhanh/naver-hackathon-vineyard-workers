@@ -295,6 +295,14 @@ export const notificationApi = {
     apiCall<any>(`/notifications/${id}/read`, {
       method: "PUT",
     }),
+  // Check if a recent notification of a specific type exists
+  checkRecent: (type: string, category?: string) => {
+    const params = new URLSearchParams({ type });
+    if (category) params.append("category", category);
+    return apiCall<{ exists: boolean }>(
+      `/notifications/check-recent?${params.toString()}`
+    );
+  },
 };
 export const ocrApi = {
   /**
@@ -335,15 +343,6 @@ export const ocrApi = {
       console.error("Lỗi khi gọi API phân tích hóa đơn:", error);
       throw error; // Ném lỗi ra ngoài để component bắt
     }
-  },
-
-  // Check if a recent notification of a specific type exists
-  checkRecent: (type: string, category?: string) => {
-    const params = new URLSearchParams({ type });
-    if (category) params.append("category", category);
-    return apiCall<{ exists: boolean }>(
-      `/notifications/check-recent?${params.toString()}`
-    );
   },
 
 };
