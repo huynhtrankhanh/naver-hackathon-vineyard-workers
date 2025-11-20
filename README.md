@@ -413,19 +413,86 @@ See [Contributing Guide](docs/developer-guide/contributing.md) for detailed guid
 
 MIT License - See [LICENSE](LICENSE) file for details.
 
-## 👥 Team
+## 👥 Team & Contributions
 
 **Naver Hackathon - Vineyard Workers**
 
-- Nguyễn Đỗ Chiến Thắng
-- Trần Đức Mạnh
-- Nguyễn Hà Nam Trân
-- Huỳnh Trần Khanh
+### Core Team Members
 
-**AI Assistance:**
-- GitHub Copilot
-- ChatGPT (OpenAI)
-- Gemini 2.5 Pro (Google)
+#### **Huỳnh Trần Khanh** ([@huynhtrankhanh](https://github.com/huynhtrankhanh))
+*Project Lead, Full-Stack Developer & System Architect*
+
+**Major Contributions:**
+- **Project Foundation & Architecture**: Initial repository setup, project specification, and foundational documents
+- **Backend Infrastructure**: MongoDB integration, authentication system redesign, session management
+- **Frontend Core**: Sign-in/Sign-up UI enhancements, splash screen design, dashboard improvements
+- **Security Implementation**: Two-layer password hashing (argon2id + SHA256), secure authentication flow
+- **AI Integration Management**: Coordinated AI-powered features integration, savings plan system, Clova Studio HCX-007 setup
+- **Currency & Localization**: Unified currency to VND across the application, receipt price conversion
+- **State Management**: Balance synchronization fixes, state invalidation system
+- **Documentation**: Comprehensive README, API documentation, deployment guides, security documentation
+- **DevOps**: Docker containerization, MongoDB Memory Server configuration, environment setup
+- **Code Review & Quality**: Managed 35+ pull requests, coordinated GitHub Copilot agent work
+
+**Key Files**: Project architecture, server configuration, authentication routes, database models, documentation structure
+
+---
+
+#### **Nguyễn Đỗ Chiến Thắng** ([@thang7112001](https://github.com/thang7112001))
+*Backend Developer & Database Architect*
+
+**Major Contributions:**
+- **Initial Backend Setup**: Project scaffolding with Node.js/Express, TypeScript configuration
+- **Database Design**: MongoDB schema design for Users and Transactions, database connection setup
+- **CRUD Operations**: Complete REST API for user and transaction management
+- **Authentication Backend**: Initial user registration and login API endpoints
+- **Voice-to-Text Integration**: Speech-to-text API using Naver Clova X STT service
+- **Voice Transaction Feature**: Automatic transaction creation from voice input
+- **Code Quality**: ESLint configuration and code style setup
+- **Frontend Bootstrap**: Initial sign-in/sign-up UI components with Ionic Framework
+
+**Key Files**: `backend/src/routes/transactions.ts`, `backend/src/routes/auth.ts` (initial version), `backend/src/models/User.ts`, database connection logic, STT integration
+
+---
+
+#### **Trần Đức Mạnh** ([@ducmanhhb2005](https://github.com/ducmanhhb2005))
+*AI/ML Engineer & OCR Specialist*
+
+**Major Contributions:**
+- **OCR Implementation**: Receipt scanning functionality using Naver Clova OCR
+- **LLM Integration**: Receipt data extraction using Clova HCX-005 vision model
+- **Image Processing Pipeline**: Receipt image upload, analysis, and structured data extraction
+- **OCR-to-Transaction Flow**: Automated transaction creation from scanned receipts
+- **Currency Detection**: Intelligent USD/VND detection and conversion in receipts
+- **API Testing**: Comprehensive testing of OCR endpoints and data flow
+
+**Key Files**: `backend/src/utils/clovaX.service.ts`, `backend/src/routes/ocr.ts`, `backend/src/services/clovaOcr.service.ts`, receipt processing utilities
+
+---
+
+#### **Nguyễn Hà Nam Trân** ([@namtran1205](https://github.com/namtran1205))
+*Frontend Developer & UI/UX Specialist*
+
+**Major Contributions:**
+- **Savings Plan Frontend**: Complete UI/UX for AI-generated savings plans
+- **Goals Management Pages**: Created `GoalsAll.tsx` and `SavingPlansAll.tsx` for comprehensive goal viewing
+- **Notification System**: Built entire notification feature including backend integration
+- **Transaction Editing**: Enhanced expense viewing, editing, and detail screens
+- **Frontend-Backend Integration**: Connected savings plan AI with frontend display
+- **Transaction Enhancements**: Improved `AddTransaction.tsx` with category suggestions and validation
+- **Data Synchronization**: Savings plan state management and Goal model updates
+
+**Key Files**: `Frontend-MoneyTrack/src/pages/dashboard/GoalsAll.tsx`, `Frontend-MoneyTrack/src/pages/dashboard/SavingPlansAll.tsx`, `Frontend-MoneyTrack/src/pages/dashboard/Notification.tsx`, `Frontend-MoneyTrack/src/pages/dashboard/Expenses.tsx` (enhancements), savings plan UI components
+
+---
+
+### AI Development Assistance
+
+**GitHub Copilot** - Code completion and development acceleration  
+**ChatGPT (OpenAI)** - Architecture design and problem-solving  
+**Gemini 2.5 Pro (Google)** - Documentation and code review
+
+*Note: All GitHub Copilot agent commits were initiated, reviewed, and approved by the team members. The automation assisted with implementation, but design decisions and code quality remained under human oversight.*
 
 ## 🙏 Acknowledgments
 
