@@ -38,6 +38,8 @@ Built with React (Ionic), Express, TypeScript, and MongoDB. Powered by Naver Clo
 
 ## 📸 Screenshots
 
+### Authentication & Onboarding
+
 <table>
   <tr>
     <td align="center">
@@ -53,21 +55,133 @@ Built with React (Ionic), Express, TypeScript, and MongoDB. Powered by Naver Clo
       <sub><b>Sign In</b></sub>
     </td>
   </tr>
+</table>
+
+### Dashboard & Overview
+
+<table>
   <tr>
     <td align="center">
       <img src="./screenshots/04-dashboard-page.png" width="200" alt="Dashboard"/><br/>
-      <sub><b>Dashboard</b></sub>
+      <sub><b>Dashboard - Main View</b></sub><br/>
+      <sub>Income, Expenses, Balance Overview</sub>
     </td>
     <td align="center">
-      <img src="./screenshots/05-goals-page.png" width="200" alt="Saving Goals"/><br/>
-      <sub><b>Saving Goals</b></sub>
+      <img src="./screenshots/07-income-page.png" width="200" alt="Income Transactions" onerror="this.style.display='none'"/><br/>
+      <sub><b>Income List</b></sub><br/>
+      <sub>View all income transactions</sub>
     </td>
     <td align="center">
-      <img src="./screenshots/06-savings-onboarding.png" width="200" alt="AI Wizard"/><br/>
-      <sub><b>AI Savings Wizard</b></sub>
+      <img src="./screenshots/08-expenses-page.png" width="200" alt="Expense Transactions" onerror="this.style.display='none'"/><br/>
+      <sub><b>Expenses List</b></sub><br/>
+      <sub>View and manage expenses</sub>
     </td>
   </tr>
 </table>
+
+### Transaction Management
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/09-add-transaction.png" width="200" alt="Add Transaction" onerror="this.style.display='none'"/><br/>
+      <sub><b>Add Transaction (Manual)</b></sub><br/>
+      <sub>Manual entry with category selection</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/10-add-voice.png" width="200" alt="Voice Input" onerror="this.style.display='none'"/><br/>
+      <sub><b>Add by Voice (STT)</b></sub><br/>
+      <sub>Speech-to-text transaction entry</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/11-add-receipt.png" width="200" alt="Receipt Scan" onerror="this.style.display='none'"/><br/>
+      <sub><b>Add by Receipt (OCR)</b></sub><br/>
+      <sub>Scan receipts for bulk entry</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/12-edit-transaction.png" width="200" alt="Edit Transaction" onerror="this.style.display='none'"/><br/>
+      <sub><b>Edit Transaction</b></sub><br/>
+      <sub>Modify or delete transactions</sub>
+    </td>
+  </tr>
+</table>
+
+### Budget Management
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/13-budget-page.png" width="200" alt="Budget Management" onerror="this.style.display='none'"/><br/>
+      <sub><b>Budget Overview</b></sub><br/>
+      <sub>Set and track category budgets</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/14-budget-create.png" width="200" alt="Create Budget" onerror="this.style.display='none'"/><br/>
+      <sub><b>Create Budget</b></sub><br/>
+      <sub>Add new monthly budget limits</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/15-budget-ai.png" width="200" alt="AI Budget Suggestions" onerror="this.style.display='none'"/><br/>
+      <sub><b>AI Budget Proposals</b></sub><br/>
+      <sub>Get AI-powered budget recommendations</sub>
+    </td>
+  </tr>
+</table>
+
+### Savings Goals & AI Planning
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/05-goals-page.png" width="200" alt="Saving Goals"/><br/>
+      <sub><b>Saving Goals</b></sub><br/>
+      <sub>Track progress on savings goals</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/06-savings-onboarding.png" width="200" alt="AI Wizard"/><br/>
+      <sub><b>AI Savings Wizard</b></sub><br/>
+      <sub>Step-by-step AI plan generation</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/16-goals-all.png" width="200" alt="All Goals" onerror="this.style.display='none'"/><br/>
+      <sub><b>All Goals</b></sub><br/>
+      <sub>Complete list of savings goals</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/17-plan-detail.png" width="200" alt="Plan Detail" onerror="this.style.display='none'"/><br/>
+      <sub><b>Savings Plan Detail</b></sub><br/>
+      <sub>AI recommendations with reasoning</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/18-plans-all.png" width="200" alt="All Plans" onerror="this.style.display='none'"/><br/>
+      <sub><b>All Savings Plans</b></sub><br/>
+      <sub>View all AI-generated plans</sub>
+    </td>
+  </tr>
+</table>
+
+### Notifications & Profile
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./screenshots/19-notifications.png" width="200" alt="Notifications" onerror="this.style.display='none'"/><br/>
+      <sub><b>Notifications</b></sub><br/>
+      <sub>Budget alerts and goal updates</sub>
+    </td>
+    <td align="center">
+      <img src="./screenshots/20-profile.png" width="200" alt="Profile" onerror="this.style.display='none'"/><br/>
+      <sub><b>Profile & Settings</b></sub><br/>
+      <sub>Account information and logout</sub>
+    </td>
+  </tr>
+</table>
+
+> **Note**: Some screenshots above use onerror handlers to gracefully hide missing images. To update screenshots, replace the existing files or add new ones in the `/screenshots` folder with the numbered naming convention.
 
 ## 🚀 Quick Start
 
