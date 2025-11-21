@@ -181,8 +181,6 @@ Built with React (Ionic), Express, TypeScript, and MongoDB. Powered by Naver Clo
   </tr>
 </table>
 
-> **Note**: Some screenshots above use onerror handlers to gracefully hide missing images. To update screenshots, replace the existing files or add new ones in the `/screenshots` folder with the numbered naming convention.
-
 ## 🚀 Quick Start
 
 ### Option 1: Docker (Recommended)
