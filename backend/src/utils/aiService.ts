@@ -286,8 +286,8 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
 
     session.addMessage("AI is analyzing your financial data...");
 
-    // Stream the response
-    const stream = await streamClovaAPI(messages, tools);
+    // Stream the response with high reasoning effort for saving plan generation
+    const stream = await streamClovaAPI(messages, tools, undefined, undefined, 'high');
 
     let fullResponse = "";
 
@@ -502,7 +502,7 @@ export const handleParseTransaction = async (req: Request, res: Response) => {
   ];
 
   try {
-    const aiResponse = await callClovaAPI(messages, []);
+    const aiResponse = await callClovaAPI(messages, [], undefined, undefined, 'low');
 
     // Lấy JSON từ AI
     // response nằm trong choices[0].message.content)

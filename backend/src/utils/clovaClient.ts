@@ -47,7 +47,8 @@ export async function* streamClovaAPI(
   messages: ClovaMessage[],
   tools?: any[],
   apiKey?: string,
-  apiUrl?: string
+  apiUrl?: string,
+  reasoningEffort: 'low' | 'medium' | 'high' = 'high'
 ): AsyncGenerator<ClovaStreamChunk> {
   const key = apiKey || process.env.CLOVA_API_KEY;
   const url = apiUrl || process.env.CLOVA_API_URL || 'https://clovastudio.stream.ntruss.com/v1/openai/chat/completions';
@@ -65,7 +66,7 @@ export async function* streamClovaAPI(
     top_p: 0.8,
     model: 'HCX-007', // Use HCX-007 model with reasoning capability
     reasoning: {
-      effort: 'high' // Enable reasoning for better instruction adherence
+      effort: reasoningEffort // Configurable reasoning effort
     }
   });
   
@@ -158,7 +159,8 @@ export async function callClovaAPI(
   messages: ClovaMessage[],
   tools?: any[],
   apiKey?: string,
-  apiUrl?: string
+  apiUrl?: string,
+  reasoningEffort: 'low' | 'medium' | 'high' = 'high'
 ): Promise<any> {
   const key = apiKey || process.env.CLOVA_API_KEY;
   const url = apiUrl || process.env.CLOVA_API_URL || 'https://clovastudio.stream.ntruss.com/v1/openai/chat/completions';
@@ -176,7 +178,7 @@ export async function callClovaAPI(
     top_p: 0.8,
     model: 'HCX-007', // Use HCX-007 model with reasoning capability
     reasoning: {
-      effort: 'high' // Enable reasoning for better instruction adherence
+      effort: reasoningEffort // Configurable reasoning effort
     }
   });
   
