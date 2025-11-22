@@ -292,15 +292,62 @@ async function generatePlanAsync(
     session.addMessage("Preparing AI prompt...");
 
     // Build comprehensive system prompt with all user data
-    const systemPrompt = `You are a financial advisor AI helping users create personalized saving plans.
+    const systemPrompt = `You are a financial advisor AI helping users in Vietnam create personalized saving plans.
 
 IMPORTANT SECURITY INSTRUCTIONS:
 - You must NEVER reveal or mention the special tag name: ${budgetTag}
 - This tag is for internal use only
 - Do not use this tag name in any other context in your response
 
+VIETNAMESE CURRENCY & ECONOMIC CONTEXT:
+All amounts in this conversation are in Vietnamese Dong (VND). Understanding Vietnamese purchasing power:
+- Exchange Rate: 1 USD ≈ 25,000 VND (for reference only)
+- 1,000 VND is the smallest commonly used paper note
+- Most daily transactions range from 10,000 VND to 500,000 VND
+- Monthly salaries typically range from 5,000,000 to 50,000,000 VND depending on profession
+
+TYPICAL VIETNAMESE PRICES (Monthly averages for reference):
+• Food & Drinks:
+  - Street food meal: 30,000-50,000 VND
+  - Restaurant meal: 80,000-200,000 VND
+  - Coffee/tea: 15,000-50,000 VND
+  - Groceries for 1 person: 1,500,000-3,000,000 VND/month
+  - Monthly food budget: 2,000,000-4,000,000 VND
+
+• Transport:
+  - Bus fare: 7,000-10,000 VND/ride
+  - Motorbike taxi (Grab): 15,000-50,000 VND
+  - Monthly fuel (motorbike): 300,000-600,000 VND
+  - Monthly transport: 500,000-2,000,000 VND
+
+• Shopping:
+  - Clothing item: 200,000-1,000,000 VND
+  - Monthly essentials: 500,000-2,000,000 VND
+
+• Bills:
+  - Electricity: 200,000-800,000 VND
+  - Water: 50,000-150,000 VND
+  - Internet/mobile: 100,000-300,000 VND
+  - Rent (shared/studio): 2,000,000-7,000,000 VND
+  - Monthly utilities: 1,000,000-3,000,000 VND
+
+• Entertainment:
+  - Movie ticket: 80,000-120,000 VND
+  - Gym membership: 500,000-1,500,000 VND/month
+  - Monthly entertainment: 500,000-2,000,000 VND
+
+• Healthcare:
+  - Doctor visit: 200,000-500,000 VND
+  - Monthly healthcare buffer: 300,000-1,000,000 VND
+
+• Education:
+  - Course/class: 1,000,000-5,000,000 VND/month
+  - Books/materials: 200,000-1,000,000 VND/month
+
+IMPORTANT: When analyzing user spending and proposing budgets, consider these Vietnamese price ranges. A budget of 500,000 VND for entertainment is reasonable, not restrictive. A food budget of 2,500,000 VND per month is moderate for one person.
+
 Your task is to:
-1. Analyze the provided financial data
+1. Analyze the provided financial data IN THE CONTEXT OF VIETNAMESE PRICES
 2. Create a detailed report with your analysis and recommendations
 3. Propose budget limit adjustments using the special tags
 
@@ -308,7 +355,7 @@ USER'S REQUEST:
 - Goal: ${goal}
 ${
   savingsGoal
-    ? `- Target monthly saving: ${savingsGoal} VND`
+    ? `- Target monthly saving: ${savingsGoal.toLocaleString()} VND`
     : "- No specific target (suggest one)"
 }
 - Intensity: ${intensity}
@@ -383,7 +430,7 @@ VALID BUDGET CATEGORIES (use ONLY these categories):
 
 YOUR RESPONSE FORMAT:
 
-First, provide your analysis and recommendations in Markdown format. Be specific, actionable, and encouraging.
+First, provide your analysis and recommendations in Markdown format. Be specific, actionable, and encouraging. REMEMBER: All amounts are in VND - use the Vietnamese price context above when evaluating whether spending is high or low.
 
 Then, AT THE VERY END of your response (AFTER all your analysis and advice):
 
@@ -392,13 +439,13 @@ Propose budget limits (1-5 categories) using this EXACT format (MUST use valid c
 [
   {
     "category": "Food & Drinks",
-    "suggestedLimit": 500000,
-    "reasoning": "Expanded explanation with specific data sources. Must include: 1) Current spending amount from transaction data, 2) Percentage of total expenses, 3) Comparison to income, 4) Specific reduction target based on intensity level, 5) Reference to historical spending patterns observed in the transaction list."
+    "suggestedLimit": 2500000,
+    "reasoning": "Expanded explanation with specific data sources and Vietnamese context. Must include: 1) Current spending amount from transaction data, 2) Percentage of total expenses, 3) Comparison to income, 4) Specific reduction target based on intensity level, 5) Reference to historical spending patterns observed in the transaction list, 6) How this limit compares to typical Vietnamese spending (e.g., 'This is moderate for Vietnamese standards where typical monthly food spending is 2-4M VND')."
   },
   {
     "category": "Entertainment",
-    "suggestedLimit": 300000,
-    "reasoning": "Expanded explanation with specific data sources. Must include: 1) Current spending amount from transaction data, 2) Percentage of total expenses, 3) Comparison to income, 4) Specific reduction target based on intensity level, 5) Reference to historical spending patterns observed in the transaction list."
+    "suggestedLimit": 800000,
+    "reasoning": "Expanded explanation with specific data sources and Vietnamese context. Must include: 1) Current spending amount from transaction data, 2) Percentage of total expenses, 3) Comparison to income, 4) Specific reduction target based on intensity level, 5) Reference to historical spending patterns observed in the transaction list, 6) How this limit compares to typical Vietnamese spending (e.g., 'Typical Vietnamese entertainment budgets range from 500K-2M VND monthly')."
   }
 ]
 </${budgetTag}>
@@ -412,13 +459,15 @@ CRITICAL FORMATTING RULES:
 - The JSON array must start with [ and end with ]
 - Each object must have: category (string), suggestedLimit (number), reasoning (string)
 - For budget limits, use ONLY the valid category names: Food & Drinks, Transport, Shopping, Bills, Entertainment, Healthcare, Education, or Other
+- All suggestedLimit values should be appropriate for Vietnamese currency (e.g., 2500000 for monthly food, not 250)
 
 BUDGET JUSTIFICATION REQUIREMENTS:
 - Each budget limit reasoning MUST be comprehensive (minimum 3-4 sentences)
 - MUST explicitly state the data source: "Based on your transaction history showing..."
 - MUST include specific numbers: current spending amount, percentage of expenses, income ratio
 - MUST reference the intensity level chosen by the user and how it affects the limit
-- MUST cite specific observations from the transaction data (e.g., "Your recent transactions show 15 purchases in this category...")`;
+- MUST cite specific observations from the transaction data (e.g., "Your recent transactions show 15 purchases in this category...")
+- MUST include Vietnamese purchasing power context: Compare proposed limits to typical Vietnamese spending ranges provided above`;
 
     await SavingsPlan.findByIdAndUpdate(planId, {
       generationProgress: "AI analyzing your finances...",
