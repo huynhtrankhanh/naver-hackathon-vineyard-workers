@@ -331,6 +331,7 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
     );
 
     let fullResponse = "";
+    let lastDbUpdate = Date.now();
 
     for await (const chunk of stream) {
       if (chunk.choices && chunk.choices[0]) {
@@ -342,10 +343,14 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
           // Stream actual content to session
           session.addMessage(delta.content);
           
-          // Also update the database with progress
-          await SavingsPlan.findByIdAndUpdate(planId, {
-            generationProgress: fullResponse.slice(-200), // Last 200 chars as preview
-          });
+          // Throttle database updates to every 2 seconds to reduce load
+          const now = Date.now();
+          if (now - lastDbUpdate > 2000) {
+            await SavingsPlan.findByIdAndUpdate(planId, {
+              generationProgress: fullResponse.slice(-200), // Last 200 chars as preview
+            });
+            lastDbUpdate = now;
+          }
         }
 
         if (chunk.choices[0].finish_reason) {

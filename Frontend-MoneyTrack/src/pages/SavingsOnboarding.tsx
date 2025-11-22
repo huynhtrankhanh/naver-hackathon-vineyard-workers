@@ -108,6 +108,32 @@ const SavingsOnboarding: React.FC = () => {
     setStreamingLog('');
     setIsFadingOut(false);
 
+    // Helper function to append to streaming log
+    const appendToLog = (message: string) => {
+      setStreamingLog(prev => prev + message + '\n');
+    };
+
+    // Helper function to handle completion
+    const handleCompletion = (data: any) => {
+      setLoadingText('Plan generation complete!');
+      setIsFadingOut(true);
+      
+      setTimeout(() => {
+        setAiResult({
+          goal: data.goal,
+          savingsGoal: data.savingsGoal,
+          intensity: data.intensity,
+          notes: data.notes,
+          suggestedSavings: data.suggestedSavings,
+          recommendations: data.recommendations || [],
+          markdownAdvice: data.markdownAdvice
+        });
+        showScreen('result');
+        setIsFadingOut(false);
+        setStreamingLog('');
+      }, 1000);
+    };
+
     try {
       // Call the backend AI API - it returns planId immediately
 
@@ -129,8 +155,8 @@ const SavingsOnboarding: React.FC = () => {
         const planId = response.planId;
         setLoadingText('AI is analyzing your financial data...');
 
-        // Try to use EventSource for streaming first, but fall back to polling if it fails
-        let streamingFailed = false;
+        // Try to use EventSource for streaming first
+        let usePolling = false;
         
         try {
           // Attempt to use EventSource for real-time streaming
@@ -138,75 +164,45 @@ const SavingsOnboarding: React.FC = () => {
             planId,
             (message: string) => {
               // Append the message to the streaming log
-              setStreamingLog(prev => prev + message + '\n');
+              appendToLog(message);
               setLoadingText('AI is generating your plan...');
             },
-            async (data: any) => {
-              // Generation complete - fade out and show result
-              setLoadingText('Plan generation complete!');
-              
-              // Start fade out animation
-              setIsFadingOut(true);
-              
-              // Wait for fade out, then show result
-              setTimeout(() => {
-                setAiResult({
-                  goal: data.goal,
-                  savingsGoal: data.savingsGoal,
-                  intensity: data.intensity,
-                  notes: data.notes,
-                  suggestedSavings: data.suggestedSavings,
-                  recommendations: data.recommendations || [],
-                  markdownAdvice: data.markdownAdvice
-                });
-                showScreen('result');
-                setIsFadingOut(false);
-                setStreamingLog('');
-              }, 1000);
+            (data: any) => {
+              // Generation complete
+              handleCompletion(data);
             },
             (error: any) => {
               console.error('Streaming error:', error);
-              streamingFailed = true;
-              // Fall back to polling if streaming fails
+              // Fall back to polling
+              usePolling = true;
             }
           );
+          
+          // Wait a bit to see if streaming works
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // If streaming failed, use polling
+          if (usePolling) {
+            throw new Error('Streaming not available, using polling');
+          }
         } catch (error) {
           console.error('Failed to start streaming:', error);
-          streamingFailed = true;
-        }
-
-        // Fallback: Poll for the plan status
-        if (streamingFailed) {
+          
+          // Fallback: Poll for the plan status
           const pollPlan = async () => {
             try {
               const plan = await aiApi.getPlanById(planId);
               
               if (plan.streamingStatus === 'completed') {
-                // Transform to expected format
-                setLoadingText('Plan generation complete!');
-                setIsFadingOut(true);
-                
-                setTimeout(() => {
-                  setAiResult({
-                    goal: plan.goal,
-                    savingsGoal: plan.savingsGoal,
-                    intensity: plan.intensity,
-                    notes: plan.notes,
-                    suggestedSavings: plan.suggestedSavings,
-                    recommendations: plan.recommendations || [],
-                    markdownAdvice: plan.markdownAdvice
-                  });
-                  showScreen('result');
-                  setIsFadingOut(false);
-                  setStreamingLog('');
-                }, 1000);
+                // Transform to expected format and complete
+                handleCompletion(plan);
               } else if (plan.streamingStatus === 'failed') {
                 throw new Error(plan.generationProgress || 'AI generation failed');
               } else {
                 // Still generating, update loading text and poll again
                 if (plan.generationProgress) {
                   setLoadingText(plan.generationProgress);
-                  setStreamingLog(prev => prev + plan.generationProgress + '\n');
+                  appendToLog(plan.generationProgress);
                 }
                 setTimeout(pollPlan, 2000); // Poll every 2 seconds
               }
