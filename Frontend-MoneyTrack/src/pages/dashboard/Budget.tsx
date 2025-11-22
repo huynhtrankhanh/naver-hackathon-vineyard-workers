@@ -28,9 +28,9 @@ interface SavingPlan {
 
 const Budget: React.FC = () => {
   const history = useHistory();
-  const location = useLocation();
+  const location = useLocation<{ fromSavingPlan?: boolean; savingPlanId?: string }>();
   const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
+  const [currentSavingPlan, setCurrentSavingPlan] = useState<SavingPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -61,6 +61,10 @@ const Budget: React.FC = () => {
     'Other'
   ];
 
+  // Check if we're coming from a saving plan page
+  const fromSavingPlan = location.state?.fromSavingPlan || false;
+  const savingPlanId = location.state?.savingPlanId;
+
   // Clear modal form state when user navigates to this page
   useEffect(() => {
     if (location.pathname === "/dashboard/budget") {
@@ -77,12 +81,17 @@ const Budget: React.FC = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
-      const [budgetData, plansData] = await Promise.all([
-        budgetApi.getByMonth(currentMonth),
-        aiApi.getAllPlans()
-      ]);
+      
+      const budgetData = await budgetApi.getByMonth(currentMonth);
       setBudgets(budgetData);
-      setSavingPlans(plansData);
+
+      // Fetch the current/specific saving plan only if coming from saving plan page
+      if (fromSavingPlan && savingPlanId) {
+        const planData = await aiApi.getPlanById(savingPlanId);
+        setCurrentSavingPlan(planData);
+      } else {
+        setCurrentSavingPlan(null);
+      }
     } catch (error) {
       console.error("Error fetching budgets:", error);
     } finally {
@@ -91,7 +100,7 @@ const Budget: React.FC = () => {
         setIsInitialLoad(false);
       }
     }
-  }, [currentMonth, isInitialLoad]);
+  }, [currentMonth, isInitialLoad, fromSavingPlan, savingPlanId]);
 
   // Use state invalidation hook
   useStateInvalidation({
@@ -217,21 +226,22 @@ const Budget: React.FC = () => {
     }
   };
 
-  // Get AI proposed limit for a category
+  // Get AI proposed limit for a category (only if coming from saving plan page)
   const getProposedLimit = (category: string) => {
-    for (const plan of savingPlans) {
-      if (plan.proposedBudgetLimits) {
-        const proposal = plan.proposedBudgetLimits.find(p => p.category === category);
-        if (proposal) {
-          return proposal;
-        }
-      }
+    if (!fromSavingPlan || !currentSavingPlan || !currentSavingPlan.proposedBudgetLimits) {
+      return null;
     }
-    return null;
+    
+    const proposal = currentSavingPlan.proposedBudgetLimits.find(p => p.category === category);
+    return proposal || null;
   };
 
-  // Get all AI proposed limits (for categories without existing budgets)
+  // Get all AI proposed limits for categories without existing budgets (only if coming from saving plan page)
   const getNewProposedLimits = () => {
+    if (!fromSavingPlan || !currentSavingPlan || !currentSavingPlan.proposedBudgetLimits) {
+      return [];
+    }
+
     const existingCategories = new Set(budgets.map(b => b.category));
     const proposals: Array<{
       category: string;
@@ -239,13 +249,9 @@ const Budget: React.FC = () => {
       reasoning?: string;
     }> = [];
 
-    for (const plan of savingPlans) {
-      if (plan.proposedBudgetLimits) {
-        for (const proposal of plan.proposedBudgetLimits) {
-          if (!existingCategories.has(proposal.category)) {
-            proposals.push(proposal);
-          }
-        }
+    for (const proposal of currentSavingPlan.proposedBudgetLimits) {
+      if (!existingCategories.has(proposal.category)) {
+        proposals.push(proposal);
       }
     }
 
