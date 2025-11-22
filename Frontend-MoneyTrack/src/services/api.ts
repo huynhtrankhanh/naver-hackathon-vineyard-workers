@@ -138,6 +138,7 @@ export const aiApi = {
     goal: string;
     savingsGoal?: number;
     intensity: string;
+    duration?: number;
     notes?: string;
     useMock?: boolean;
   }) => {

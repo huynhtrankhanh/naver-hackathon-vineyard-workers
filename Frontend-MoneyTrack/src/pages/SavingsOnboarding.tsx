@@ -139,13 +139,16 @@ const SavingsOnboarding: React.FC = () => {
 
       // Tính toán savingsGoalPerMonth nếu có đủ dữ liệu
       let savingsGoalPerMonth: number | undefined = undefined;
+      let durationMonths: number | undefined = undefined;
       if (wizardData.savingsGoal && wizardData.months && !isNaN(Number(wizardData.savingsGoal)) && !isNaN(Number(wizardData.months)) && Number(wizardData.months) > 0) {
         savingsGoalPerMonth = Math.ceil(Number(wizardData.savingsGoal) / Number(wizardData.months));
+        durationMonths = Number(wizardData.months);
       }
       const response = await aiApi.generateSavingsPlan({
         goal: wizardData.goal,
         savingsGoal: savingsGoalPerMonth,
         intensity: wizardData.intensity,
+        duration: durationMonths,
         notes: `Total goal: ${wizardData.savingsGoal} VND in ${wizardData.months} months. ` + wizardData.notes + (selectedCategories.length ? `\nCategories to save: ${selectedCategories.join(', ')}` : '')
       });
 

@@ -21,6 +21,7 @@ export interface SavingPlanInput {
   savingsGoal?: number;
   intensity: string;
   notes?: string;
+  duration?: number; // User's specified duration in months
   userId: mongoose.Types.ObjectId;
 }
 
@@ -86,7 +87,7 @@ export function getGenerationSession(
 export async function generateSavingPlan(
   input: SavingPlanInput
 ): Promise<mongoose.Types.ObjectId> {
-  const { goal, savingsGoal, intensity, notes, userId } = input;
+  const { goal, savingsGoal, intensity, notes, duration, userId } = input;
 
   // Create a new saving plan document
   const plan = new SavingsPlan({
@@ -119,6 +120,119 @@ export async function generateSavingPlan(
 }
 
 /**
+ * Budget limit proposal interface
+ */
+export interface BudgetLimitProposal {
+  category: string;
+  suggestedLimit: number;
+  reasoning?: string;
+  currentLimit?: number;
+}
+
+/**
+ * Robust budget limit extraction with multiple fallback strategies
+ */
+function extractBudgetLimits(fullResponse: string, budgetTag: string, endBudgetTag: string): BudgetLimitProposal[] {
+  console.log('Attempting to extract budget limits...');
+  
+  // Strategy 1: Standard regex (most reliable when AI follows instructions)
+  try {
+    const budgetRegex = new RegExp(
+      `<${budgetTag}>\\s*(\\[[^]*?\\])\\s*</${endBudgetTag}>`,
+      'i'
+    );
+    const budgetMatch = fullResponse.match(budgetRegex);
+    
+    if (budgetMatch && budgetMatch[1]) {
+      const parsed = JSON.parse(budgetMatch[1].trim());
+      console.log(`✅ Strategy 1 (Regex): Successfully parsed ${parsed.length} budget limits`);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (e) {
+    console.log('Strategy 1 (Regex) failed:', e instanceof Error ? e.message : e);
+  }
+  
+  // Strategy 2: Manual extraction with indexOf (handles extra text/whitespace)
+  try {
+    const startTag = `<${budgetTag}>`;
+    const endTag = `</${endBudgetTag}>`;
+    const startIdx = fullResponse.indexOf(startTag);
+    const endIdx = fullResponse.indexOf(endTag);
+    
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      let content = fullResponse.substring(startIdx + startTag.length, endIdx);
+      console.log('Strategy 2 (indexOf): Found content between tags');
+      
+      // Clean up the content
+      content = cleanJsonContent(content);
+      
+      // Try to find JSON array
+      const arrayStart = content.indexOf('[');
+      const arrayEnd = content.lastIndexOf(']');
+      
+      if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
+        const jsonStr = content.substring(arrayStart, arrayEnd + 1);
+        const parsed = JSON.parse(jsonStr);
+        console.log(`✅ Strategy 2 (indexOf): Successfully parsed ${parsed.length} budget limits`);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+    }
+  } catch (e) {
+    console.log('Strategy 2 (indexOf) failed:', e instanceof Error ? e.message : e);
+  }
+  
+  // Strategy 3: Search for JSON array anywhere in the response (last resort)
+  try {
+    // Pattern matches budget limit arrays with required fields
+    // Looks for: [ { ... "category" ... "suggestedLimit" ... } ]
+    const arrayPattern = /\[\s*\{[^}]*"category"[^}]*"suggestedLimit"[^}]*\}[^\]]*\]/gi;
+    const matches = fullResponse.match(arrayPattern);
+    
+    if (matches && matches.length > 0) {
+      // Try each match (in case there are multiple)
+      for (const match of matches) {
+        try {
+          const cleaned = cleanJsonContent(match);
+          const parsed = JSON.parse(cleaned);
+          
+          // Validate it looks like budget limits
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].category && parsed[0].suggestedLimit) {
+            console.log(`✅ Strategy 3 (Pattern): Successfully parsed ${parsed.length} budget limits`);
+            return parsed;
+          }
+        } catch (e) {
+          // Try next match
+          continue;
+        }
+      }
+    }
+  } catch (e) {
+    console.log('Strategy 3 (Pattern) failed:', e instanceof Error ? e.message : e);
+  }
+  
+  console.warn('⚠️ All budget limit extraction strategies failed');
+  return [];
+}
+
+/**
+ * Clean JSON content by removing markdown code blocks, extra whitespace, etc.
+ */
+function cleanJsonContent(content: string): string {
+  // Remove markdown code blocks
+  content = content.replace(/```json\s*/gi, '');
+  content = content.replace(/```\s*/g, '');
+  
+  // Remove common non-JSON text patterns
+  content = content.replace(/Note:.*$/gm, '');
+  content = content.replace(/\*\*.*?\*\*/g, '');
+  
+  // Normalize whitespace
+  content = content.trim();
+  
+  return content;
+}
+
+/**
  * Asynchronous plan generation with all user data in context
  */
 async function generatePlanAsync(
@@ -126,7 +240,7 @@ async function generatePlanAsync(
   input: SavingPlanInput,
   session: GenerationSession
 ) {
-  const { goal, savingsGoal, intensity, notes, userId } = input;
+  const { goal, savingsGoal, intensity, notes, duration, userId } = input;
 
   try {
     // Update status
@@ -172,10 +286,7 @@ async function generatePlanAsync(
     // Generate random XML-like tags for security (prevent prompt injection)
     const randomSuffix = Math.random().toString(36).substring(2, 15);
     const budgetTag = `BudgetLim_${randomSuffix}`;
-    // Additional tags and placeholders used when parsing AI responses
-    const goalTag = `Goal_${randomSuffix}`;
     const endBudgetTag = budgetTag;
-    const endGoalTag = goalTag;
     let proposedGoal: any | undefined = undefined;
 
     session.addMessage("Preparing AI prompt...");
@@ -274,7 +385,7 @@ YOUR RESPONSE FORMAT:
 
 First, provide your analysis and recommendations in Markdown format. Be specific, actionable, and encouraging.
 
-Then, AT THE END of your response:
+Then, AT THE VERY END of your response (AFTER all your analysis and advice):
 
 Propose budget limits (1-5 categories) using this EXACT format (MUST use valid category names from the list above):
 <${budgetTag}>
@@ -292,16 +403,22 @@ Propose budget limits (1-5 categories) using this EXACT format (MUST use valid c
 ]
 </${budgetTag}>
 
-CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
+CRITICAL FORMATTING RULES:
+- Put the budget proposal section AT THE VERY END of your response
+- Use ONLY the exact tag format shown above: <${budgetTag}>[...]</${budgetTag}>
+- Do NOT add any text, notes, or explanations AFTER the closing tag </${budgetTag}>
+- Do NOT wrap the JSON in markdown code blocks (no \`\`\`json)
+- Do NOT mention the tag name anywhere except in the proposal section
+- The JSON array must start with [ and end with ]
+- Each object must have: category (string), suggestedLimit (number), reasoning (string)
+- For budget limits, use ONLY the valid category names: Food & Drinks, Transport, Shopping, Bills, Entertainment, Healthcare, Education, or Other
+
+BUDGET JUSTIFICATION REQUIREMENTS:
 - Each budget limit reasoning MUST be comprehensive (minimum 3-4 sentences)
 - MUST explicitly state the data source: "Based on your transaction history showing..."
 - MUST include specific numbers: current spending amount, percentage of expenses, income ratio
 - MUST reference the intensity level chosen by the user and how it affects the limit
-- MUST cite specific observations from the transaction data (e.g., "Your recent transactions show 15 purchases in this category...")
-- Use ONLY the exact tag name provided above with proper XML format: <${budgetTag}>...</${budgetTag}>
-- Do NOT mention or use this tag name anywhere else in your response except in the proposal section at the very end
-- For budget limits, use ONLY the valid category names from the list: Food & Drinks, Transport, Shopping, Bills, Entertainment, Healthcare, Education, or Other
-- Do NOT create new category names or variations`;
+- MUST cite specific observations from the transaction data (e.g., "Your recent transactions show 15 purchases in this category...")`;
 
     await SavingsPlan.findByIdAndUpdate(planId, {
       generationProgress: "AI analyzing your finances...",
@@ -365,36 +482,31 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
     let proposedBudgetLimits: any[] = [];
     let markdownAdvice = fullResponse;
 
-    // Extract saving goal
-    const goalRegex = new RegExp(
-      `<${goalTag}>\s*({[^]*?})\s*</${endGoalTag}>`,
-      "i"
-    );
-    const goalMatch = fullResponse.match(goalRegex);
-    if (goalMatch && goalMatch[1]) {
-      try {
-        proposedGoal = JSON.parse(goalMatch[1].trim());
-        // Remove the tag section from markdown
-        markdownAdvice = markdownAdvice.replace(goalMatch[0], "").trim();
-      } catch (e) {
-        console.error("Failed to parse proposed goal:", e);
-      }
-    }
+    // Create proposed goal from user input (mirror what user typed, don't let AI generate)
+    // This ensures the goal proposal matches exactly what the user wants
+    
+    // Use user's specified duration or default to 12 months
+    const userDuration = duration || 12;
+    
+    proposedGoal = {
+      name: goal, // Use the exact goal text the user typed
+      target: savingsGoal ? savingsGoal * userDuration : 0, // Convert monthly to total target based on user's duration
+      priority: intensity === 'Must achieve' ? 'high' : 
+                intensity === 'Just starting out' ? 'low' : 'medium',
+      duration: userDuration // Mirror user's input duration
+    };
 
-    // Extract budget limits
-    const budgetRegex = new RegExp(
-      `<${budgetTag}>\s*(\[[^]*?\])\s*</${endBudgetTag}>`,
-      "i"
-    );
-    const budgetMatch = fullResponse.match(budgetRegex);
-    if (budgetMatch && budgetMatch[1]) {
-      try {
-        proposedBudgetLimits = JSON.parse(budgetMatch[1].trim());
-        // Remove the tag section from markdown
-        markdownAdvice = markdownAdvice.replace(budgetMatch[0], "").trim();
-      } catch (e) {
-        console.error("Failed to parse budget limits:", e);
-      }
+    // Extract budget limits with robust fallback parsing
+    proposedBudgetLimits = extractBudgetLimits(fullResponse, budgetTag, endBudgetTag);
+    
+    // Remove budget tag section from markdown if found
+    const budgetTagStart = fullResponse.indexOf(`<${budgetTag}>`);
+    const budgetTagEnd = fullResponse.indexOf(`</${endBudgetTag}>`);
+    if (budgetTagStart !== -1 && budgetTagEnd !== -1) {
+      const tagSection = fullResponse.substring(budgetTagStart, budgetTagEnd + endBudgetTag.length + 3);
+      // Use global regex to handle cases where tag might appear multiple times
+      const escapedSection = tagSection.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      markdownAdvice = markdownAdvice.replace(new RegExp(escapedSection, 'g'), "").trim();
     }
 
     // Calculate suggested savings
