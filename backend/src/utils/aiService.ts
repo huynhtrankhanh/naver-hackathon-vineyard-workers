@@ -140,31 +140,43 @@ async function generatePlanAsync(
 
     // Gather all user data upfront
     const [transactions, goals, budgets] = await Promise.all([
-      mongoose.model('Transaction').find({ userId }).sort({ date: -1 }).limit(100).lean(),
-      mongoose.model('Goal').find({ userId }).lean(),
-      mongoose.model('Budget').find({ userId }).lean()
+      mongoose
+        .model("Transaction")
+        .find({ userId })
+        .sort({ date: -1 })
+        .limit(100)
+        .lean(),
+      mongoose.model("Goal").find({ userId }).lean(),
+      mongoose.model("Budget").find({ userId }).lean(),
     ]);
 
     // Calculate financial summary
     let totalIncome = 0;
     let totalExpenses = 0;
     const categorySpending: { [key: string]: number } = {};
-    
+
     for (const t of transactions as any[]) {
-      if (t.type === 'income') {
+      if (t.type === "income") {
         totalIncome += t.amount;
       } else {
         totalExpenses += t.amount;
-        categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
+        categorySpending[t.category] =
+          (categorySpending[t.category] || 0) + t.amount;
       }
     }
-    
+
     const balance = totalIncome - totalExpenses;
-    const savingRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+    const savingRate =
+      totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
 
     // Generate random XML-like tags for security (prevent prompt injection)
     const randomSuffix = Math.random().toString(36).substring(2, 15);
     const budgetTag = `BudgetLim_${randomSuffix}`;
+    // Additional tags and placeholders used when parsing AI responses
+    const goalTag = `Goal_${randomSuffix}`;
+    const endBudgetTag = budgetTag;
+    const endGoalTag = goalTag;
+    let proposedGoal: any | undefined = undefined;
 
     session.addMessage("Preparing AI prompt...");
 
@@ -183,7 +195,11 @@ Your task is to:
 
 USER'S REQUEST:
 - Goal: ${goal}
-${savingsGoal ? `- Target monthly saving: ${savingsGoal} VND` : "- No specific target amount provided"}
+${
+  savingsGoal
+    ? `- Target monthly saving: ${savingsGoal} VND`
+    : "- No specific target (suggest one)"
+}
 - Intensity: ${intensity}
 ${notes ? `- Additional notes: ${notes}` : ""}
 
@@ -200,16 +216,49 @@ Total Expenses: ${totalExpenses.toLocaleString()} VND
 Saving Rate: ${savingRate.toFixed(1)}%
 
 Spending by Category:
-${Object.entries(categorySpending).map(([cat, amt]) => `- ${cat}: ${(amt as number).toLocaleString()} VND`).join('\n')}
+${Object.entries(categorySpending)
+  .map(([cat, amt]) => `- ${cat}: ${(amt as number).toLocaleString()} VND`)
+  .join("\n")}
 
 Existing Goals (${goals.length}):
-${(goals as any[]).map(g => `- ${g.name}: ${g.current.toLocaleString()}/${g.target.toLocaleString()} VND (${g.priority} priority)`).join('\n') || '- None'}
+${
+  (goals as any[])
+    .map(
+      (g) =>
+        `- ${
+          g.name
+        }: ${g.current.toLocaleString()}/${g.target.toLocaleString()} VND (${
+          g.priority
+        } priority)`
+    )
+    .join("\n") || "- None"
+}
 
 Current Budget Limits (${budgets.length}):
-${(budgets as any[]).map(b => `- ${b.category}: ${b.spent.toLocaleString()}/${b.limit.toLocaleString()} VND (${((b.spent/b.limit)*100).toFixed(0)}% used)`).join('\n') || '- None'}
+${
+  (budgets as any[])
+    .map(
+      (b) =>
+        `- ${
+          b.category
+        }: ${b.spent.toLocaleString()}/${b.limit.toLocaleString()} VND (${(
+          (b.spent / b.limit) *
+          100
+        ).toFixed(0)}% used)`
+    )
+    .join("\n") || "- None"
+}
 
 Recent Transactions (last ${transactions.length}):
-${(transactions as any[]).slice(0, 20).map(t => `- ${new Date(t.date).toLocaleDateString()}: ${t.title} (${t.category}) - ${t.amount.toLocaleString()} VND [${t.type}]`).join('\n')}
+${(transactions as any[])
+  .slice(0, 20)
+  .map(
+    (t) =>
+      `- ${new Date(t.date).toLocaleDateString()}: ${t.title} (${
+        t.category
+      }) - ${t.amount.toLocaleString()} VND [${t.type}]`
+  )
+  .join("\n")}
 
 VALID BUDGET CATEGORIES (use ONLY these categories):
 - Food & Drinks
@@ -262,7 +311,8 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
       { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: "Please analyze my financial situation and create a personalized saving plan for me with specific, actionable advice.",
+        content:
+          "Please analyze my financial situation and create a personalized saving plan for me with specific, actionable advice.",
       },
     ];
 
@@ -282,7 +332,7 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
 
         if (delta?.content) {
           fullResponse += delta.content;
-          
+
           // Stream content to session (every 50 chars to avoid spam)
           if (fullResponse.length % 50 === 0) {
             session.addMessage(`AI: ...`);
@@ -301,21 +351,44 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
     let proposedBudgetLimits: any[] = [];
     let markdownAdvice = fullResponse;
 
-    // Extract budget limits using proper XML closing tag
-    const budgetRegex = new RegExp(`<${budgetTag}>\\s*(\\[[^]*?\\])\\s*</${budgetTag}>`, 'i');
+    // Extract saving goal
+    const goalRegex = new RegExp(
+      `<${goalTag}>\s*({[^]*?})\s*</${endGoalTag}>`,
+      "i"
+    );
+    const goalMatch = fullResponse.match(goalRegex);
+    if (goalMatch && goalMatch[1]) {
+      try {
+        proposedGoal = JSON.parse(goalMatch[1].trim());
+        // Remove the tag section from markdown
+        markdownAdvice = markdownAdvice.replace(goalMatch[0], "").trim();
+      } catch (e) {
+        console.error("Failed to parse proposed goal:", e);
+      }
+    }
+
+    // Extract budget limits
+    const budgetRegex = new RegExp(
+      `<${budgetTag}>\s*(\[[^]*?\])\s*</${endBudgetTag}>`,
+      "i"
+    );
     const budgetMatch = fullResponse.match(budgetRegex);
     if (budgetMatch && budgetMatch[1]) {
       try {
         proposedBudgetLimits = JSON.parse(budgetMatch[1].trim());
         // Remove the tag section from markdown
-        markdownAdvice = markdownAdvice.replace(budgetMatch[0], '').trim();
+        markdownAdvice = markdownAdvice.replace(budgetMatch[0], "").trim();
       } catch (e) {
-        console.error('Failed to parse budget limits:', e);
+        console.error("Failed to parse budget limits:", e);
       }
     }
 
-    // Calculate suggested savings in the backend (not from AI)
-    const suggestedSavings = savingsGoal || Math.round(balance * 0.2);
+    // Calculate suggested savings
+    const suggestedSavings =
+      savingsGoal ||
+      (proposedGoal?.target
+        ? Math.round(proposedGoal.target / 12)
+        : Math.round(balance * 0.2));
 
     // Update the plan with final results
     await SavingsPlan.findByIdAndUpdate(planId, {
@@ -323,7 +396,16 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
       generationProgress: "Plan generation completed!",
       suggestedSavings,
       markdownAdvice,
-      proposedBudgetLimits: proposedBudgetLimits.length > 0 ? proposedBudgetLimits : undefined,
+      proposedGoal: proposedGoal
+        ? {
+            name: proposedGoal.name,
+            target: proposedGoal.target,
+            priority: proposedGoal.priority || "medium",
+            accepted: false,
+          }
+        : undefined,
+      proposedBudgetLimits:
+        proposedBudgetLimits.length > 0 ? proposedBudgetLimits : undefined,
     });
 
     session.complete({
@@ -359,8 +441,6 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
   }
 }
 
-
-
 //handle speech to text
 interface AuthRequest extends Request {
   file?: Express.Multer.File;
@@ -375,6 +455,28 @@ export const handleSpeechToText = async (req: AuthRequest, res: Response) => {
   // LẤY KEY STT
   const clientId = process.env.NAVER_CLIENT_ID;
   const clientSecret = process.env.NAVER_CLIENT_SECRET;
+
+  // Support a development mock mode so frontend can test without Naver credentials
+  if (process.env.USE_MOCK_STT === "true") {
+    // Return a canned transcription for testing
+    // eslint-disable-next-line no-console
+    console.log("USE_MOCK_STT enabled — returning mock transcription");
+    return res
+      .status(200)
+      .json({ text: "This is a mocked transcription for testing purposes." });
+  }
+
+  // Validate NAVER credentials early and return a helpful message
+  if (!clientId || !clientSecret) {
+    // eslint-disable-next-line no-console
+    console.error(
+      "Missing NAVER STT credentials: NAVER_CLIENT_ID or NAVER_CLIENT_SECRET not set in .env"
+    );
+    return res.status(500).json({
+      message:
+        "Naver STT not configured. Please set NAVER_CLIENT_ID and NAVER_CLIENT_SECRET in backend/.env",
+    });
+  }
 
   const apiUrl = "https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Eng";
 
@@ -400,10 +502,24 @@ export const handleSpeechToText = async (req: AuthRequest, res: Response) => {
     // Naver trả về { "text": "..." } gửi nó về cho frontend
     res.status(200).json(response.data);
   } catch (error: any) {
-    console.error("Lỗi khi gọi Naver STT:", error.response?.data);
-    res.status(500).json({
-      message: "Lỗi từ server AI",
-      details: error.response?.data,
+    // Provide clearer error for common failure modes
+    // eslint-disable-next-line no-console
+
+    console.error(
+      "Lỗi khi gọi Naver STT:",
+      error.response?.data || error.message || error,
+      "NAVER_CLIENT_ID:",
+      clientId,
+      "NAVER_CLIENT_SECRET:",
+      clientSecret
+    );
+
+    const details = error.response?.data || { message: error.message };
+
+    // If Naver returns a 200 with error payload, forward that message
+    return res.status(500).json({
+      message: "Lỗi từ server AI (Naver STT)",
+      details,
     });
   }
 };
@@ -416,32 +532,43 @@ export const handleParseTransaction = async (req: Request, res: Response) => {
   }
 
   //Prompt (Câu lệnh) cho AI
+  const today = new Date().toISOString().split("T")[0];
   const systemPrompt = `
     You are a highly specialized financial parser. Your ONLY task is to receive a text string and convert it into a valid JSON object. Do not add any explanatory text.
 
     RULES:
     1.  **Input Language:** The input string will be in English.
-    2.  **Output Format:** Respond ONLY with JSON in this format: { "note": string, "amount": number, "type": "expense" | "income" }
-    3.  **Number Parsing (English):**
+    2.  **Output Format:** Respond ONLY with JSON in this format:
+      { "title": string, "amount": number, "type": "expense" | "income", "date": "YYYY-MM-DD", "category": string }
+    3.  **Title Requirements:**
+      - Produce a concise 'title' derived from the input. The title MUST be short (no more than 3 words). Choose the most salient words that describe the transaction.
+    4.  **Category Classification:**
+      - Decide a single 'category' for the transaction using ONLY one of the valid categories below. If none match, set 'category' to "Other".
+      - The category should be inferred from the 'title'.
+      - VALID CATEGORIES: Food & Drinks, Transport, Shopping, Bills, Entertainment, Healthcare, Education, Other
+    5.  **Number Parsing (English):**
         - "k" means 1000. (e.g., "20k" -> 20000)
         - "thousand" means 1000. (e.g., "50 thousand" -> 50000)
-    4.  **Type Detection:**
+    6.  **Type Detection:**
         - Default to 'type': 'expense'.
         - Set 'type' to 'income' ONLY IF the input contains words: "income", "salary", "received", "got paid".
-    5.  **Note Field:**
-        - 'note' is the transaction description (e.g., "coffee", "lunch", "received salary").
-    6.  **Amount Field:**
-        - 'amount' MUST be a JSON number, not a string.
+    7.  **Amount Field:**
+      - 'amount' MUST be a JSON number, not a string.
+    8.  **Date Field:**
+      - 'date' must be today's date in "YYYY-MM-DD" format. (e.g., "${today}")
 
-    EXAMPLES:
+    EXAMPLES (must respond ONLY with the JSON object):
     - Input: "coffee 20k"
-    - Output: {"note":"coffee","amount":20000,"type":"expense"}
+    - Output: {"title":"coffee","amount":20000,"type":"expense","date":"${today}","category":"Food & Drinks"}
+
     - Input: "received salary 1000k"
-    - Output: {"note":"received salary","amount":1000000,"type":"income"}
+    - Output: {"title":"salary","amount":1000000,"type":"income","date":"${today}","category":"Other"}
+
     - Input: "lunch 50 thousand"
-    - Output: {"note":"lunch","amount":50000,"type":"expense"}
+    - Output: {"title":"lunch","amount":50000,"type":"expense","date":"${today}","category":"Food & Drinks"}
+
     - Input: "buy games 120"
-    - Output: {"note":"buy games","amount":120,"type":"expense"}
+    - Output: {"title":"buy games","amount":120,"type":"expense","date":"${today}","category":"Entertainment"}
 
     Respond ONLY with the JSON object.
   `;
@@ -467,15 +594,57 @@ export const handleParseTransaction = async (req: Request, res: Response) => {
 
     const parsedJson = JSON.parse(jsonMatch[0]);
 
-    // Add the current date and time with granularity (not from AI)
-    const transactionData = {
-      ...parsedJson,
-      date: new Date().toISOString() // Full ISO timestamp with hours, minutes, seconds
+    // Basic handling: map parsed fields into a normalized response the client can edit
+    const titleRaw = parsedJson.title;
+    const amountRaw = parsedJson.amount;
+    const typeRaw = parsedJson.type;
+    const dateRaw = parsedJson.date;
+    const categoryRaw = parsedJson.category;
+
+    let title = titleRaw && String(titleRaw).trim();
+    const amount = Number(amountRaw);
+    const type = typeRaw;
+    const date = dateRaw;
+    let category = categoryRaw && String(categoryRaw).trim();
+
+    // No strict validation here — client will confirm/edit parsed result before saving.
+
+    // Ensure title is at most 3 words (truncate if necessary)
+    if (title) {
+      const words = title.split(/\s+/).filter(Boolean);
+      if (words.length > 3) {
+        title = words.slice(0, 3).join(" ");
+      }
+    }
+
+    // Validate category against allowed list
+    const allowedCategories = [
+      "Food & Drinks",
+      "Transport",
+      "Shopping",
+      "Bills",
+      "Entertainment",
+      "Healthcare",
+      "Education",
+      "Other",
+    ];
+
+    if (!category || !allowedCategories.includes(category)) {
+      // If AI returned an unexpected category, fallback to 'Other'
+      category = "Other";
+    }
+
+    // Normalized sanitized response
+    const normalized = {
+      title: String(title),
+      amount,
+      type: type as "expense" | "income",
+      date: String(date),
+      category,
     };
 
-    // Trả JSON về cho Frontend
-    // transactionData sẽ là: { "note": "cafe", "amount": 20000, "type": "expense", "date": "2025-11-22T12:34:56.789Z" }
-    res.status(200).json(transactionData);
+    // Return normalized JSON to frontend for user confirmation/editing
+    res.status(200).json(normalized);
   } catch (error: any) {
     // eslint-disable-next-line no-console
     console.error("Lỗi khi gọi CLOVA Studio (Parse):", error.message);

@@ -159,9 +159,7 @@ export const aiApi = {
     onError: (error: any) => void
   ) => {
     const token = getAuthToken();
-    const eventSource = new EventSource(`${API_BASE_URL}/ai/stream/${planId}`, {
-      withCredentials: true,
-    });
+    // EventSource instance will be created below with token-aware URL
 
     // Note: EventSource doesn't support custom headers, so we'll need to handle auth differently
     // For now, we'll rely on cookies or pass token as query param if needed
@@ -211,9 +209,10 @@ export const aiApi = {
 
   parseTransactionText: (text: string) => {
     return apiCall<{
-      note: string;
+      title: string;
       amount: number;
       type: string;
+      category: string;
       date: string;
     }>("/ai/parse-text", {
       method: "POST",
@@ -312,13 +311,13 @@ export const ocrApi = {
    */
   analyzeReceipt: async (file: File) => {
     const formData = new FormData();
-    formData.append('receiptImage', file); // Key này phải khớp với backend
+    formData.append("receiptImage", file); // Key này phải khớp với backend
 
     const token = getAuthToken();
     const headers: Record<string, string> = {};
 
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     // ta phải dùng fetch() trực tiếp ở đây vì apiCall mặc định là 'application/json'
@@ -326,23 +325,31 @@ export const ocrApi = {
     try {
       console.log("Đang gửi file lên backend endpoint: /ocr/receipt");
       const response = await fetch(`${API_BASE_URL}/ocr/receipt`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
         headers: headers, // gửi Authorization header, Content-Type để trình duyệt tự xử lý
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `API call failed: ${response.statusText}`);
+        throw new Error(
+          errorData.error || `API call failed: ${response.statusText}`
+        );
       }
       const result = await response.json();
       console.log("Backend đã trả về:", result);
       return result;
-
     } catch (error) {
       console.error("Lỗi khi gọi API phân tích hóa đơn:", error);
       throw error; // Ném lỗi ra ngoài để component bắt
     }
   },
-
+  // Check if a recent notification of a specific type exists
+  checkRecent: (type: string, category?: string) => {
+    const params = new URLSearchParams({ type });
+    if (category) params.append("category", category);
+    return apiCall<{ exists: boolean }>(
+      `/notifications/check-recent?${params.toString()}`
+    );
+  },
 };

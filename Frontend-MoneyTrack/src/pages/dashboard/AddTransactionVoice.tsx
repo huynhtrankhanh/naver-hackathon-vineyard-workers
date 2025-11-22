@@ -9,6 +9,7 @@ import {
   IonCardTitle,
   IonCardContent,
   IonSpinner,
+  IonButton,
 } from "@ionic/react";
 import { useHistory, useLocation } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
@@ -35,6 +36,7 @@ const AddTransactionVoice: React.FC = () => {
   // State để hiển thị kết quả (của trang này)
   const [sttResult, setSttResult] = useState("");
   const [nluResult, setNluResult] = useState<any>(null);
+  const [editTransaction, setEditTransaction] = useState<any>(null);
 
   // Clear results when user navigates to this page
   useEffect(() => {
@@ -69,32 +71,16 @@ const AddTransactionVoice: React.FC = () => {
       console.log("AI Bóc tách:", parsedData);
       setNluResult(parsedData); // Hiển thị kết quả bóc tách
 
-      // Dùng dữ liệu "sạch" để tạo chi tiêu
-      // Chúng ta sẽ map "note" của AI vào "title"
-      const transactionData = {
-        title: parsedData.note,
-        amount: parsedData.amount,
-        type: parsedData.type,
-        category: "Other", // AI chưa phân loại, ta để "Other"
+      // Prepare editable transaction object (mirror OCR UI behaviour)
+      const prepared = {
+        title: parsedData.title || "",
+        amount: parsedData.amount || 0,
+        type: parsedData.type || "expense",
+        category: parsedData.category || "Other",
         date: parsedData.date || new Date().toISOString(),
       };
 
-      await transactionApi.create(transactionData);
-
-      invalidateOnMutation(); // Hủy cache
-      refreshBalance(); // Làm mới số dư
-
-      showToastNotification(
-        `Đã tạo: ${parsedData.note} - ${parsedData.amount.toLocaleString(
-          "vi-VN"
-        )} đ`,
-        "success"
-      );
-
-      // Tự động quay về dashboard sau 2s
-      setTimeout(() => {
-        history.push("/dashboard");
-      }, 2000);
+      setEditTransaction(prepared);
     } catch (error: any) {
       console.error("Lỗi pipeline STT -> NLU:", error);
       showToastNotification(
@@ -104,6 +90,69 @@ const AddTransactionVoice: React.FC = () => {
     } finally {
       setLoading(false); // Tắt loading
     }
+  };
+
+  const expenseCategories = [
+    "Food & Drinks",
+    "Transport",
+    "Shopping",
+    "Bills",
+    "Entertainment",
+    "Healthcare",
+    "Education",
+    "Other",
+  ];
+
+  const handleEditChange = (field: string, value: any) => {
+    setEditTransaction((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleConfirm = async () => {
+    if (!editTransaction) return;
+    if (
+      !editTransaction.title ||
+      !editTransaction.amount ||
+      editTransaction.amount <= 0
+    ) {
+      showToastNotification(
+        "Vui lòng điền đầy đủ tiêu đề và số tiền hợp lệ.",
+        "danger"
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await transactionApi.create({
+        title: editTransaction.title,
+        amount: Number(editTransaction.amount),
+        type: editTransaction.type || "expense",
+        category: editTransaction.category || "Other",
+        date: editTransaction.date || new Date().toISOString(),
+      });
+
+      invalidateOnMutation(); // Hủy cache
+      refreshBalance();
+
+      showToastNotification(
+        `Đã tạo: ${editTransaction.title} - ${Number(
+          editTransaction.amount
+        ).toLocaleString("vi-VN")} đ`,
+        "success"
+      );
+      setTimeout(() => history.push("/dashboard"), 1800);
+    } catch (err: any) {
+      console.error(err);
+      showToastNotification(err.message || "Lỗi khi tạo giao dịch", "danger");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditTransaction(null);
+    setNluResult(null);
+    setSttResult("");
   };
 
   return (
@@ -164,6 +213,102 @@ const AddTransactionVoice: React.FC = () => {
                   </pre>
                 </IonCardContent>
               </IonCard>
+            )}
+
+            {editTransaction && (
+              <div className="mt-4">
+                <div className="p-4 rounded-xl border border-slate-200 space-y-3 bg-white">
+                  <div>
+                    <label className="text-xs text-slate-500">Title</label>
+                    <input
+                      type="text"
+                      value={editTransaction.title}
+                      onChange={(e) =>
+                        handleEditChange("title", e.target.value)
+                      }
+                      className="w-full bg-slate-50 px-3 py-2 rounded-md border border-slate-200"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-slate-500">
+                        Amount (VND)
+                      </label>
+                      <input
+                        type="number"
+                        value={editTransaction.amount}
+                        onChange={(e) =>
+                          handleEditChange(
+                            "amount",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        className="w-full bg-slate-50 px-3 py-2 rounded-md border border-slate-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500">Category</label>
+                      <select
+                        value={editTransaction.category}
+                        onChange={(e) =>
+                          handleEditChange("category", e.target.value)
+                        }
+                        className="w-full bg-slate-50 px-3 py-2 rounded-md border border-slate-200"
+                      >
+                        {expenseCategories.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-slate-500">Type</label>
+                      <select
+                        value={editTransaction.type}
+                        onChange={(e) =>
+                          handleEditChange("type", e.target.value)
+                        }
+                        className="w-full bg-slate-50 px-3 py-2 rounded-md border border-slate-200"
+                      >
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500">Date</label>
+                      <input
+                        type="datetime-local"
+                        value={new Date(editTransaction.date)
+                          .toISOString()
+                          .slice(0, 16)}
+                        onChange={(e) =>
+                          handleEditChange(
+                            "date",
+                            new Date(e.target.value).toISOString()
+                          )
+                        }
+                        className="w-full bg-slate-50 px-3 py-2 rounded-md border border-slate-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-3">
+                    <IonButton expand="block" onClick={handleConfirm}>
+                      Confirm
+                    </IonButton>
+                    <IonButton
+                      expand="block"
+                      color="medium"
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </IonButton>
+                  </div>
+                </div>
+              </div>
             )}
           </main>
 
