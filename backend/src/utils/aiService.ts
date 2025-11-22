@@ -119,9 +119,19 @@ export async function generateSavingPlan(
 }
 
 /**
+ * Budget limit proposal interface
+ */
+export interface BudgetLimitProposal {
+  category: string;
+  suggestedLimit: number;
+  reasoning?: string;
+  currentLimit?: number;
+}
+
+/**
  * Robust budget limit extraction with multiple fallback strategies
  */
-function extractBudgetLimits(fullResponse: string, budgetTag: string, endBudgetTag: string): any[] {
+function extractBudgetLimits(fullResponse: string, budgetTag: string, endBudgetTag: string): BudgetLimitProposal[] {
   console.log('Attempting to extract budget limits...');
   
   // Strategy 1: Standard regex (most reliable when AI follows instructions)
@@ -172,7 +182,8 @@ function extractBudgetLimits(fullResponse: string, budgetTag: string, endBudgetT
   
   // Strategy 3: Search for JSON array anywhere in the response (last resort)
   try {
-    // Look for patterns that match budget limit arrays
+    // Pattern matches budget limit arrays with required fields
+    // Looks for: [ { ... "category" ... "suggestedLimit" ... } ]
     const arrayPattern = /\[\s*\{[^}]*"category"[^}]*"suggestedLimit"[^}]*\}[^\]]*\]/gi;
     const matches = fullResponse.match(arrayPattern);
     
@@ -488,7 +499,9 @@ BUDGET JUSTIFICATION REQUIREMENTS:
     const budgetTagEnd = fullResponse.indexOf(`</${endBudgetTag}>`);
     if (budgetTagStart !== -1 && budgetTagEnd !== -1) {
       const tagSection = fullResponse.substring(budgetTagStart, budgetTagEnd + endBudgetTag.length + 3);
-      markdownAdvice = markdownAdvice.replace(tagSection, "").trim();
+      // Use global regex to handle cases where tag might appear multiple times
+      const escapedSection = tagSection.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      markdownAdvice = markdownAdvice.replace(new RegExp(escapedSection, 'g'), "").trim();
     }
 
     // Calculate suggested savings
