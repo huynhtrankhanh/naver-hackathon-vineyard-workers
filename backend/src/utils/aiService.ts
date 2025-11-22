@@ -467,14 +467,14 @@ export const handleParseTransaction = async (req: Request, res: Response) => {
 
     const parsedJson = JSON.parse(jsonMatch[0]);
 
-    // Add the current date in the backend (not from AI)
+    // Add the current date and time with granularity (not from AI)
     const transactionData = {
       ...parsedJson,
-      date: new Date().toISOString().split("T")[0]
+      date: new Date().toISOString() // Full ISO timestamp with hours, minutes, seconds
     };
 
     // Trả JSON về cho Frontend
-    // transactionData sẽ là: { "note": "cafe", "amount": 20000, "type": "expense", "date": "..." }
+    // transactionData sẽ là: { "note": "cafe", "amount": 20000, "type": "expense", "date": "2025-11-22T12:34:56.789Z" }
     res.status(200).json(transactionData);
   } catch (error: any) {
     // eslint-disable-next-line no-console
