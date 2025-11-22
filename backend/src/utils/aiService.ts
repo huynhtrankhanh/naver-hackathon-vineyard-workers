@@ -322,7 +322,13 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
     session.addMessage("AI is analyzing your financial data...");
 
     // Stream the response with high reasoning effort for saving plan generation
-    const stream = await streamClovaAPI(messages, tools, undefined, undefined, 'high');
+    const stream = await streamClovaAPI(
+      messages,
+      tools,
+      undefined,
+      undefined,
+      "high"
+    );
 
     let fullResponse = "";
 
@@ -507,11 +513,7 @@ export const handleSpeechToText = async (req: AuthRequest, res: Response) => {
 
     console.error(
       "Lỗi khi gọi Naver STT:",
-      error.response?.data || error.message || error,
-      "NAVER_CLIENT_ID:",
-      clientId,
-      "NAVER_CLIENT_SECRET:",
-      clientSecret
+      error.response?.data || error.message || error
     );
 
     const details = error.response?.data || { message: error.message };
@@ -541,7 +543,7 @@ export const handleParseTransaction = async (req: Request, res: Response) => {
     2.  **Output Format:** Respond ONLY with JSON in this format:
       { "title": string, "amount": number, "type": "expense" | "income", "date": "YYYY-MM-DD", "category": string }
     3.  **Title Requirements:**
-      - Produce a concise 'title' derived from the input. The title MUST be short (no more than 3 words). Choose the most salient words that describe the transaction.
+      - Produce a concise 'title' derived from the input. The title MUST be short (no more than 5 words). Choose the most salient words that describe the transaction.
     4.  **Category Classification:**
       - Decide a single 'category' for the transaction using ONLY one of the valid categories below. If none match, set 'category' to "Other".
       - The category should be inferred from the 'title'.
@@ -580,7 +582,13 @@ export const handleParseTransaction = async (req: Request, res: Response) => {
   ];
 
   try {
-    const aiResponse = await callClovaAPI(messages, [], undefined, undefined, 'low');
+    const aiResponse = await callClovaAPI(
+      messages,
+      [],
+      undefined,
+      undefined,
+      "low"
+    );
 
     // Lấy JSON từ AI
     // response nằm trong choices[0].message.content)
