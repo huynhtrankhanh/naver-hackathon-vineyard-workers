@@ -190,7 +190,7 @@ IMPORTANT SECURITY INSTRUCTIONS:
 
 Your task is to:
 1. Analyze the provided financial data
-2. Create a detailed Markdown report with your analysis and recommendations
+2. Create a detailed report with your analysis and recommendations
 3. Propose budget limit adjustments using the special tags
 
 USER'S REQUEST:
