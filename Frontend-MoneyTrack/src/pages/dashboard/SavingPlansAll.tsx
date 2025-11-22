@@ -104,7 +104,7 @@ const SavingPlansAll: React.FC = () => {
                         <button
                           onClick={e => {
                             e.stopPropagation();
-                            history.push('/dashboard/budget');
+                            history.push('/dashboard/budget', { fromSavingPlan: true, savingPlanId: plan._id });
                           }}
                           className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700"
                         >
