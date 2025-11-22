@@ -21,6 +21,7 @@ export interface SavingPlanInput {
   savingsGoal?: number;
   intensity: string;
   notes?: string;
+  duration?: number; // User's specified duration in months
   userId: mongoose.Types.ObjectId;
 }
 
@@ -86,7 +87,7 @@ export function getGenerationSession(
 export async function generateSavingPlan(
   input: SavingPlanInput
 ): Promise<mongoose.Types.ObjectId> {
-  const { goal, savingsGoal, intensity, notes, userId } = input;
+  const { goal, savingsGoal, intensity, notes, duration, userId } = input;
 
   // Create a new saving plan document
   const plan = new SavingsPlan({
@@ -239,7 +240,7 @@ async function generatePlanAsync(
   input: SavingPlanInput,
   session: GenerationSession
 ) {
-  const { goal, savingsGoal, intensity, notes, userId } = input;
+  const { goal, savingsGoal, intensity, notes, duration, userId } = input;
 
   try {
     // Update status
@@ -483,12 +484,16 @@ BUDGET JUSTIFICATION REQUIREMENTS:
 
     // Create proposed goal from user input (mirror what user typed, don't let AI generate)
     // This ensures the goal proposal matches exactly what the user wants
+    
+    // Use user's specified duration or default to 12 months
+    const userDuration = duration || 12;
+    
     proposedGoal = {
       name: goal, // Use the exact goal text the user typed
-      target: savingsGoal ? savingsGoal * 12 : 0, // Convert monthly to annual target (or 0 if not specified)
+      target: savingsGoal ? savingsGoal * userDuration : 0, // Convert monthly to total target based on user's duration
       priority: intensity === 'Must achieve' ? 'high' : 
                 intensity === 'Just starting out' ? 'low' : 'medium',
-      duration: 12 // Default to 12 months
+      duration: userDuration // Mirror user's input duration
     };
 
     // Extract budget limits with robust fallback parsing

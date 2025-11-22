@@ -17,7 +17,7 @@ const router = express.Router();
 // Generate AI saving plan with real AI (with streaming support)
 router.post("/generate", async (req: Request, res: Response) => {
   try {
-    const { goal, savingsGoal, intensity, notes } = req.body;
+    const { goal, savingsGoal, intensity, notes, duration } = req.body;
 
     // Validate required fields
     if (!goal || !intensity) {
@@ -43,6 +43,7 @@ router.post("/generate", async (req: Request, res: Response) => {
       savingsGoal,
       intensity,
       notes,
+      duration,
       userId,
     });
 
