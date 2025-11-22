@@ -339,10 +339,13 @@ CRITICAL RULES FOR BUDGET JUSTIFICATIONS:
         if (delta?.content) {
           fullResponse += delta.content;
 
-          // Stream content to session (every 50 chars to avoid spam)
-          if (fullResponse.length % 50 === 0) {
-            session.addMessage(`AI: ...`);
-          }
+          // Stream actual content to session
+          session.addMessage(delta.content);
+          
+          // Also update the database with progress
+          await SavingsPlan.findByIdAndUpdate(planId, {
+            generationProgress: fullResponse.slice(-200), // Last 200 chars as preview
+          });
         }
 
         if (chunk.choices[0].finish_reason) {

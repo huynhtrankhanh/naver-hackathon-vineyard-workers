@@ -63,6 +63,8 @@ const SavingsOnboarding: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [aiResult, setAiResult] = useState<AIResponse | null>(null);
   const [loadingText, setLoadingText] = useState('Analyzing your inputs...');
+  const [streamingLog, setStreamingLog] = useState<string>('');
+  const [isFadingOut, setIsFadingOut] = useState(false);
 
   const totalSteps = 4;
 
@@ -81,6 +83,8 @@ const SavingsOnboarding: React.FC = () => {
       setSelectedCategories([]);
       setAiResult(null);
       setLoadingText('Analyzing your inputs...');
+      setStreamingLog('');
+      setIsFadingOut(false);
     }
   }, [location.pathname]);
 
@@ -101,6 +105,8 @@ const SavingsOnboarding: React.FC = () => {
   const finishWizard = async () => {
     showScreen('loading');
     setLoadingText('Starting AI generation...');
+    setStreamingLog('');
+    setIsFadingOut(false);
 
     try {
       // Call the backend AI API - it returns planId immediately
@@ -123,40 +129,96 @@ const SavingsOnboarding: React.FC = () => {
         const planId = response.planId;
         setLoadingText('AI is analyzing your financial data...');
 
-        // Poll for the plan status since Server-Sent Events can have auth issues
-        const pollPlan = async () => {
-          try {
-            const plan = await aiApi.getPlanById(planId);
-            
-            if (plan.streamingStatus === 'completed') {
-              // Transform to expected format
-              setAiResult({
-                goal: plan.goal,
-                savingsGoal: plan.savingsGoal,
-                intensity: plan.intensity,
-                notes: plan.notes,
-                suggestedSavings: plan.suggestedSavings,
-                recommendations: plan.recommendations || [],
-                markdownAdvice: plan.markdownAdvice
-              });
-              showScreen('result');
-            } else if (plan.streamingStatus === 'failed') {
-              throw new Error(plan.generationProgress || 'AI generation failed');
-            } else {
-              // Still generating, update loading text and poll again
-              if (plan.generationProgress) {
-                setLoadingText(plan.generationProgress);
-              }
-              setTimeout(pollPlan, 2000); // Poll every 2 seconds
+        // Try to use EventSource for streaming first, but fall back to polling if it fails
+        let streamingFailed = false;
+        
+        try {
+          // Attempt to use EventSource for real-time streaming
+          aiApi.streamProgress(
+            planId,
+            (message: string) => {
+              // Append the message to the streaming log
+              setStreamingLog(prev => prev + message + '\n');
+              setLoadingText('AI is generating your plan...');
+            },
+            async (data: any) => {
+              // Generation complete - fade out and show result
+              setLoadingText('Plan generation complete!');
+              
+              // Start fade out animation
+              setIsFadingOut(true);
+              
+              // Wait for fade out, then show result
+              setTimeout(() => {
+                setAiResult({
+                  goal: data.goal,
+                  savingsGoal: data.savingsGoal,
+                  intensity: data.intensity,
+                  notes: data.notes,
+                  suggestedSavings: data.suggestedSavings,
+                  recommendations: data.recommendations || [],
+                  markdownAdvice: data.markdownAdvice
+                });
+                showScreen('result');
+                setIsFadingOut(false);
+                setStreamingLog('');
+              }, 1000);
+            },
+            (error: any) => {
+              console.error('Streaming error:', error);
+              streamingFailed = true;
+              // Fall back to polling if streaming fails
             }
-          } catch (error) {
-            console.error('Error polling plan:', error);
-            throw error;
-          }
-        };
+          );
+        } catch (error) {
+          console.error('Failed to start streaming:', error);
+          streamingFailed = true;
+        }
 
-        // Start polling
-        await pollPlan();
+        // Fallback: Poll for the plan status
+        if (streamingFailed) {
+          const pollPlan = async () => {
+            try {
+              const plan = await aiApi.getPlanById(planId);
+              
+              if (plan.streamingStatus === 'completed') {
+                // Transform to expected format
+                setLoadingText('Plan generation complete!');
+                setIsFadingOut(true);
+                
+                setTimeout(() => {
+                  setAiResult({
+                    goal: plan.goal,
+                    savingsGoal: plan.savingsGoal,
+                    intensity: plan.intensity,
+                    notes: plan.notes,
+                    suggestedSavings: plan.suggestedSavings,
+                    recommendations: plan.recommendations || [],
+                    markdownAdvice: plan.markdownAdvice
+                  });
+                  showScreen('result');
+                  setIsFadingOut(false);
+                  setStreamingLog('');
+                }, 1000);
+              } else if (plan.streamingStatus === 'failed') {
+                throw new Error(plan.generationProgress || 'AI generation failed');
+              } else {
+                // Still generating, update loading text and poll again
+                if (plan.generationProgress) {
+                  setLoadingText(plan.generationProgress);
+                  setStreamingLog(prev => prev + plan.generationProgress + '\n');
+                }
+                setTimeout(pollPlan, 2000); // Poll every 2 seconds
+              }
+            } catch (error) {
+              console.error('Error polling plan:', error);
+              throw error;
+            }
+          };
+
+          // Start polling
+          await pollPlan();
+        }
       } else {
         // Mock response - complete result already available
         setAiResult(response);
@@ -396,7 +458,7 @@ const SavingsOnboarding: React.FC = () => {
 
             {/* Loading Screen */}
             {currentScreen === 'loading' && (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 bg-white">
+              <div className={`flex-1 flex flex-col items-center justify-center p-6 bg-white transition-opacity duration-1000 ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}>
                 <div className="relative mb-8">
                   <div className="absolute inset-0 bg-indigo-100 rounded-full animate-ping opacity-75"></div>
                   <div className="relative w-24 h-24 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-full flex items-center justify-center z-10 shadow-xl shadow-indigo-200/50">
@@ -404,7 +466,16 @@ const SavingsOnboarding: React.FC = () => {
                   </div>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">AI is preparing your plan</h2>
-                <p className="text-gray-500 text-center font-medium animate-pulse">{loadingText}</p>
+                <p className="text-gray-500 text-center font-medium animate-pulse mb-6">{loadingText}</p>
+                
+                {/* Streaming Log Display */}
+                {streamingLog && (
+                  <div className="w-full max-w-2xl mt-6 bg-gray-50 rounded-2xl border border-gray-200 p-4 max-h-96 overflow-y-auto">
+                    <div className="text-xs text-gray-600 font-mono whitespace-pre-wrap break-words">
+                      {streamingLog}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -428,7 +499,7 @@ const SavingsOnboarding: React.FC = () => {
                           <Sparkles className="w-4 h-4" /> Suggested Saving Amount
                         </div>
                         <div className="text-5xl font-black text-gray-900 tracking-tight">
-                          ${aiResult.suggestedSavings}
+                          {aiResult.suggestedSavings.toLocaleString('vi-VN')} đ
                           <span className="text-gray-500 text-xl font-medium ml-1">/mo</span>
                         </div>
                       </div>
