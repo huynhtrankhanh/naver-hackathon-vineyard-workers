@@ -1,9 +1,16 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.smartmoney.app',
+  appId: 'com.huynhtrankhanh.smartmoney',
   appName: 'SmartMoney',
-  webDir: 'dist'
+  webDir: 'dist',
+  plugins: {
+    StatusBar: {
+      overlaysWebView: false,
+      backgroundColor: '#FFFFFF',
+      style: 'LIGHT'
+    }
+  }
 };
 
 export default config;
