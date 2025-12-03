@@ -9,17 +9,17 @@ import { useStateInvalidation, useInvalidateOnMutation } from "../../services/us
 import { useBalance } from "../../services/BalanceContext";
 
 interface Goal {
-  _id: string;
+  id: string;
   name: string;
-  target: number;
-  current: number;
-  priority: string;
+  targetAmount: number;
+  currentAmount: number;
+  priority?: string;
   savingPlanId?: string;
-  duration: number;
+  duration?: number;
 }
 
 interface SavingPlan {
-  _id: string;
+  id: string;
   goal: string;
   intensity: string;
   suggestedSavings: number;
@@ -133,9 +133,9 @@ const Goals: React.FC = () => {
       setSubmitting(true);
       await goalsApi.create({
         name: newGoalName.trim(),
-        target,
+        targetAmount: target,
         priority: newGoalPriority,
-        current: 0,
+        currentAmount: 0,
         duration
       });
 
@@ -186,7 +186,7 @@ const Goals: React.FC = () => {
       setSubmitting(true);
       
       // Contribute to goal
-      await goalsApi.contribute(contributingGoal._id, amount);
+      await goalsApi.contribute(contributingGoal.id, amount);
 
   // Invalidate all state since we modified backend
       invalidateOnMutation();
@@ -258,11 +258,11 @@ const Goals: React.FC = () => {
                 </div>
                 <div className="flex flex-col gap-3 max-h-[132px] overflow-y-auto pr-1">
                   {goals.map(goal => {
-                    const progress = goal.target > 0 ? goal.current / goal.target : 0;
-                    const monthlySuggestion = goal.duration > 0 ? Math.ceil(goal.target / goal.duration) : 0;
+                    const progress = goal.targetAmount > 0 ? goal.currentAmount / goal.targetAmount : 0;
+                    const monthlySuggestion = (goal.duration ?? 0) > 0 ? Math.ceil(goal.targetAmount / (goal.duration ?? 1)) : 0;
                     return (
                       <div
-                        key={goal._id}
+                        key={goal.id}
                         className="rounded-xl border border-slate-100 p-3 shadow-sm flex flex-row items-center min-h-[60px] bg-white"
                       >
                         <div className="h-8 w-8 rounded-lg bg-blue-50 grid place-items-center mr-3">
@@ -298,12 +298,12 @@ const Goals: React.FC = () => {
                   </div>
                   <div className="flex justify-between mb-1">
                     <span>Goal progress:</span>
-                    <span className="font-medium">{toCurrency(contributingGoal.current)} / {toCurrency(contributingGoal.target)}</span>
+                    <span className="font-medium">{toCurrency(contributingGoal.currentAmount)} / {toCurrency(contributingGoal.targetAmount)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Remaining to target:</span>
                     <span className="font-medium text-emerald-600">
-                      {toCurrency(Math.max(0, contributingGoal.target - contributingGoal.current))}
+                      {toCurrency(Math.max(0, contributingGoal.targetAmount - contributingGoal.currentAmount))}
                     </span>
                   </div>
                 </div>

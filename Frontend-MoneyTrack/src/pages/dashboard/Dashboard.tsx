@@ -7,13 +7,13 @@ import KpiCard from "../../components/dashboard/KpiCard";
 import Legend from "../../components/dashboard/Legend";
 import NotificationToast from "../../components/NotificationToast";
 import SpendingTrends from "../../components/dashboard/SpendingTrends";
-import { transactionApi, goalsApi, budgetApi, authApi } from "../../services/api";
+import { transactionApi, goalsApi, budgetApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 import { useNotifications } from "../../services/useNotifications";
 
 interface Transaction {
-  _id: string;
+  id: string;
   title: string;
   category: string;
   amount: number;
@@ -22,15 +22,15 @@ interface Transaction {
 }
 
 interface Goal {
-  _id: string;
+  id: string;
   name: string;
-  target: number;
-  current: number;
+  targetAmount: number;
+  currentAmount: number;
 }
 
 interface Budget {
-  _id: string;
-  category: string;
+  id: string;
+  category?: string;
   limit: number;
   spent: number;
   month: string;
@@ -51,14 +51,6 @@ const Dashboard: React.FC = () => {
 
   const { checkNotifications } = useNotifications();
 
-  const token = (() => {
-    try {
-      return (authApi as any).getToken?.() ?? localStorage.getItem("token");
-    } catch {
-      return localStorage.getItem("token");
-    }
-  })();
-
   const fetchData = useCallback(async () => {
     try {
       // Only show loading spinner on initial load, not on periodic refreshes
@@ -68,11 +60,18 @@ const Dashboard: React.FC = () => {
 
       // Fetch recent transactions (limit to 3)
       const transactionsData = await transactionApi.getAll();
-      setTransactions(transactionsData.slice(0, 3));
+      setTransactions(transactionsData.slice(0, 3).map((t) => ({
+        ...t,
+        category: t.category || '',
+      })));
 
       // Fetch goals (limit to 2)
       const goalsData = await goalsApi.getAll();
-      setGoals(goalsData.slice(0, 2));
+      setGoals(goalsData.slice(0, 2).map((g) => ({
+        ...g,
+        currentAmount: g.currentAmount || 0,
+        targetAmount: g.targetAmount || 0,
+      })));
 
       // Fetch budgets for current month
       const currentMonth = new Date().toISOString().slice(0, 7);
@@ -124,8 +123,8 @@ const Dashboard: React.FC = () => {
         else setNotifyType('info');
       }
     }
-    if (token) runChecks();
-  }, [checkNotifications, income, expenses, budgets.length, token]);
+    runChecks();
+  }, [checkNotifications, income, expenses, budgets.length]);
 
   return (
     <IonPage>
@@ -210,7 +209,7 @@ const Dashboard: React.FC = () => {
                         const isOverBudget = percentage > 100;
                         const isNearLimit = percentage > 80 && !isOverBudget;
                         return (
-                          <div key={budget._id} className="rounded-xl border border-slate-100 p-3 shadow-sm">
+                          <div key={budget.id} className="rounded-xl border border-slate-100 p-3 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
                               <div className="text-sm font-medium">{budget.category}</div>
                               <span className="text-xs text-slate-500">
@@ -250,12 +249,12 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className="grid gap-3">
                       {goals.map(g => {
-                        const progress = g.target > 0 ? g.current / g.target : 0;
+                        const progress = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 0;
                         return (
-                          <div key={g._id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
+                          <div key={g.id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                               <div className="font-medium">{g.name}</div>
-                              <span className="text-sm text-slate-500">Target {toCurrency(g.target ?? 0)}</span>
+                              <span className="text-sm text-slate-500">Target {toCurrency(g.targetAmount ?? 0)}</span>
                             </div>
                             <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                               <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, progress*100)}%` }} />
@@ -286,9 +285,9 @@ const Dashboard: React.FC = () => {
                         const displayAmount = Math.abs(t.amount);
                         return (
                           <li 
-                            key={t._id} 
+                            key={t.id} 
                             className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
-                            onClick={() => history.push(`/edit-transaction/${t._id}`)}
+                            onClick={() => history.push(`/edit-transaction/${t.id}`)}
                           >
                             <div className="flex items-center gap-3">
                               <div className={`h-9 w-9 rounded-xl grid place-items-center ${isIncome ? "bg-emerald-50" : "bg-slate-50"}`}>

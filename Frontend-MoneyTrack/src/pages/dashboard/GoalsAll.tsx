@@ -56,7 +56,7 @@ const GoalsAll: React.FC = () => {
     }
     try {
       setSubmitting(true);
-      await goalsApi.contribute(contributingGoal._id, amount);
+      await goalsApi.contribute(contributingGoal.id, amount);
       refreshBalance();
       setToastMessage(`Successfully contributed ${toCurrency(amount)} to ${contributingGoal.name}!`);
       setToastColor("success");
@@ -93,9 +93,9 @@ const GoalsAll: React.FC = () => {
             ) : goals.length > 0 ? (
               <div className="space-y-3 mb-4">
                 {goals.map(goal => {
-                  const progress = goal.target > 0 ? goal.current / goal.target : 0;
+                  const progress = goal.targetAmount > 0 ? goal.currentAmount / goal.targetAmount : 0;
                   return (
-                    <div key={goal._id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
+                    <div key={goal.id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <div className="h-10 w-10 rounded-xl bg-blue-50 grid place-items-center">
@@ -106,13 +106,13 @@ const GoalsAll: React.FC = () => {
                             <div className="text-xs text-slate-500 capitalize">{goal.priority} priority</div>
                           </div>
                         </div>
-                        <span className="text-sm text-slate-500">Target {toCurrency(goal.target)}</span>
+                        <span className="text-sm text-slate-500">Target {toCurrency(goal.targetAmount)}</span>
                       </div>
                       <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                         <div className="h-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, progress * 100)}%` }} />
                       </div>
                       <div className="mt-2 flex justify-between text-xs">
-                        <span className="text-slate-500">{toCurrency(goal.current)} saved</span>
+                        <span className="text-slate-500">{toCurrency(goal.currentAmount)} saved</span>
                         <span className="text-slate-600 font-medium">{Math.round(progress * 100)}% completed</span>
                       </div>
                       {progress < 1 && (
@@ -142,11 +142,11 @@ const GoalsAll: React.FC = () => {
                   </div>
                   <div className="flex justify-between mb-1">
                     <span>Goal progress:</span>
-                    <span className="font-medium">{toCurrency(contributingGoal.current)} / {toCurrency(contributingGoal.target)}</span>
+                    <span className="font-medium">{toCurrency(contributingGoal.currentAmount)} / {toCurrency(contributingGoal.targetAmount)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Remaining to target:</span>
-                    <span className="font-medium text-emerald-600">{toCurrency(Math.max(0, contributingGoal.target - contributingGoal.current))}</span>
+                    <span className="font-medium text-emerald-600">{toCurrency(Math.max(0, contributingGoal.targetAmount - contributingGoal.currentAmount))}</span>
                   </div>
                 </div>
                 <form onSubmit={handleContribute} className="space-y-3">

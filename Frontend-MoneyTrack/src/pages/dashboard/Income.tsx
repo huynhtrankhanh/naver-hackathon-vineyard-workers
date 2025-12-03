@@ -7,7 +7,7 @@ import { transactionApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface Transaction {
-  _id: string;
+  id: string;
   title: string;
   amount: number;
   date: string;
@@ -31,7 +31,7 @@ const Income: React.FC = () => {
       }
       const transactions = await transactionApi.getAll();
       // Filter only income transactions
-      const incomeTransactions = transactions.filter((t: Transaction) => t.type === 'income');
+      const incomeTransactions = transactions.filter((t) => t.type === 'income');
       setItems(incomeTransactions);
     } catch (error) {
       console.error("Error fetching income:", error);
@@ -72,9 +72,9 @@ const Income: React.FC = () => {
               <ul className="rounded-2xl border border-slate-100 divide-y divide-slate-100 shadow-sm">
                 {items.map((i) => (
                   <li 
-                    key={i._id} 
+                    key={i.id} 
                     className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() => history.push(`/edit-transaction/${i._id}`)}
+                    onClick={() => history.push(`/edit-transaction/${i.id}`)}
                   >
                     <div>
                       <div className="font-medium">{i.title}</div>

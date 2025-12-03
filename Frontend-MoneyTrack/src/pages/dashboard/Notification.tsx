@@ -18,11 +18,11 @@ function cardColorForType(type?: string, isRead?: boolean) {
 }
 
 interface Notification {
-  _id: string;
+  id: string;
   type?: string;
   message: string;
   createdAt: string;
-  isRead: boolean;
+  read: boolean;
   meta?: {
     route?: string;
   };
@@ -54,7 +54,7 @@ const Notifications: React.FC = () => {
   const markRead = async (id: string) => {
     try {
       await notificationApi.markAsRead(id);
-      setItems(prev => prev.map(p => (p._id === id ? { ...p, isRead: true } : p)));
+      setItems(prev => prev.map(p => (p.id === id ? { ...p, read: true } : p)));
     } catch (err) {
       console.error("Mark read failed", err);
     }
@@ -62,8 +62,8 @@ const Notifications: React.FC = () => {
 
   // handle user selecting an item: mark read and navigate if meta.route present
   const handleSelect = async (notif: Notification) => {
-    if (!notif.isRead) {
-      await markRead(notif._id);
+    if (!notif.read) {
+      await markRead(notif.id);
     }
     if (notif.meta && notif.meta.route) {
       history.push(notif.meta.route);
@@ -72,8 +72,8 @@ const Notifications: React.FC = () => {
 
   const markAllRead = async () => {
     try {
-      await Promise.all(items.filter(i => !i.isRead).map(i => notificationApi.markAsRead(i._id)));
-      setItems(prev => prev.map(p => ({ ...p, isRead: true })));
+      await Promise.all(items.filter(i => !i.read).map(i => notificationApi.markAsRead(i.id)));
+      setItems(prev => prev.map(p => ({ ...p, read: true })));
     } catch (err) {
       console.error("Mark all read failed", err);
     }
@@ -125,19 +125,19 @@ const Notifications: React.FC = () => {
             <div className="space-y-3">
               {items.map(notif => (
                 <div
-                  key={notif._id}
+                  key={notif.id}
                   onClick={() => handleSelect(notif)}
-                  className={`rounded-2xl border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${cardColorForType(notif.type, notif.isRead)} ${!notif.isRead ? "hover:scale-[1.02]" : ""}`}
+                  className={`rounded-2xl border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${cardColorForType(notif.type, notif.read)} ${!notif.read ? "hover:scale-[1.02]" : ""}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 flex-shrink-0">{iconForType(notif.type)}</div>
                     <div className="flex-1 min-w-0">
-                      <div className={`font-medium leading-snug mb-1 ${notif.isRead ? "text-slate-600" : "text-slate-900"}`}>
+                      <div className={`font-medium leading-snug mb-1 ${notif.read ? "text-slate-600" : "text-slate-900"}`}>
                         {notif.message}
                       </div>
                       <div className="text-xs text-slate-500">{new Date(notif.createdAt).toLocaleString()}</div>
                     </div>
-                    {!notif.isRead && (
+                    {!notif.read && (
                       <div className="flex-shrink-0">
                         <IonBadge color="danger" className="font-semibold">New</IonBadge>
                       </div>

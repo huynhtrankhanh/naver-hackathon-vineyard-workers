@@ -3,11 +3,11 @@ import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { transactionApi, authApi } from "../../services/api";
+import { transactionApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 
 interface Transaction {
-  _id?: string;
+  id?: string;
   type: string;
   category: string;
   amount: number;
@@ -22,14 +22,6 @@ const Expenses: React.FC = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const sum = items.reduce((a, b) => a + Math.abs(b.amount), 0);
   const toCurrency = (v: number) => v.toLocaleString("vi-VN") + " đ";
-
-  const token = (() => {
-    try {
-      return (authApi as any).getToken?.() ?? localStorage.getItem("token");
-    } catch {
-      return localStorage.getItem("token");
-    }
-  })();
 
   const fetchExpenses = useCallback(async () => {
     try {
@@ -79,9 +71,9 @@ const Expenses: React.FC = () => {
               <ul className="rounded-2xl border border-slate-100 divide-y divide-slate-100 shadow-sm">
                 {items.map((t) => (
                   <li
-                    key={t._id}
+                    key={t.id}
                     className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() => t._id && history.push(`/edit-transaction/${t._id}`)}
+                    onClick={() => t.id && history.push(`/edit-transaction/${t.id}`)}
                   >
                     <div>
                       <div className="font-medium">{t.note || t.category}</div>
