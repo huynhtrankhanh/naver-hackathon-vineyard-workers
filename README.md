@@ -1,6 +1,10 @@
 # SmartMoney - AI-Powered Personal Finance Manager
 
-> An intelligent personal finance application that helps you track expenses, manage budgets, and achieve your savings goals with AI-powered insights.
+> A slack hand causes poverty, but the hand of the diligent makes rich. *(Proverbs 10:4, NRSVue)*
+
+> The plans of the diligent lead surely to abundance, but everyone who is hasty comes only to want. *(Proverbs 21:5, NRSVue)*
+
+Our app is based on these two fundamental truths.
 
 Built with React (Ionic), Express, TypeScript, and MongoDB. Powered by Naver Clova AI services.
 
