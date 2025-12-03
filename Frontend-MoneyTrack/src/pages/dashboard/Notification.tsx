@@ -3,6 +3,7 @@ import { IonPage, IonContent, IonSpinner, IonBadge } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { Bell, Percent, AlertTriangle, ArrowLeft, RefreshCw, CheckCheck, Inbox } from "lucide-react";
 import { notificationApi } from "../../services/api";
+import { useLocalization } from "../../services/LocaleContext";
 
 function iconForType(type?: string) {
   if (type === "budget_limit" || type === "budget") return <Percent className="h-6 w-6 text-blue-600" />;
@@ -30,6 +31,7 @@ interface Notification {
 
 const Notifications: React.FC = () => {
   const history = useHistory();
+  const { l10n } = useLocalization();
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -90,9 +92,9 @@ const Notifications: React.FC = () => {
               className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span className="text-sm font-medium">Back</span>
+              <span className="text-sm font-medium">{l10n.getString('back')}</span>
             </button>
-            <h2 className="text-xl font-bold text-slate-900">Notifications</h2>
+            <h2 className="text-xl font-bold text-slate-900">{l10n.getString('notifications')}</h2>
             <div className="flex items-center gap-2">
               <button 
                 onClick={fetchAll}
@@ -118,8 +120,8 @@ const Notifications: React.FC = () => {
               <div className="mb-4 p-4 rounded-full bg-slate-100">
                 <Inbox className="h-12 w-12 text-slate-400" />
               </div>
-              <p className="text-lg font-medium text-slate-900 mb-1">No notifications</p>
-              <p className="text-sm text-slate-500">You're all caught up!</p>
+              <p className="text-lg font-medium text-slate-900 mb-1">{l10n.getString('no-notifications')}</p>
+              <p className="text-sm text-slate-500">{l10n.getString('all-caught-up')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -139,7 +141,7 @@ const Notifications: React.FC = () => {
                     </div>
                     {!notif.read && (
                       <div className="flex-shrink-0">
-                        <IonBadge color="danger" className="font-semibold">New</IonBadge>
+                        <IonBadge color="danger" className="font-semibold">{l10n.getString('new')}</IonBadge>
                       </div>
                     )}
                   </div>

@@ -1,5 +1,6 @@
 import React from "react";
 import { Wallet } from "lucide-react";
+import { useLocalization } from "../../services/LocaleContext";
 
 interface HeaderProps {
   title: string;
@@ -7,6 +8,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ title, onBack }) => {
+  const { l10n } = useLocalization();
+  
   return (
     <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-100">
       <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between">
@@ -18,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ title, onBack }) => {
         </div>
         {onBack && (
           <button onClick={onBack} className="text-sm text-blue-600">
-            Back
+            {l10n.getString('back')}
           </button>
         )}
       </div>

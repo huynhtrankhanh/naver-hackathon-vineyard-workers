@@ -106,9 +106,9 @@ const Dashboard: React.FC = () => {
     yesterday.setDate(yesterday.getDate() - 1);
     
     if (date.toDateString() === today.toDateString()) {
-      return `Today ${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+      return `${l10n.getString('today')} ${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return `Yesterday ${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+      return `${l10n.getString('yesterday')} ${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
     } else {
       return date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });
     }
@@ -195,14 +195,14 @@ const Dashboard: React.FC = () => {
                 {/* KPI Cards (navigate) */}
                 <div className="grid grid-cols-2 gap-3">
                   <KpiCard
-                    title="Income"
+                    title={l10n.getString('income')}
                     value={toCurrency(income)}
                     icon={<Gauge className="h-4 w-4" />}
                     color="from-blue-500 to-blue-600"
                     onClick={() => history.push("/dashboard/income")}
                   />
                   <KpiCard
-                    title="Expenses"
+                    title={l10n.getString('expenses')}
                     value={toCurrency(expenses)}
                     icon={<PieChart className="h-4 w-4" />}
                     color="from-rose-500 to-rose-600"
@@ -213,8 +213,8 @@ const Dashboard: React.FC = () => {
                 {/* Mini donut */}
                 <div className="mt-4 rounded-2xl border border-slate-100 p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold">Income vs Expenses</h3>
-                    <span className="text-sm text-slate-500">This month</span>
+                    <h3 className="font-semibold">{l10n.getString('income-vs-expenses')}</h3>
+                    <span className="text-sm text-slate-500">{l10n.getString('this-month')}</span>
                   </div>
                   <div className="flex items-center gap-6">
                     <div
@@ -224,9 +224,9 @@ const Dashboard: React.FC = () => {
                       }}
                     />
                     <div className="flex-1 grid grid-cols-2 gap-3 text-sm">
-                      <Legend label="Income" value={toCurrency(income)} colorClass="bg-blue-600"/>
-                      <Legend label="Expenses" value={toCurrency(expenses)} colorClass="bg-rose-500"/>
-                      <Legend label="Balance" value={toCurrency(balance)} colorClass="bg-emerald-500"/>
+                      <Legend label={l10n.getString('income')} value={toCurrency(income)} colorClass="bg-blue-600"/>
+                      <Legend label={l10n.getString('expenses')} value={toCurrency(expenses)} colorClass="bg-rose-500"/>
+                      <Legend label={l10n.getString('balance')} value={toCurrency(balance)} colorClass="bg-emerald-500"/>
                     </div>
                   </div>
                 </div>
@@ -235,8 +235,8 @@ const Dashboard: React.FC = () => {
                 {budgets.length > 0 && (
                   <section className="mt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Budget Limits</h3>
-                      <a href="/dashboard/budget" className="text-sm text-blue-600 hover:underline">View all</a>
+                      <h3 className="font-semibold">{l10n.getString('budget-limits')}</h3>
+                      <a href="/dashboard/budget" className="text-sm text-blue-600 hover:underline">{l10n.getString('view-all')}</a>
                     </div>
                     <div className="grid gap-2">
                       {budgets.slice(0, 3).map(budget => {
@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
                                 isNearLimit ? 'text-orange-600 font-medium' : 
                                 'text-slate-500'
                               }>
-                                {Math.round(percentage)}% used
+                                {Math.round(percentage)}% {l10n.getString('used')}
                               </span>
                             </div>
                           </div>
@@ -279,8 +279,8 @@ const Dashboard: React.FC = () => {
                 {goals.length > 0 && (
                   <section className="mt-5">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Saving Goals</h3>
-                      <a href="/goals" className="text-sm text-blue-600 hover:underline">View all</a>
+                      <h3 className="font-semibold">{l10n.getString('saving-goals')}</h3>
+                      <a href="/goals" className="text-sm text-blue-600 hover:underline">{l10n.getString('view-all')}</a>
                     </div>
                     <div className="grid gap-3">
                       {goals.map(g => {
@@ -289,12 +289,12 @@ const Dashboard: React.FC = () => {
                           <div key={g.id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                               <div className="font-medium">{g.name}</div>
-                              <span className="text-sm text-slate-500">Target {toCurrency(g.targetAmount ?? 0)}</span>
+                              <span className="text-sm text-slate-500">{l10n.getString('target-amount')} {toCurrency(g.targetAmount ?? 0)}</span>
                             </div>
                             <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                               <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, progress*100)}%` }} />
                             </div>
-                            <div className="mt-1 text-xs text-slate-500">{Math.round(progress*100)}% completed</div>
+                            <div className="mt-1 text-xs text-slate-500">{Math.round(progress*100)}% {l10n.getString('completed')}</div>
                           </div>
                         );
                       })}
@@ -309,9 +309,9 @@ const Dashboard: React.FC = () => {
                 {transactions.length > 0 && (
                   <section className="mt-5">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Recent Transactions</h3>
+                      <h3 className="font-semibold">{l10n.getString('recent-transactions')}</h3>
                       <button onClick={() => history.push("/transactions/month")} className="text-sm text-blue-600 hover:underline">
-                        View by Month
+                        {l10n.getString('view-by-month')}
                       </button>
                     </div>
                     <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white shadow-sm">
@@ -348,7 +348,7 @@ const Dashboard: React.FC = () => {
                   onClick={() => history.push("/dashboard/budget")}
                   className="mt-5 w-full block rounded-2xl bg-blue-600 text-white text-center py-3 font-medium shadow-md hover:bg-blue-700"
                 >
-                  Adjust Monthly Limits
+                  {l10n.getString('adjust-monthly-limits')}
                 </button>
               </>
             )}

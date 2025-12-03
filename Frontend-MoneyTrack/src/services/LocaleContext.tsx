@@ -82,11 +82,6 @@ export const LocaleProvider: React.FC<LocaleProviderProps> = ({ children }) => {
     setL10n(new ReactLocalization(Array.from(generateBundles(newLocale))));
   }, []);
 
-  useEffect(() => {
-    // Update l10n when locale changes
-    setL10n(new ReactLocalization(Array.from(generateBundles(locale))));
-  }, [locale]);
-
   return (
     <LocaleContext.Provider value={{ locale, setLocale, l10n }}>
       <LocalizationProvider l10n={l10n}>

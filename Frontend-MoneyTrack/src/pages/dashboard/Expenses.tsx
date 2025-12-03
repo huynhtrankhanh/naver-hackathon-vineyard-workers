@@ -5,6 +5,7 @@ import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
+import { useLocalization } from "../../services/LocaleContext";
 
 interface Transaction {
   id?: string;
@@ -17,6 +18,7 @@ interface Transaction {
 
 const Expenses: React.FC = () => {
   const history = useHistory();
+  const { l10n } = useLocalization();
   const [items, setItems] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -57,10 +59,10 @@ const Expenses: React.FC = () => {
     <IonPage>
       <IonContent className="bg-white">
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
-          <Header title="Expenses" onBack={() => history.push("/dashboard")} />
+          <Header title={l10n.getString('expenses')} onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
             <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4">
-              <div className="text-xs text-slate-500">This month</div>
+              <div className="text-xs text-slate-500">{l10n.getString('this-month')}</div>
               <div className="text-2xl font-bold text-rose-600 mt-1">-{toCurrency(sum)}</div>
             </div>
             {loading ? (
@@ -85,7 +87,7 @@ const Expenses: React.FC = () => {
               </ul>
             ) : (
               <div className="text-center text-slate-500 py-12">
-                No expenses yet. Add a transaction from the Add Transaction page.
+                {l10n.getString('no-expenses')}
               </div>
             )}
           </main>
