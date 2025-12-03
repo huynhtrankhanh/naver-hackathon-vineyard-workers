@@ -1,16 +1,10 @@
-
 import React from "react";
-// 1. DÙNG 'Redirect' (của v5)
 import { Redirect, Route } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
 /* Import các trang của bạn */
 import GoalsAll from "./pages/dashboard/GoalsAll";
-import Splash from "./pages/splash";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Income from "./pages/dashboard/Income";
 import Expenses from "./pages/dashboard/Expenses";
@@ -19,12 +13,10 @@ import AddTransaction from "./pages/dashboard/AddTransaction";
 import EditTransaction from "./pages/dashboard/EditTransaction";
 import Goals from "./pages/dashboard/Goals";
 import Profile from "./pages/dashboard/Profile";
-import SavingsOnboarding from "./pages/SavingsOnboarding";
 import SavingPlanDetail from "./pages/dashboard/SavingPlanDetail";
 import Notifications from "./pages/dashboard/Notification";
-import AddTransactionVoice from "./pages/dashboard/AddTransactionVoice";
-import AddReceipt from "./pages/dashboard/AddReceipt";
 import SavingPlansAll from "./pages/dashboard/SavingPlansAll";
+import TransactionsByMonth from "./pages/dashboard/TransactionsByMonth";
           
 
 /* Core CSS */
@@ -54,59 +46,22 @@ const App: React.FC = () => (
     <IonReactRouter>
       <BalanceProvider>
         <IonRouterOutlet>
-          {/* 2. DÙNG 'component' và 'exact' (của v5) */}
-          <Route exact path="/splash" component={Splash} />
-          <Route exact path="/login" component={SignIn} />
-          <Route exact path="/signup" component={SignUp} />
-          <ProtectedRoute exact path="/dashboard" component={Dashboard} />
-          <ProtectedRoute exact path="/dashboard/income" component={Income} />
-          <ProtectedRoute
-            exact
-            path="/dashboard/expenses"
-            component={Expenses}
-          />
-          <ProtectedRoute exact path="/dashboard/budget" component={Budget} />
-          <ProtectedRoute exact path="/add" component={AddTransaction} />
-          <ProtectedRoute
-            exact
-            path="/edit-transaction/:id"
-            component={EditTransaction}
-          />
-          <ProtectedRoute
-            exact
-            path="/add-voice"
-            component={AddTransactionVoice}
-          />
-          <ProtectedRoute exact path="/goals/all" component={GoalsAll} />
+          <Route exact path="/dashboard" component={Dashboard} />
+          <Route exact path="/dashboard/income" component={Income} />
+          <Route exact path="/dashboard/expenses" component={Expenses} />
+          <Route exact path="/dashboard/budget" component={Budget} />
+          <Route exact path="/add" component={AddTransaction} />
+          <Route exact path="/edit-transaction/:id" component={EditTransaction} />
+          <Route exact path="/goals/all" component={GoalsAll} />
+          <Route exact path="/goals" component={Goals} />
+          <Route exact path="/profile" component={Profile} />
+          <Route exact path="/saving-plan/:id" component={SavingPlanDetail} />
+          <Route exact path="/notifications" component={Notifications} />
+          <Route exact path="/saving-plans/all" component={SavingPlansAll} />
+          <Route exact path="/transactions/month" component={TransactionsByMonth} />
 
-          <ProtectedRoute
-            exact
-            path="/add-receipt"
-            component={AddReceipt}
-          />
-
-          <ProtectedRoute exact path="/goals" component={Goals} />
-          <ProtectedRoute exact path="/profile" component={Profile} />
-          <ProtectedRoute
-            exact
-            path="/saving-plan/:id"
-            component={SavingPlanDetail}
-          />
-          <ProtectedRoute
-            exact
-            path="/notifications"
-            component={Notifications}
-          />
-          <ProtectedRoute
-            exact
-            path="/savings-onboarding"
-            component={SavingsOnboarding}
-          />
-          <ProtectedRoute exact path="/saving-plans/all" component={SavingPlansAll} />
-
-          {/* 3. DÙNG 'Redirect' (của v5) */}
           <Route exact path="/">
-            <Redirect to="/splash" />
+            <Redirect to="/dashboard" />
           </Route>
         </IonRouterOutlet>
       </BalanceProvider>
