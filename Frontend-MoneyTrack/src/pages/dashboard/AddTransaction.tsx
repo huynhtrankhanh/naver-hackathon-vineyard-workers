@@ -39,6 +39,7 @@ const AddTransaction: React.FC = () => {
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(new Date().toISOString());
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -136,7 +137,7 @@ const AddTransaction: React.FC = () => {
         category,
         amount: parseFloat(amount),
         type,
-        date: new Date().toISOString(),
+        date: date,
       });
 
       // Invalidate all state since we modified backend
@@ -425,6 +426,21 @@ const AddTransaction: React.FC = () => {
                   required
                 />
 
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={new Date(date).toISOString().slice(0, 16)}
+                  onChange={(e) => setDate(new Date(e.target.value).toISOString())}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
                 {/* Balance Preview */}
                 {amount && parseFloat(amount) > 0 && !balanceLoading && (
                   <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
@@ -478,7 +494,6 @@ const AddTransaction: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
 
               {/* Submit Button */}
               <IonButton

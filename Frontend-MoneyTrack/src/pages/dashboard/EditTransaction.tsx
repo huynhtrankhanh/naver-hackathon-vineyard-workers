@@ -38,6 +38,7 @@ const EditTransaction: React.FC = () => {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingTransaction, setLoadingTransaction] = useState(true);
   const [showToast, setShowToast] = useState(false);
@@ -69,6 +70,7 @@ const EditTransaction: React.FC = () => {
         setCategory(transaction.category);
         setAmount(transaction.amount.toString());
         setType(transaction.type);
+        setDate(transaction.date);
         // Store original values for balance calculation
         setOriginalAmount(transaction.amount);
         setOriginalType(transaction.type);
@@ -154,6 +156,7 @@ const EditTransaction: React.FC = () => {
         category,
         amount: parseFloat(amount),
         type,
+        date: date,
       });
 
       // Invalidate all state since we modified backend
@@ -426,6 +429,21 @@ const EditTransaction: React.FC = () => {
                   required
                 />
 
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={date ? new Date(date).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => setDate(new Date(e.target.value).toISOString())}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
                 {/* Balance Preview */}
                 {amount && parseFloat(amount) > 0 && !balanceLoading && (
                   <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
@@ -520,7 +538,6 @@ const EditTransaction: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
 
               {/* Submit and Delete Buttons */}
               <div className="space-y-3 mt-6">
