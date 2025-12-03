@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { IonPage, IonContent, IonSpinner, IonToast } from "@ionic/react";
 import { useHistory, useLocation } from "react-router-dom";
-import { Target, Plus, ArrowDownCircle, Sparkles, CheckCircle, FileText } from "lucide-react";
+import { Target, Plus } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { goalsApi, aiApi } from "../../services/api";
+import { goalsApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 
@@ -95,46 +95,13 @@ const Goals: React.FC = () => {
     }
   }, [isInitialLoad]);
 
-  const fetchSavingPlans = useCallback(async () => {
-    try {
-      const data = await aiApi.getAllPlans();
-      setSavingPlans(data);
-    } catch (error) {
-      console.error("Error fetching saving plans:", error);
-    }
-  }, []);
-
   // Use state invalidation hook
   useStateInvalidation({
     dataType: 'goals',
     fetchData: async () => {
       await fetchGoals();
-      await fetchSavingPlans();
     },
   });
-
-  const acceptProposedGoal = async (planId: string) => {
-    try {
-      setAcceptingPlanId(planId);
-      await aiApi.acceptGoal(planId);
-      
-      setToastMessage('Saving goal accepted and created successfully!');
-      setToastColor('success');
-      setShowToast(true);
-      
-      // Refresh data
-      invalidateOnMutation();
-      await fetchGoals();
-      await fetchSavingPlans();
-    } catch (error) {
-      console.error('Error accepting goal:', error);
-      setToastMessage('Failed to accept goal. Please try again.');
-      setToastColor('danger');
-      setShowToast(true);
-    } finally {
-      setAcceptingPlanId(null);
-    }
-  };
 
   const handleCreateGoalManually = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,18 +284,6 @@ const Goals: React.FC = () => {
               </div>
             )}
 
-            {/* Saving Plans Section */}
-            {savingPlans.length > 0 && (
-              <div className="mt-5 mb-5">
-                <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 shadow-sm cursor-pointer hover:border-blue-300 transition-colors" onClick={() => history.push('/saving-plans/all')}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-5 w-5 text-blue-600" />
-                    <span className="text-lg font-semibold">AI Saving Plans</span>
-                  </div>
-                  <div className="text-slate-600 text-sm">{savingPlans.length} plans available. Tap to view all details.</div>
-                </div>
-              </div>
-            )}
 
             {/* Contribution Modal */}
             {contributingGoal && (
@@ -506,13 +461,6 @@ const Goals: React.FC = () => {
                 </button>
               )}
 
-            <button
-              onClick={() => history.push("/savings-onboarding")}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 text-white py-3 font-medium shadow-md hover:bg-blue-700"
-            >
-              <Plus className="h-5 w-5" />
-              Create Saving Plan with AI
-            </button>
             </div>
 
             <IonToast

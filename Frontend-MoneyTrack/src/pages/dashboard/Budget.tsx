@@ -4,7 +4,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
 import TabBar from "../../components/dashboard/TabBar";
-import { budgetApi, aiApi } from "../../services/api";
+import { budgetApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 
@@ -84,14 +84,7 @@ const Budget: React.FC = () => {
       
       const budgetData = await budgetApi.getByMonth(currentMonth);
       setBudgets(budgetData);
-
-      // Fetch the current/specific saving plan only if coming from saving plan page
-      if (fromSavingPlan && savingPlanId) {
-        const planData = await aiApi.getPlanById(savingPlanId);
-        setCurrentSavingPlan(planData);
-      } else {
-        setCurrentSavingPlan(null);
-      }
+      setCurrentSavingPlan(null);
     } catch (error) {
       console.error("Error fetching budgets:", error);
     } finally {
@@ -100,7 +93,7 @@ const Budget: React.FC = () => {
         setIsInitialLoad(false);
       }
     }
-  }, [currentMonth, isInitialLoad, fromSavingPlan, savingPlanId]);
+  }, [currentMonth, isInitialLoad]);
 
   // Use state invalidation hook
   useStateInvalidation({

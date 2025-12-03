@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { IonPage, IonContent, IonSpinner, IonFab, IonFabButton, IonIcon } from "@ionic/react";
-import { mic } from "ionicons/icons";
+import { IonPage, IonContent, IonSpinner } from "@ionic/react";
 import { Wallet, PiggyBank, PieChart, Gauge, Bell } from "lucide-react";
 import { useHistory } from "react-router-dom";
 import TabBar from "../../components/dashboard/TabBar";
 import KpiCard from "../../components/dashboard/KpiCard";
 import Legend from "../../components/dashboard/Legend";
 import NotificationToast from "../../components/NotificationToast";
+import SpendingTrends from "../../components/dashboard/SpendingTrends";
 import { transactionApi, goalsApi, budgetApi, authApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
@@ -268,11 +268,17 @@ const Dashboard: React.FC = () => {
                   </section>
                 )}
 
+                {/* Spending Trends */}
+                <SpendingTrends />
+
                 {/* Recent transactions */}
                 {transactions.length > 0 && (
                   <section className="mt-5">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold">Recent Transactions</h3>
+                      <button onClick={() => history.push("/transactions/month")} className="text-sm text-blue-600 hover:underline">
+                        View by Month
+                      </button>
                     </div>
                     <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white shadow-sm">
                       {transactions.map(t => {
@@ -324,12 +330,6 @@ const Dashboard: React.FC = () => {
           isVisible={!!notifyMessage}
         />
         
-        {/* Floating Action Button for Voice Recognition */}
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton onClick={() => history.push("/add-voice")}>
-            <IonIcon icon={mic} />
-          </IonFabButton>
-        </IonFab>
       </IonContent>
     </IonPage>
   );
