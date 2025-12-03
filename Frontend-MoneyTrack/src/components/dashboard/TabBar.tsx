@@ -1,6 +1,7 @@
 import React from "react";
 import { PieChart, Plus, Sparkles, User } from "lucide-react";
 import { useHistory } from "react-router-dom";
+import { useLocalization } from "../../services/LocaleContext";
 
 interface TabBarProps {
   active: "dashboard" | "add" | "goals" | "profile";
@@ -8,12 +9,13 @@ interface TabBarProps {
 
 const TabBar: React.FC<TabBarProps> = ({ active }) => {
   const history = useHistory();
+  const { l10n } = useLocalization();
 
   const tabs = [
-    { id: "dashboard", label: "Dashboard", icon: PieChart, path: "/dashboard" },
-    { id: "add", label: "Add", icon: Plus, path: "/add" },
-    { id: "goals", label: "Saving", icon: Sparkles, path: "/goals" },
-    { id: "profile", label: "Profile", icon: User, path: "/profile" },
+    { id: "dashboard", labelKey: "nav-dashboard", icon: PieChart, path: "/dashboard" },
+    { id: "add", labelKey: "nav-add", icon: Plus, path: "/add" },
+    { id: "goals", labelKey: "nav-saving", icon: Sparkles, path: "/goals" },
+    { id: "profile", labelKey: "nav-profile", icon: User, path: "/profile" },
   ];
 
   return (
@@ -33,7 +35,7 @@ const TabBar: React.FC<TabBarProps> = ({ active }) => {
               }`}
             >
               <Icon className="h-5 w-5" />
-              <span className="text-[11px] leading-tight">{tab.label}</span>
+              <span className="text-[11px] leading-tight">{l10n.getString(tab.labelKey)}</span>
             </button>
           );
         })}

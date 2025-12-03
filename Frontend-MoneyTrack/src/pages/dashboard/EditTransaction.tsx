@@ -15,15 +15,15 @@ import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 
 interface Budget {
-  _id: string;
-  category: string;
+  id: string;
+  category?: string;
   limit: number;
   spent: number;
   month: string;
 }
 
 interface Transaction {
-  _id: string;
+  id: string;
   title: string;
   category: string;
   amount: number;
@@ -65,7 +65,14 @@ const EditTransaction: React.FC = () => {
     const fetchTransaction = async () => {
       try {
         setLoadingTransaction(true);
-        const transaction: Transaction = await transactionApi.getById(id);
+        const transaction = await transactionApi.getById(id);
+        if (!transaction) {
+          setToastMessage("Transaction not found");
+          setToastColor("danger");
+          setShowToast(true);
+          setTimeout(() => history.push("/dashboard"), 2000);
+          return;
+        }
         setTitle(transaction.title);
         setCategory(transaction.category);
         setAmount(transaction.amount.toString());

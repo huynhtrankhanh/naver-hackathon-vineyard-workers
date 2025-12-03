@@ -36,32 +36,35 @@ import "@ionic/react/css/display.css";
 /* CSS Chủ đề (Đã import Tailwind ở đây) */
 import "./theme/variables.css";
 import { BalanceProvider } from "./services/BalanceContext";
+import { LocaleProvider } from "./services/LocaleContext";
 
 setupIonicReact();
 
 const App: React.FC = () => (
   <IonApp>
-    <IonReactRouter>
-      <BalanceProvider>
-        <IonRouterOutlet>
-          <Route exact path="/dashboard" component={Dashboard} />
-          <Route exact path="/dashboard/income" component={Income} />
-          <Route exact path="/dashboard/expenses" component={Expenses} />
-          <Route exact path="/dashboard/budget" component={Budget} />
-          <Route exact path="/add" component={AddTransaction} />
-          <Route exact path="/edit-transaction/:id" component={EditTransaction} />
-          <Route exact path="/goals/all" component={GoalsAll} />
-          <Route exact path="/goals" component={Goals} />
-          <Route exact path="/profile" component={Profile} />
-          <Route exact path="/notifications" component={Notifications} />
-          <Route exact path="/transactions/month" component={TransactionsByMonth} />
+    <LocaleProvider>
+      <IonReactRouter>
+        <BalanceProvider>
+          <IonRouterOutlet>
+            <Route exact path="/dashboard" component={Dashboard} />
+            <Route exact path="/dashboard/income" component={Income} />
+            <Route exact path="/dashboard/expenses" component={Expenses} />
+            <Route exact path="/dashboard/budget" component={Budget} />
+            <Route exact path="/add" component={AddTransaction} />
+            <Route exact path="/edit-transaction/:id" component={EditTransaction} />
+            <Route exact path="/goals/all" component={GoalsAll} />
+            <Route exact path="/goals" component={Goals} />
+            <Route exact path="/profile" component={Profile} />
+            <Route exact path="/notifications" component={Notifications} />
+            <Route exact path="/transactions/month" component={TransactionsByMonth} />
 
-          <Route exact path="/">
-            <Redirect to="/dashboard" />
-          </Route>
-        </IonRouterOutlet>
-      </BalanceProvider>
-    </IonReactRouter>
+            <Route exact path="/">
+              <Redirect to="/dashboard" />
+            </Route>
+          </IonRouterOutlet>
+        </BalanceProvider>
+      </IonReactRouter>
+    </LocaleProvider>
   </IonApp>
 );
 

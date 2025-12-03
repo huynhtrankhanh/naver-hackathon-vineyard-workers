@@ -16,8 +16,8 @@ import { useBalance } from "../../services/BalanceContext";
 import { mic, camera } from "ionicons/icons";
 
 interface Budget {
-  _id: string;
-  category: string;
+  id: string;
+  category?: string;
   limit: number;
   spent: number;
   month: string;

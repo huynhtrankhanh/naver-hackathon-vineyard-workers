@@ -9,15 +9,15 @@ import { useStateInvalidation, useInvalidateOnMutation } from "../../services/us
 import { useBalance } from "../../services/BalanceContext";
 
 interface Budget {
-  _id: string;
-  category: string;
+  id: string;
+  category?: string;
   limit: number;
   spent: number;
   month: string;
 }
 
 interface SavingPlan {
-  _id: string;
+  id: string;
   proposedBudgetLimits?: Array<{
     category: string;
     suggestedLimit: number;
@@ -158,7 +158,7 @@ const Budget: React.FC = () => {
     try {
       setSubmitting(true);
       
-      await budgetApi.update(editingBudget._id, {
+      await budgetApi.update(editingBudget.id, {
         limit: parseFloat(limit)
       });
 
@@ -287,10 +287,10 @@ const Budget: React.FC = () => {
                     {budgets.map(budget => {
                       const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
                       const isOverBudget = percentage > 100;
-                      const proposedLimit = getProposedLimit(budget.category);
+                      const proposedLimit = getProposedLimit(budget.category || '');
                       
                       return (
-                        <div key={budget._id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
+                        <div key={budget.id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
                           <div className="flex items-center justify-between mb-2">
                             <div className="font-medium">{budget.category}</div>
                             <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ const Budget: React.FC = () => {
                                 <Edit2 className="h-4 w-4 text-slate-400 hover:text-blue-600" />
                               </button>
                               <button
-                                onClick={() => handleDeleteBudget(budget._id)}
+                                onClick={() => handleDeleteBudget(budget.id)}
                                 className="p-1 hover:bg-slate-100 rounded"
                                 title="Delete budget"
                               >
