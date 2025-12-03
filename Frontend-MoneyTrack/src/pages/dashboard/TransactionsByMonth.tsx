@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonItem, IonLabel, IonList, IonListHeader, IonDatetime, IonDatetimeButton, IonModal } from '@ionic/react';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonItem, IonLabel, IonList, IonDatetime, IonDatetimeButton, IonModal } from '@ionic/react';
 import { transactionApi } from '../../services/api';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useLocalization } from '../../services/LocaleContext';
 
 interface Transaction {
     id: string;
@@ -15,6 +16,7 @@ interface Transaction {
 
 const TransactionsByMonth: React.FC = () => {
     const history = useHistory();
+    const { l10n } = useLocalization();
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString());
     const [transactions, setTransactions] = useState<Transaction[]>([]);
 
@@ -47,7 +49,7 @@ const TransactionsByMonth: React.FC = () => {
                             <ArrowLeft className="w-6 h-6" />
                         </button>
                     </IonButtons>
-                    <IonTitle>Monthly Transactions</IonTitle>
+                    <IonTitle>{l10n.getString('monthly-transactions')}</IonTitle>
                 </IonToolbar>
             </IonHeader>
             <IonContent className="ion-padding">
@@ -65,7 +67,7 @@ const TransactionsByMonth: React.FC = () => {
 
                 <IonList>
                     {transactions.length === 0 ? (
-                        <div className="text-center p-4 text-gray-500">No transactions found for this month.</div>
+                        <div className="text-center p-4 text-gray-500">{l10n.getString('no-transactions-found')}</div>
                     ) : (
                         transactions.map(t => (
                             <IonItem key={t.id} button onClick={() => history.push(`/edit-transaction/${t.id}`)}>

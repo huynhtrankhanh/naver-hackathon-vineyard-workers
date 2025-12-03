@@ -13,6 +13,7 @@ import TabBar from "../../components/dashboard/TabBar";
 import { transactionApi, budgetApi } from "../../services/api";
 import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
+import { useLocalization } from "../../services/LocaleContext";
 
 interface Budget {
   id: string;
@@ -34,6 +35,7 @@ interface Transaction {
 const EditTransaction: React.FC = () => {
   const history = useHistory();
   const { id } = useParams<{ id: string }>();
+  const { l10n } = useLocalization();
   const [type, setType] = useState<"income" | "expense">("expense");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -67,7 +69,7 @@ const EditTransaction: React.FC = () => {
         setLoadingTransaction(true);
         const transaction = await transactionApi.getById(id);
         if (!transaction) {
-          setToastMessage("Transaction not found");
+          setToastMessage(l10n.getString('transaction-not-found'));
           setToastColor("danger");
           setShowToast(true);
           setTimeout(() => history.push("/dashboard"), 2000);
@@ -83,7 +85,7 @@ const EditTransaction: React.FC = () => {
         setOriginalType(transaction.type);
       } catch (error) {
         console.error("Error fetching transaction:", error);
-        setToastMessage("Failed to load transaction");
+        setToastMessage(l10n.getString('failed-load-transaction'));
         setToastColor("danger");
         setShowToast(true);
         setTimeout(() => history.push("/dashboard"), 2000);
@@ -149,7 +151,7 @@ const EditTransaction: React.FC = () => {
     e.preventDefault();
 
     if (!title.trim() || !category || !amount || parseFloat(amount) <= 0) {
-      setToastMessage("Please fill in all fields with valid values");
+      setToastMessage(l10n.getString('please-fill-all-fields'));
       setToastColor("danger");
       setShowToast(true);
       return;
@@ -172,7 +174,7 @@ const EditTransaction: React.FC = () => {
       // Proactively refresh balance right away
       refreshBalance();
 
-      setToastMessage("Transaction updated successfully!");
+      setToastMessage(l10n.getString('transaction-updated'));
       setToastColor("success");
       setShowToast(true);
 
@@ -182,7 +184,7 @@ const EditTransaction: React.FC = () => {
       }, 1500);
     } catch (error) {
       console.error("Error updating transaction:", error);
-      setToastMessage("Failed to update transaction. Please try again.");
+      setToastMessage(l10n.getString('failed-update-transaction'));
       setToastColor("danger");
       setShowToast(true);
     } finally {
@@ -201,7 +203,7 @@ const EditTransaction: React.FC = () => {
       // Proactively refresh balance right away
       refreshBalance();
 
-      setToastMessage("Transaction deleted successfully!");
+      setToastMessage(l10n.getString('transaction-deleted'));
       setToastColor("success");
       setShowToast(true);
 
@@ -211,7 +213,7 @@ const EditTransaction: React.FC = () => {
       }, 1500);
     } catch (error) {
       console.error("Error deleting transaction:", error);
-      setToastMessage("Failed to delete transaction. Please try again.");
+      setToastMessage(l10n.getString('failed-delete-transaction'));
       setToastColor("danger");
       setShowToast(true);
       setLoading(false);
@@ -244,7 +246,7 @@ const EditTransaction: React.FC = () => {
       <IonContent className="bg-white">
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
           <Header
-            title="Edit Transaction"
+            title={l10n.getString('edit-transaction')}
             onBack={() => history.push("/dashboard")}
           />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
@@ -252,7 +254,7 @@ const EditTransaction: React.FC = () => {
             {!balanceLoading && (
               <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-purple-50">
                 <div className="text-sm text-slate-600 mb-1">
-                  Current Balance
+                  {l10n.getString('current-balance')}
                 </div>
                 <div
                   className={`text-2xl font-bold ${
@@ -263,7 +265,7 @@ const EditTransaction: React.FC = () => {
                 </div>
                 {balance < 0 && (
                   <div className="text-xs text-rose-600 mt-1">
-                    ⚠️ Negative balance - Consider recording income accurately
+                    ⚠️ {l10n.getString('negative-balance-warning')}
                   </div>
                 )}
               </div>
@@ -272,7 +274,7 @@ const EditTransaction: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Type
+                  {l10n.getString('transaction-type-label')}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -287,7 +289,7 @@ const EditTransaction: React.FC = () => {
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
-                    Expense
+                    {l10n.getString('expense')}
                   </button>
                   <button
                     type="button"
@@ -301,7 +303,7 @@ const EditTransaction: React.FC = () => {
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
-                    Income
+                    {l10n.getString('income')}
                   </button>
                 </div>
               </div>
@@ -312,14 +314,14 @@ const EditTransaction: React.FC = () => {
                   htmlFor="title"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Title
+                  {l10n.getString('title')}
                 </label>
                 <input
                   id="title"
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Coffee at Highlands"
+                  placeholder={l10n.getString('title-placeholder')}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none"
                   required
                 />
@@ -331,7 +333,7 @@ const EditTransaction: React.FC = () => {
                   htmlFor="category"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Category
+                  {l10n.getString('category')}
                 </label>
                 <select
                   id="category"
@@ -340,7 +342,7 @@ const EditTransaction: React.FC = () => {
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none bg-white"
                   required
                 >
-                  <option value="">Select a category</option>
+                  <option value="">{l10n.getString('select-category')}</option>
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
@@ -352,22 +354,22 @@ const EditTransaction: React.FC = () => {
                 {type === "expense" && selectedBudget && (
                   <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
                     <div className="text-sm font-medium text-blue-900 mb-2">
-                      Budget for {selectedBudget.category}
+                      {l10n.getString('budget-for', { category: selectedBudget.category || '' })}
                     </div>
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-blue-700">Spent:</span>
+                      <span className="text-blue-700">{l10n.getString('spent')}:</span>
                       <span className="font-medium text-blue-900">
                         {toCurrency(selectedBudget.spent)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-blue-700">Limit:</span>
+                      <span className="text-blue-700">{l10n.getString('limit')}:</span>
                       <span className="font-medium text-blue-900">
                         {toCurrency(selectedBudget.limit)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-blue-700">Remaining:</span>
+                      <span className="text-blue-700">{l10n.getString('remaining')}:</span>
                       <span
                         className={`font-medium ${
                           selectedBudget.limit - selectedBudget.spent >= 0
@@ -404,12 +406,12 @@ const EditTransaction: React.FC = () => {
                 {type === "expense" && category && !selectedBudget && (
                   <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
                     <div className="text-sm text-amber-800">
-                      No budget set for this category.
+                      {l10n.getString('no-budget-category')}
                       <a
                         href="/dashboard/budget"
                         className="ml-1 font-medium text-amber-900 hover:underline"
                       >
-                        Set one now
+                        {l10n.getString('set-budget-now')}
                       </a>
                     </div>
                   </div>
@@ -422,7 +424,7 @@ const EditTransaction: React.FC = () => {
                   htmlFor="amount"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Amount (VND)
+                  {l10n.getString('amount-vnd')}
                 </label>
                 <input
                   id="amount"
@@ -441,7 +443,7 @@ const EditTransaction: React.FC = () => {
               {/* Date */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Date & Time
+                  {l10n.getString('date-time')}
                 </label>
                 <input
                   type="datetime-local"
@@ -455,11 +457,11 @@ const EditTransaction: React.FC = () => {
                 {amount && parseFloat(amount) > 0 && !balanceLoading && (
                   <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <div className="text-sm font-medium text-slate-700 mb-2">
-                      Balance Preview
+                      {l10n.getString('balance-preview')}
                     </div>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-600">Current balance:</span>
+                        <span className="text-slate-600">{l10n.getString('current-balance-label')}</span>
                         <span
                           className={`font-medium ${
                             balance < 0 ? "text-rose-600" : "text-slate-900"
@@ -469,7 +471,7 @@ const EditTransaction: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-600">Original transaction:</span>
+                        <span className="text-slate-600">{l10n.getString('original-transaction')}</span>
                         <span
                           className={`font-medium ${
                             originalType === "income"
@@ -482,7 +484,7 @@ const EditTransaction: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-600">New transaction:</span>
+                        <span className="text-slate-600">{l10n.getString('new-transaction')}</span>
                         <span
                           className={`font-medium ${
                             type === "income"
@@ -496,7 +498,7 @@ const EditTransaction: React.FC = () => {
                       </div>
                       <div className="border-t border-slate-200 pt-1 mt-1 flex justify-between">
                         <span className="text-slate-700 font-medium">
-                          New balance:
+                          {l10n.getString('new-balance')}
                         </span>
                         <span
                           className={`font-bold ${
@@ -554,7 +556,7 @@ const EditTransaction: React.FC = () => {
                   disabled={loading}
                   color="primary"
                 >
-                  {loading ? <IonSpinner name="crescent" /> : "Update Transaction"}
+                  {loading ? <IonSpinner name="crescent" /> : l10n.getString('update-transaction')}
                 </IonButton>
 
                 <IonButton
@@ -565,7 +567,7 @@ const EditTransaction: React.FC = () => {
                   disabled={loading}
                   onClick={() => setShowDeleteAlert(true)}
                 >
-                  Delete Transaction
+                  {l10n.getString('delete-transaction')}
                 </IonButton>
               </div>
             </form>
@@ -582,15 +584,15 @@ const EditTransaction: React.FC = () => {
             <IonAlert
               isOpen={showDeleteAlert}
               onDidDismiss={() => setShowDeleteAlert(false)}
-              header="Delete Transaction"
-              message="Are you sure you want to delete this transaction? This action cannot be undone."
+              header={l10n.getString('delete-confirm-title')}
+              message={l10n.getString('delete-confirm-message')}
               buttons={[
                 {
-                  text: "Cancel",
+                  text: l10n.getString('cancel'),
                   role: "cancel",
                 },
                 {
-                  text: "Delete",
+                  text: l10n.getString('delete'),
                   role: "destructive",
                   handler: handleDelete,
                 },
