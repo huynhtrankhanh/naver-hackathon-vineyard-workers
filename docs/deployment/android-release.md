@@ -92,7 +92,7 @@ Before building a signed AAB, you must set up the signing secrets in GitHub:
 If you don't have a keystore yet, generate one:
 
 ```bash
-keytool -genkey -v -keystore smartmoney-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias smartmoney
+keytool -genkey -v -keystore smartmoney-release.jks -keyalg RSA -keysize 2048 -validity 9125 -alias smartmoney
 ```
 
 **IMPORTANT:** Store this keystore file and passwords securely. If lost, you cannot update your app on Google Play.
