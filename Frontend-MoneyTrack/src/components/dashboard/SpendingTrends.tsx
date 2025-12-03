@@ -126,13 +126,13 @@ const SpendingTrends: React.FC = () => {
                         className={`px-3 py-1 rounded-md transition-colors ${viewMode === 'day' ? 'bg-white shadow-sm font-medium' : 'text-slate-500'}`}
                         onClick={() => setViewMode('day')}
                     >
-                        {l10n.getString('today')}
+                        {l10n.getString('daily')}
                     </button>
                     <button
                         className={`px-3 py-1 rounded-md transition-colors ${viewMode === 'month' ? 'bg-white shadow-sm font-medium' : 'text-slate-500'}`}
                         onClick={() => setViewMode('month')}
                     >
-                        {l10n.getString('this-month')}
+                        {l10n.getString('monthly')}
                     </button>
                 </div>
             </div>

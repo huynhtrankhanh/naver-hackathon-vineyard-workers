@@ -12,6 +12,7 @@ settings-language-english = English
 settings-language-vietnamese = Vietnamese
 logged-in-as = Logged in as
 global-balance = Global Balance
+user = User
 
 # Navigation
 nav-dashboard = Dashboard
@@ -19,6 +20,8 @@ nav-add = Add
 nav-saving = Saving
 nav-profile = Profile
 back = Back
+refresh = Refresh
+mark-all-read = Mark all read
 
 # Common UI elements
 app-name = SmartMoney
@@ -33,6 +36,8 @@ delete = Delete
 edit = Edit
 create = Create
 update = Update
+daily = Daily
+monthly = Monthly
 
 # Dashboard
 income-vs-expenses = Income vs Expenses
@@ -43,6 +48,7 @@ view-by-month = View by Month
 adjust-monthly-limits = Adjust Monthly Limits
 spending-trends = Spending Trends
 no-spending-data = No spending data available
+monthly-budget = Monthly Budget
 
 # Transactions
 today = Today
@@ -57,16 +63,36 @@ spent = Spent
 remaining = Remaining
 used = used
 select-category = Select a category
+edit-limit = Edit limit
+delete-budget = Delete budget
+
+# Categories - Expenses
+category-food-drinks = Food & Drinks
+category-transport = Transport
+category-shopping = Shopping
+category-bills = Bills
+category-entertainment = Entertainment
+category-healthcare = Healthcare
+category-education = Education
+category-other = Other
+
+# Categories - Income
+category-salary = Salary
+category-freelance = Freelance
+category-investment = Investment
+category-gift = Gift
+category-bonus = Bonus
 
 # Goals
 current-balance = Current Balance
 dedicate-funds = Dedicate funds from your balance
 track-saving-goals = Track your saving goals and dedicate funds from your balance.
 view-dedicate-funds = View and dedicate funds to your saving goals.
-no-saving-goals = No saving goals yet. Create one with AI!
+no-saving-goals = No saving goals yet. Create one!
 create-goal-manually = Create Goal Manually
 goal-name = Goal Name
 target-amount = Target Amount
+target = Target
 duration-months = Duration (months)
 priority = Priority
 priority-low = Low
@@ -83,6 +109,10 @@ completed = completed
 saved = saved
 create-new-saving-goal = Create New Saving Goal
 all-saving-goals = All Saving Goals
+error-fetching-goals = Error fetching goals
+insufficient-balance = Insufficient balance. Cannot contribute more than your current balance.
+failed-contribute = Failed to contribute. Please try again.
+successfully-contributed = Successfully contributed { $amount } to { $goalName }!
 
 # Notifications
 notifications = Notifications
@@ -108,6 +138,15 @@ update-transaction = Update Transaction
 delete-transaction = Delete Transaction
 delete-confirm-title = Delete Transaction
 delete-confirm-message = Are you sure you want to delete this transaction? This action cannot be undone.
+transaction-added = Transaction added successfully!
+transaction-updated = Transaction updated successfully!
+transaction-deleted = Transaction deleted successfully!
+transaction-not-found = Transaction not found
+failed-load-transaction = Failed to load transaction
+failed-add-transaction = Failed to add transaction. Please try again.
+failed-update-transaction = Failed to update transaction. Please try again.
+failed-delete-transaction = Failed to delete transaction. Please try again.
+enter-new-category = Enter new category
 
 # Expenses
 no-expenses = No expenses yet. Add a transaction from the Add Transaction page.

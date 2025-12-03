@@ -7,6 +7,7 @@ import TabBar from "../../components/dashboard/TabBar";
 import { goalsApi } from "../../services/api";
 import { useStateInvalidation, useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
+import { useLocalization } from "../../services/LocaleContext";
 
 interface Goal {
   id: string;
@@ -42,6 +43,7 @@ interface SavingPlan {
 const Goals: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
+  const { l10n } = useLocalization();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,24 +230,24 @@ const Goals: React.FC = () => {
     <IonPage>
       <IonContent className="bg-white">
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
-          <Header title="Saving" onBack={() => history.push("/dashboard")} />
+          <Header title={l10n.getString('nav-saving')} onBack={() => history.push("/dashboard")} />
           <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">
             {/* Balance Display */}
             {!balanceLoading && balance !== undefined && (
             <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-emerald-50">
-              <div className="text-sm text-slate-600 mb-1">Current Balance</div>
+              <div className="text-sm text-slate-600 mb-1">{l10n.getString('current-balance')}</div>
               <div className={`text-2xl font-bold ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
                 {toCurrency(balance)}
               </div>
               {balance < 0 && (
                 <div className="text-xs text-rose-600 mt-1">
-                  ⚠️ Negative balance - Consider recording income or reducing expenses
+                  ⚠️ {l10n.getString('negative-balance-warning')}
                 </div>
               )}
             </div>
             )}
 
-            <div className="text-slate-500 text-sm mb-4">Track your saving goals and dedicate funds from your balance.</div>
+            <div className="text-slate-500 text-sm mb-4">{l10n.getString('track-saving-goals')}</div>
             
             {loading ? (
               <div className="flex justify-center items-center py-12">
@@ -254,7 +256,7 @@ const Goals: React.FC = () => {
             ) : goals.length > 0 ? (
               <div className="rounded-2xl border border-slate-100 p-4 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-emerald-50 cursor-pointer hover:border-blue-300 transition-colors" onClick={() => history.push('/goals/all')}>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="font-semibold text-base text-slate-900">Dedicate funds from your balance</div>
+                  <div className="font-semibold text-base text-slate-900">{l10n.getString('dedicate-funds')}</div>
                 </div>
                 <div className="flex flex-col gap-3 max-h-[132px] overflow-y-auto pr-1">
                   {goals.map(goal => {
@@ -271,7 +273,7 @@ const Goals: React.FC = () => {
                         <div className="flex-1">
                           <div className="font-medium text-xs truncate mb-0.5">{goal.name}</div>
                           <div className="text-xs text-slate-500">{Math.round(progress * 100)}%</div>
-                          <div className="text-xs text-emerald-600 mt-0.5">Gợi ý: {toCurrency(monthlySuggestion)} / tháng</div>
+                          <div className="text-xs text-emerald-600 mt-0.5">{l10n.getString('suggestion-per-month', { amount: toCurrency(monthlySuggestion) })}</div>
                         </div>
                       </div>
                     );
@@ -280,7 +282,7 @@ const Goals: React.FC = () => {
               </div>
             ) : (
               <div className="text-center text-slate-500 py-8 mb-4">
-                No saving goals yet. Create one with AI!
+                {l10n.getString('no-saving-goals')}
               </div>
             )}
 
@@ -288,20 +290,20 @@ const Goals: React.FC = () => {
             {/* Contribution Modal */}
             {contributingGoal && (
               <div className="rounded-2xl border-2 border-emerald-500 p-4 shadow-lg mb-4">
-                <h3 className="font-semibold mb-2">Contribute to {contributingGoal.name}</h3>
+                <h3 className="font-semibold mb-2">{l10n.getString('contribute')} - {contributingGoal.name}</h3>
                 <div className="text-sm text-slate-600 mb-4">
                   <div className="flex justify-between mb-1">
-                    <span>Current balance:</span>
+                    <span>{l10n.getString('current-balance-label')}</span>
                     <span className={`font-medium ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
                       {toCurrency(balance)}
                     </span>
                   </div>
                   <div className="flex justify-between mb-1">
-                    <span>Goal progress:</span>
+                    <span>{l10n.getString('goal-progress')}:</span>
                     <span className="font-medium">{toCurrency(contributingGoal.currentAmount)} / {toCurrency(contributingGoal.targetAmount)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Remaining to target:</span>
+                    <span>{l10n.getString('remaining-to-target')}:</span>
                     <span className="font-medium text-emerald-600">
                       {toCurrency(Math.max(0, contributingGoal.targetAmount - contributingGoal.currentAmount))}
                     </span>
@@ -311,7 +313,7 @@ const Goals: React.FC = () => {
                 <form onSubmit={handleContribute} className="space-y-3">
                   <div>
                     <label htmlFor="contribution-amount" className="block text-sm font-medium text-slate-700 mb-1">
-                      Contribution Amount (VND)
+                      {l10n.getString('contribution-amount')}
                     </label>
                     <input
                       id="contribution-amount"
@@ -328,7 +330,7 @@ const Goals: React.FC = () => {
                     {contributionAmount && parseFloat(contributionAmount) > 0 && (
                       <div className="mt-2 text-sm text-slate-600">
                         <div className="flex justify-between">
-                          <span>Balance after contribution:</span>
+                          <span>{l10n.getString('balance-after-contribution')}:</span>
                           <span className={`font-medium ${balance - parseFloat(contributionAmount) < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
                             {toCurrency(balance - parseFloat(contributionAmount))}
                           </span>
@@ -343,14 +345,14 @@ const Goals: React.FC = () => {
                       onClick={cancelContribution}
                       className="flex-1 py-2 px-4 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
                     >
-                      Cancel
+                      {l10n.getString('cancel')}
                     </button>
                     <button
                       type="submit"
                       disabled={submitting}
                       className="flex-1 py-2 px-4 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      {submitting ? 'Contributing...' : 'Contribute'}
+                      {submitting ? l10n.getString('contributing') : l10n.getString('contribute')}
                     </button>
                   </div>
                 </form>
@@ -361,7 +363,7 @@ const Goals: React.FC = () => {
             {showCreateGoalForm && (
               <div className="rounded-2xl border-2 border-blue-500 p-4 shadow-lg mb-4 bg-white">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-lg">Create New Saving Goal</h3>
+                  <h3 className="font-semibold text-lg">{l10n.getString('create-new-saving-goal')}</h3>
                   <button
                     onClick={() => {
                       setShowCreateGoalForm(false);
@@ -378,13 +380,13 @@ const Goals: React.FC = () => {
                 <form onSubmit={handleCreateGoalManually} className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Goal Name
+                      {l10n.getString('goal-name')}
                     </label>
                     <input
                       type="text"
                       value={newGoalName}
                       onChange={(e) => setNewGoalName(e.target.value)}
-                      placeholder="e.g., Emergency Fund, New Car"
+                      placeholder={l10n.getString('title-placeholder')}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled={submitting}
                     />
@@ -392,13 +394,13 @@ const Goals: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Target Amount (VND)
+                      {l10n.getString('target-amount')} (VND)
                     </label>
                     <input
                       type="tel"
                       value={newGoalTarget}
                       onChange={(e) => setNewGoalTarget(e.target.value)}
-                      placeholder="e.g., 10000000"
+                      placeholder="10000000"
                       pattern="[0-9]*"
                       min="1"
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -409,13 +411,13 @@ const Goals: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Duration (months)
+                      {l10n.getString('duration-months')}
                     </label>
                     <input
                       type="number"
                       value={newGoalDuration}
                       onChange={(e) => setNewGoalDuration(e.target.value)}
-                      placeholder="e.g., 12"
+                      placeholder="12"
                       min="1"
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled={submitting}
@@ -424,7 +426,7 @@ const Goals: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Priority
+                      {l10n.getString('priority')}
                     </label>
                     <select
                       value={newGoalPriority}
@@ -432,9 +434,9 @@ const Goals: React.FC = () => {
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled={submitting}
                     >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
+                      <option value="low">{l10n.getString('priority-low')}</option>
+                      <option value="medium">{l10n.getString('priority-medium')}</option>
+                      <option value="high">{l10n.getString('priority-high')}</option>
                     </select>
                   </div>
 
@@ -443,7 +445,7 @@ const Goals: React.FC = () => {
                     disabled={submitting}
                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {submitting ? 'Creating...' : 'Create Goal'}
+                    {submitting ? l10n.getString('contributing') : l10n.getString('create')}
                   </button>
                 </form>
               </div>
@@ -457,7 +459,7 @@ const Goals: React.FC = () => {
                   className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 text-white py-3 font-medium shadow-md hover:bg-emerald-700"
                 >
                   <Plus className="h-5 w-5" />
-                  Create Goal Manually
+                  {l10n.getString('create-goal-manually')}
                 </button>
               )}
 
