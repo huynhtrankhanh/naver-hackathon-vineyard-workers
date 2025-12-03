@@ -110,7 +110,7 @@ const Goals: React.FC = () => {
     
 
     if (!newGoalName.trim() || !newGoalTarget || !newGoalDuration) {
-      setToastMessage('Please fill in all fields');
+      setToastMessage(l10n.getString('please-fill-all-fields'));
       setToastColor('danger');
       setShowToast(true);
       return;
@@ -119,13 +119,13 @@ const Goals: React.FC = () => {
     const target = parseFloat(newGoalTarget);
     const duration = parseInt(newGoalDuration, 10);
     if (isNaN(target) || target <= 0) {
-      setToastMessage('Please enter a valid target amount');
+      setToastMessage(l10n.getString('please-enter-valid-target'));
       setToastColor('danger');
       setShowToast(true);
       return;
     }
     if (isNaN(duration) || duration <= 0) {
-      setToastMessage('Please enter a valid duration (months)');
+      setToastMessage(l10n.getString('please-enter-valid-duration'));
       setToastColor('danger');
       setShowToast(true);
       return;
@@ -141,7 +141,7 @@ const Goals: React.FC = () => {
         duration
       });
 
-      setToastMessage('Saving goal created successfully!');
+      setToastMessage(l10n.getString('goal-created'));
       setToastColor('success');
       setShowToast(true);
 
@@ -157,7 +157,7 @@ const Goals: React.FC = () => {
       await fetchGoals();
     } catch (error) {
       console.error('Error creating goal:', error);
-      setToastMessage('Failed to create goal. Please try again.');
+      setToastMessage(l10n.getString('failed-create-goal'));
       setToastColor('danger');
       setShowToast(true);
     } finally {
@@ -169,7 +169,7 @@ const Goals: React.FC = () => {
     e.preventDefault();
     
     if (!contributingGoal || !contributionAmount || parseFloat(contributionAmount) <= 0) {
-      setToastMessage('Please enter a valid amount');
+      setToastMessage(l10n.getString('please-enter-valid-amount'));
       setToastColor('danger');
       setShowToast(true);
       return;
@@ -178,7 +178,7 @@ const Goals: React.FC = () => {
     const amount = parseFloat(contributionAmount);
     
     if (amount > balance) {
-      setToastMessage('Insufficient balance. Cannot contribute more than your current balance.');
+      setToastMessage(l10n.getString('insufficient-balance'));
       setToastColor('danger');
       setShowToast(true);
       return;
@@ -196,7 +196,7 @@ const Goals: React.FC = () => {
   // Immediately refresh balance to reflect the change
   refreshBalance();
 
-      setToastMessage(`Successfully contributed ${toCurrency(amount)} to ${contributingGoal.name}!`);
+      setToastMessage(l10n.getString('successfully-contributed', { amount: toCurrency(amount), goalName: contributingGoal.name }));
       setToastColor('success');
       setShowToast(true);
       
@@ -208,7 +208,7 @@ const Goals: React.FC = () => {
       fetchGoals();
     } catch (error) {
       console.error('Error contributing to goal:', error);
-      setToastMessage('Failed to contribute. Please try again.');
+      setToastMessage(l10n.getString('failed-contribute'));
       setToastColor('danger');
       setShowToast(true);
     } finally {

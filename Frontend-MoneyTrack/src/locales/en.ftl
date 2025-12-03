@@ -163,3 +163,51 @@ no-budget-category = No budget set for this category.
 set-budget-now = Set one now
 negative-balance-warning = Negative balance - Consider recording income accurately
 ai-suggested-limit = ✨ AI Suggested Limit
+
+# AddTransaction / EditTransaction
+add-by-voice = Add by Voice
+add-by-receipt = Add by Receipt (OCR)
+or-enter-manually = Or enter manually
+transaction-type-label = Type
+budget-for = Budget for { $category }
+transaction-label = Transaction:
+please-fill-all-fields = Please fill in all fields with valid values
+please-enter-valid-amount = Please enter a valid amount
+please-enter-valid-target = Please enter a valid target amount
+please-enter-valid-duration = Please enter a valid duration (months)
+add-button = Add
+add-new-category = + Add new category...
+
+# Budget page
+set-spending-limits = Set spending limits for different categories. Month: { $month }
+no-budgets-set = No budgets set for this month. Add one to start tracking!
+add-budget-category = Add Budget Category
+track-expenses-carefully = Negative balance - Track expenses carefully
+limit-label = Limit { $amount }
+budget-added = Budget added successfully!
+budget-updated = Budget updated successfully!
+budget-deleted = Budget deleted successfully!
+failed-add-budget = Failed to add budget. Please try again.
+failed-update-budget = Failed to update budget. Please try again.
+failed-delete-budget = Failed to delete budget.
+please-enter-valid-limit = Please enter a valid limit value
+monthly-limit-vnd = Monthly Limit (VND)
+updating = Updating...
+update-limit = Update Limit
+adding = Adding...
+confirm-delete-budget = Are you sure you want to delete this budget?
+apply-suggested-limit = Apply Suggested Limit
+create-budget-with-limit = Create Budget with this Limit
+ai-suggested-new-categories = ✨ AI Suggested New Budget Categories
+
+# GoalsAll page
+all-saving-goals-title = All Saving Goals
+dedicate-towards-goal = Dedicate towards goal
+no-goals-yet = No saving goals yet. Create one with AI!
+contribute-to = Contribute to { $goalName }
+goal-created = Saving goal created successfully!
+failed-create-goal = Failed to create goal. Please try again.
+
+# TransactionsByMonth
+monthly-transactions = Monthly Transactions
+no-transactions-found = No transactions found for this month.

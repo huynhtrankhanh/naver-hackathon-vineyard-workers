@@ -163,3 +163,52 @@ no-budget-category = Chưa đặt ngân sách cho danh mục này.
 set-budget-now = Đặt ngay
 negative-balance-warning = Số dư âm - Hãy ghi nhận thu nhập chính xác
 ai-suggested-limit = ✨ Gợi ý từ AI
+
+# AddTransaction / EditTransaction
+add-by-voice = Thêm bằng Giọng nói
+add-by-receipt = Thêm bằng Hóa đơn (OCR)
+or-enter-manually = Hoặc nhập thủ công
+transaction-type-label = Loại
+budget-for = Ngân sách cho { $category }
+transaction-label = Giao dịch:
+please-fill-all-fields = Vui lòng điền đầy đủ thông tin hợp lệ
+please-enter-valid-amount = Vui lòng nhập số tiền hợp lệ
+please-enter-valid-target = Vui lòng nhập số tiền mục tiêu hợp lệ
+please-enter-valid-duration = Vui lòng nhập thời gian hợp lệ (tháng)
+add-button = Thêm
+add-new-category = + Thêm danh mục mới...
+
+# Budget page
+set-spending-limits = Đặt giới hạn chi tiêu cho các danh mục. Tháng: { $month }
+no-budgets-set = Chưa đặt ngân sách cho tháng này. Thêm một để bắt đầu theo dõi!
+add-budget-category = Thêm Danh mục Ngân sách
+track-expenses-carefully = Số dư âm - Theo dõi chi tiêu cẩn thận
+limit-label = Giới hạn { $amount }
+budget-added = Thêm ngân sách thành công!
+budget-updated = Cập nhật ngân sách thành công!
+budget-deleted = Xóa ngân sách thành công!
+failed-add-budget = Thêm ngân sách thất bại. Vui lòng thử lại.
+failed-update-budget = Cập nhật ngân sách thất bại. Vui lòng thử lại.
+failed-delete-budget = Xóa ngân sách thất bại.
+please-enter-valid-limit = Vui lòng nhập giá trị giới hạn hợp lệ
+monthly-limit-vnd = Giới hạn Hàng tháng (VND)
+updating = Đang cập nhật...
+update-limit = Cập nhật Giới hạn
+adding = Đang thêm...
+confirm-delete-budget = Bạn có chắc muốn xóa ngân sách này?
+
+apply-suggested-limit = Áp dụng Giới hạn Gợi ý
+create-budget-with-limit = Tạo Ngân sách với Giới hạn này
+ai-suggested-new-categories = ✨ Các Danh mục Ngân sách Gợi ý từ AI
+
+# GoalsAll page
+all-saving-goals-title = Tất cả Mục tiêu Tiết kiệm
+dedicate-towards-goal = Dành tiền cho mục tiêu
+no-goals-yet = Chưa có mục tiêu tiết kiệm. Tạo một với AI!
+contribute-to = Đóng góp cho { $goalName }
+goal-created = Tạo mục tiêu tiết kiệm thành công!
+failed-create-goal = Tạo mục tiêu thất bại. Vui lòng thử lại.
+
+# TransactionsByMonth
+monthly-transactions = Giao dịch theo Tháng
+no-transactions-found = Không tìm thấy giao dịch trong tháng này.
