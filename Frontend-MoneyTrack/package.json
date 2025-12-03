@@ -18,6 +18,8 @@
     "@capacitor/haptics": "7.0.2",
     "@capacitor/keyboard": "7.0.3",
     "@capacitor/status-bar": "7.0.3",
+    "@fluent/bundle": "^0.19.1",
+    "@fluent/react": "^0.15.2",
     "@ionic/react": "^8.5.0",
     "@ionic/react-router": "^8.5.0",
     "@types/uuid": "^10.0.0",

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { IonPage, IonContent, IonSpinner } from "@ionic/react";
-import { Wallet, PiggyBank, PieChart, Gauge, Bell } from "lucide-react";
+import { Wallet, PiggyBank, PieChart, Gauge, Bell, Plus, Settings } from "lucide-react";
 import { useHistory } from "react-router-dom";
 import TabBar from "../../components/dashboard/TabBar";
 import KpiCard from "../../components/dashboard/KpiCard";
@@ -11,6 +11,7 @@ import { transactionApi, goalsApi, budgetApi } from "../../services/api";
 import { useStateInvalidation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 import { useNotifications } from "../../services/useNotifications";
+import { useLocalization } from "../../services/LocaleContext";
 
 interface Transaction {
   id: string;
@@ -40,6 +41,7 @@ const Dashboard: React.FC = () => {
   const history = useHistory();
   const { income, expenses, balance, loading: balanceLoading } = useBalance();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +52,7 @@ const Dashboard: React.FC = () => {
   const [notifyType, setNotifyType] = useState<'budget' | 'income' | 'info' | null>(null);
 
   const { checkNotifications } = useNotifications();
+  const { l10n } = useLocalization();
 
   const fetchData = useCallback(async () => {
     try {
@@ -58,8 +61,9 @@ const Dashboard: React.FC = () => {
         setLoading(true);
       }
 
-      // Fetch recent transactions (limit to 3)
+      // Fetch all transactions to check for empty state
       const transactionsData = await transactionApi.getAll();
+      setAllTransactions(transactionsData);
       setTransactions(transactionsData.slice(0, 3).map((t) => ({
         ...t,
         category: t.category || '',
@@ -154,6 +158,37 @@ const Dashboard: React.FC = () => {
             {loading || balanceLoading ? (
               <div className="flex justify-center items-center py-12">
                 <IonSpinner name="crescent" />
+              </div>
+            ) : allTransactions.length === 0 ? (
+              /* Empty State - No transactions recorded */
+              <div className="flex flex-col items-center justify-center py-12 px-6">
+                <div className="mb-8 text-center">
+                  <div className="text-6xl mb-4">📖</div>
+                  <blockquote className="text-lg text-slate-700 italic mb-2 leading-relaxed">
+                    "{l10n.getString('empty-state-verse')}"
+                  </blockquote>
+                  <cite className="text-sm text-slate-500 not-italic">
+                    — {l10n.getString('empty-state-citation')}
+                  </cite>
+                </div>
+                
+                <div className="w-full space-y-3">
+                  <button
+                    onClick={() => history.push("/dashboard/budget")}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 text-white py-4 font-medium shadow-md hover:bg-blue-700 transition-colors"
+                  >
+                    <Settings className="h-5 w-5" />
+                    {l10n.getString('empty-state-adjust-limits')}
+                  </button>
+                  
+                  <button
+                    onClick={() => history.push("/add")}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 text-white py-4 font-medium shadow-md hover:bg-emerald-700 transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                    {l10n.getString('empty-state-record-transaction')}
+                  </button>
+                </div>
               </div>
             ) : (
               <>
