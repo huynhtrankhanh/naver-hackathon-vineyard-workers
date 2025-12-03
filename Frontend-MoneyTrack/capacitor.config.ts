@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
-  appName: 'Frontend-MoneyTrack',
+  appId: 'com.smartmoney.app',
+  appName: 'SmartMoney',
   webDir: 'dist'
 };
 

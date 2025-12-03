@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle (green coin) -->
+  <circle cx="256" cy="256" r="240" fill="#22C55E"/>
+  
+  <!-- Inner ring for coin effect -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#4ADE80" stroke-width="8" opacity="0.6"/>
+  
+  <!-- Inner decorative circle -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.3"/>
+  
+  <!-- Dollar sign S curve -->
+  <path d="M310 175 C310 145 285 120 256 120 C227 120 202 145 202 175 C202 205 227 220 256 230 C285 240 310 255 310 290 C310 325 280 355 256 355 C227 355 197 330 197 295" 
+        fill="none" 
+        stroke="#FFFFFF" 
+        stroke-width="32" 
+        stroke-linecap="round"/>
+  
+  <!-- Top vertical line of dollar sign -->
+  <rect x="244" y="95" width="24" height="70" rx="12" fill="#FFFFFF"/>
+  
+  <!-- Bottom vertical line of dollar sign -->
+  <rect x="244" y="340" width="24" height="70" rx="12" fill="#FFFFFF"/>
+  
+  <!-- Growth arrow -->
+  <g transform="translate(340, 120)">
+    <path d="M0 80 L40 40 L80 60 L120 0" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="12" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+          opacity="0.9"/>
+    <!-- Arrow head -->
+    <polygon points="120,0 95,5 100,30" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+  
+  <!-- Decorative sparkles -->
+  <circle cx="150" cy="140" r="8" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="120" cy="200" r="5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="400" cy="350" r="6" fill="#FFFFFF" opacity="0.6"/>
+</svg>

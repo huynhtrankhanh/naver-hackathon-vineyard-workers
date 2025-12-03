@@ -6,6 +6,9 @@ node_modules/
 dist/
 build/
 
+# APK output folder
+apk-output/
+
 # Environment variables
 .env
 .env.local
