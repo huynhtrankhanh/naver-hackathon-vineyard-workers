@@ -162,12 +162,8 @@ no-transactions-month = Không tìm thấy giao dịch trong tháng này.
 no-budget-category = Chưa đặt ngân sách cho danh mục này.
 set-budget-now = Đặt ngay
 negative-balance-warning = Số dư âm - Hãy ghi nhận thu nhập chính xác
-ai-suggested-limit = ✨ Gợi ý từ AI
 
 # AddTransaction / EditTransaction
-add-by-voice = Thêm bằng Giọng nói
-add-by-receipt = Thêm bằng Hóa đơn (OCR)
-or-enter-manually = Hoặc nhập thủ công
 transaction-type-label = Loại
 budget-for = Ngân sách cho { $category }
 transaction-label = Giao dịch:
@@ -197,14 +193,10 @@ update-limit = Cập nhật Giới hạn
 adding = Đang thêm...
 confirm-delete-budget = Bạn có chắc muốn xóa ngân sách này?
 
-apply-suggested-limit = Áp dụng Giới hạn Gợi ý
-create-budget-with-limit = Tạo Ngân sách với Giới hạn này
-ai-suggested-new-categories = ✨ Các Danh mục Ngân sách Gợi ý từ AI
-
 # GoalsAll page
 all-saving-goals-title = Tất cả Mục tiêu Tiết kiệm
 dedicate-towards-goal = Dành tiền cho mục tiêu
-no-goals-yet = Chưa có mục tiêu tiết kiệm. Tạo một với AI!
+no-goals-yet = Chưa có mục tiêu tiết kiệm. Tạo một!
 contribute-to = Đóng góp cho { $goalName }
 goal-created = Tạo mục tiêu tiết kiệm thành công!
 failed-create-goal = Tạo mục tiêu thất bại. Vui lòng thử lại.

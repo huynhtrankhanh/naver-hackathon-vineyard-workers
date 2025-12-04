@@ -15,29 +15,7 @@ interface Goal {
   targetAmount: number;
   currentAmount: number;
   priority?: string;
-  savingPlanId?: string;
   duration?: number;
-}
-
-interface SavingPlan {
-  id: string;
-  goal: string;
-  intensity: string;
-  suggestedSavings: number;
-  streamingStatus: string;
-  proposedGoal?: {
-    name: string;
-    target: number;
-    priority: string;
-    accepted: boolean;
-    linkedGoalId?: string;
-  };
-  proposedBudgetLimits?: Array<{
-    category: string;
-    suggestedLimit: number;
-    reasoning?: string;
-  }>;
-  createdAt: string;
 }
 
 const Goals: React.FC = () => {
@@ -45,7 +23,6 @@ const Goals: React.FC = () => {
   const location = useLocation();
   const { l10n } = useLocalization();
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [savingPlans, setSavingPlans] = useState<SavingPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { balance, loading: balanceLoading, refresh: refreshBalance } = useBalance();
@@ -55,7 +32,6 @@ const Goals: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
-  const [acceptingPlanId, setAcceptingPlanId] = useState<string | null>(null);
   const [showCreateGoalForm, setShowCreateGoalForm] = useState(false);
   const [newGoalName, setNewGoalName] = useState('');
   const [newGoalTarget, setNewGoalTarget] = useState('');
@@ -214,11 +190,6 @@ const Goals: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const startContribution = (goal: Goal) => {
-    setContributingGoal(goal);
-    setContributionAmount('');
   };
 
   const cancelContribution = () => {

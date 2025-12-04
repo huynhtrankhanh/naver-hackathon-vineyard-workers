@@ -162,12 +162,8 @@ no-transactions-month = No transactions found for this month.
 no-budget-category = No budget set for this category.
 set-budget-now = Set one now
 negative-balance-warning = Negative balance - Consider recording income accurately
-ai-suggested-limit = ✨ AI Suggested Limit
 
 # AddTransaction / EditTransaction
-add-by-voice = Add by Voice
-add-by-receipt = Add by Receipt (OCR)
-or-enter-manually = Or enter manually
 transaction-type-label = Type
 budget-for = Budget for { $category }
 transaction-label = Transaction:
@@ -196,14 +192,11 @@ updating = Updating...
 update-limit = Update Limit
 adding = Adding...
 confirm-delete-budget = Are you sure you want to delete this budget?
-apply-suggested-limit = Apply Suggested Limit
-create-budget-with-limit = Create Budget with this Limit
-ai-suggested-new-categories = ✨ AI Suggested New Budget Categories
 
 # GoalsAll page
 all-saving-goals-title = All Saving Goals
 dedicate-towards-goal = Dedicate towards goal
-no-goals-yet = No saving goals yet. Create one with AI!
+no-goals-yet = No saving goals yet. Create one!
 contribute-to = Contribute to { $goalName }
 goal-created = Saving goal created successfully!
 failed-create-goal = Failed to create goal. Please try again.

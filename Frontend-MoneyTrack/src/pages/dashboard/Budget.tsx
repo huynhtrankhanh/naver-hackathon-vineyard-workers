@@ -17,22 +17,11 @@ interface Budget {
   month: string;
 }
 
-interface SavingPlan {
-  id: string;
-  proposedBudgetLimits?: Array<{
-    category: string;
-    suggestedLimit: number;
-    currentLimit?: number;
-    reasoning?: string;
-  }>;
-}
-
 const Budget: React.FC = () => {
   const history = useHistory();
-  const location = useLocation<{ fromSavingPlan?: boolean; savingPlanId?: string }>();
+  const location = useLocation();
   const { l10n } = useLocalization();
   const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [currentSavingPlan, setCurrentSavingPlan] = useState<SavingPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -63,10 +52,6 @@ const Budget: React.FC = () => {
     'Other'
   ];
 
-  // Check if we're coming from a saving plan page
-  const fromSavingPlan = location.state?.fromSavingPlan || false;
-  const savingPlanId = location.state?.savingPlanId;
-
   // Clear modal form state when user navigates to this page
   useEffect(() => {
     if (location.pathname === "/dashboard/budget") {
@@ -86,7 +71,6 @@ const Budget: React.FC = () => {
       
       const budgetData = await budgetApi.getByMonth(currentMonth);
       setBudgets(budgetData);
-      setCurrentSavingPlan(null);
     } catch (error) {
       console.error("Error fetching budgets:", error);
     } finally {
@@ -221,38 +205,6 @@ const Budget: React.FC = () => {
     }
   };
 
-  // Get AI proposed limit for a category (only if coming from saving plan page)
-  const getProposedLimit = (category: string) => {
-    if (!fromSavingPlan || !currentSavingPlan || !currentSavingPlan.proposedBudgetLimits) {
-      return null;
-    }
-    
-    const proposal = currentSavingPlan.proposedBudgetLimits.find(p => p.category === category);
-    return proposal || null;
-  };
-
-  // Get all AI proposed limits for categories without existing budgets (only if coming from saving plan page)
-  const getNewProposedLimits = () => {
-    if (!fromSavingPlan || !currentSavingPlan || !currentSavingPlan.proposedBudgetLimits) {
-      return [];
-    }
-
-    const existingCategories = new Set(budgets.map(b => b.category));
-    const proposals: Array<{
-      category: string;
-      suggestedLimit: number;
-      reasoning?: string;
-    }> = [];
-
-    for (const proposal of currentSavingPlan.proposedBudgetLimits) {
-      if (!existingCategories.has(proposal.category)) {
-        proposals.push(proposal);
-      }
-    }
-
-    return proposals;
-  };
-
   return (
     <IonPage>
       <IonContent className="bg-white">
@@ -289,7 +241,6 @@ const Budget: React.FC = () => {
                     {budgets.map(budget => {
                       const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
                       const isOverBudget = percentage > 100;
-                      const proposedLimit = getProposedLimit(budget.category || '');
                       
                       return (
                         <div key={budget.id} className="rounded-2xl border border-slate-100 p-4 shadow-sm">
@@ -327,26 +278,6 @@ const Budget: React.FC = () => {
                               {Math.round(percentage)}%
                             </span>
                           </div>
-                          
-                          {/* AI Proposed Limit */}
-                          {proposedLimit && (
-                            <div className="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
-                              <div className="text-xs font-medium text-blue-700 mb-1">{l10n.getString('ai-suggested-limit')}</div>
-                              <div className="text-sm font-semibold text-slate-900">{toCurrency(proposedLimit.suggestedLimit)}</div>
-                              {proposedLimit.reasoning && (
-                                <div className="text-xs text-slate-600 mt-1">{proposedLimit.reasoning}</div>
-                              )}
-                              <button
-                                onClick={() => {
-                                  setEditingBudget(budget);
-                                  setLimit(proposedLimit.suggestedLimit.toString());
-                                }}
-                                className="mt-2 w-full py-1.5 px-3 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700"
-                              >
-                                {l10n.getString('apply-suggested-limit')}
-                              </button>
-                            </div>
-                          )}
                         </div>
                       );
                     })}
@@ -354,38 +285,6 @@ const Budget: React.FC = () => {
                 ) : (
                   <div className="text-center text-slate-500 py-8 mb-4">
                     {l10n.getString('no-budgets-set')}
-                  </div>
-                )}
-
-                {/* AI Proposed New Budget Categories */}
-                {getNewProposedLimits().length > 0 && !showAddModal && !editingBudget && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-blue-600 mb-2 flex items-center gap-2">
-                      {l10n.getString('ai-suggested-new-categories')}
-                    </h3>
-                    <div className="space-y-3">
-                      {getNewProposedLimits().map((proposal, idx) => (
-                        <div key={idx} className="rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-4 shadow-sm">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="font-medium text-slate-900">{proposal.category}</div>
-                            <div className="text-sm font-semibold text-blue-600">{toCurrency(proposal.suggestedLimit)}</div>
-                          </div>
-                          {proposal.reasoning && (
-                            <div className="text-xs text-slate-600 mb-3">{proposal.reasoning}</div>
-                          )}
-                          <button
-                            onClick={() => {
-                              setCategory(proposal.category);
-                              setLimit(proposal.suggestedLimit.toString());
-                              setShowAddModal(true);
-                            }}
-                            className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
-                          >
-                            {l10n.getString('create-budget-with-limit')}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
 
