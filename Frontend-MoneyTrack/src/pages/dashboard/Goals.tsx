@@ -25,9 +25,7 @@ const Goals: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const { balance, loading: balanceLoading, refresh: refreshBalance } = useBalance();
-  const [contributingGoal, setContributingGoal] = useState<Goal | null>(null);
-  const [contributionAmount, setContributionAmount] = useState('');
+  const { balance, loading: balanceLoading } = useBalance();
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -50,8 +48,6 @@ const Goals: React.FC = () => {
       setNewGoalTarget('');
       setNewGoalPriority('medium');
       setNewGoalDuration('');
-      setContributingGoal(null);
-      setContributionAmount('');
     }
   }, [location.pathname]);
 
@@ -141,62 +137,6 @@ const Goals: React.FC = () => {
     }
   };
 
-  const handleContribute = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!contributingGoal || !contributionAmount || parseFloat(contributionAmount) <= 0) {
-      setToastMessage(l10n.getString('please-enter-valid-amount'));
-      setToastColor('danger');
-      setShowToast(true);
-      return;
-    }
-
-    const amount = parseFloat(contributionAmount);
-    
-    if (amount > balance) {
-      setToastMessage(l10n.getString('insufficient-balance'));
-      setToastColor('danger');
-      setShowToast(true);
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      
-      // Contribute to goal
-      await goalsApi.contribute(contributingGoal.id, amount);
-
-  // Invalidate all state since we modified backend
-      invalidateOnMutation();
-
-  // Immediately refresh balance to reflect the change
-  refreshBalance();
-
-      setToastMessage(l10n.getString('successfully-contributed', { amount: toCurrency(amount), goalName: contributingGoal.name }));
-      setToastColor('success');
-      setShowToast(true);
-      
-      // Reset form
-      setContributingGoal(null);
-      setContributionAmount('');
-      
-      // Refresh goals and balance
-      fetchGoals();
-    } catch (error) {
-      console.error('Error contributing to goal:', error);
-      setToastMessage(l10n.getString('failed-contribute'));
-      setToastColor('danger');
-      setShowToast(true);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const cancelContribution = () => {
-    setContributingGoal(null);
-    setContributionAmount('');
-  };
-
   return (
     <IonPage>
       <IonContent className="bg-white">
@@ -254,79 +194,6 @@ const Goals: React.FC = () => {
             ) : (
               <div className="text-center text-slate-500 py-8 mb-4">
                 {l10n.getString('no-saving-goals')}
-              </div>
-            )}
-
-
-            {/* Contribution Modal */}
-            {contributingGoal && (
-              <div className="rounded-2xl border-2 border-emerald-500 p-4 shadow-lg mb-4">
-                <h3 className="font-semibold mb-2">{l10n.getString('contribute')} - {contributingGoal.name}</h3>
-                <div className="text-sm text-slate-600 mb-4">
-                  <div className="flex justify-between mb-1">
-                    <span>{l10n.getString('current-balance-label')}</span>
-                    <span className={`font-medium ${balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                      {toCurrency(balance)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between mb-1">
-                    <span>{l10n.getString('goal-progress')}:</span>
-                    <span className="font-medium">{toCurrency(contributingGoal.currentAmount)} / {toCurrency(contributingGoal.targetAmount)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{l10n.getString('remaining-to-target')}:</span>
-                    <span className="font-medium text-emerald-600">
-                      {toCurrency(Math.max(0, contributingGoal.targetAmount - contributingGoal.currentAmount))}
-                    </span>
-                  </div>
-                </div>
-                
-                <form onSubmit={handleContribute} className="space-y-3">
-                  <div>
-                    <label htmlFor="contribution-amount" className="block text-sm font-medium text-slate-700 mb-1">
-                      {l10n.getString('contribution-amount')}
-                    </label>
-                    <input
-                      id="contribution-amount"
-                      type="tel"
-                      value={contributionAmount}
-                      onChange={(e) => setContributionAmount(e.target.value)}
-                      placeholder="0"
-                      pattern="[0-9]*"
-                      min="0"
-                      max={balance}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-emerald-500 focus:outline-none"
-                      required
-                    />
-                    {contributionAmount && parseFloat(contributionAmount) > 0 && (
-                      <div className="mt-2 text-sm text-slate-600">
-                        <div className="flex justify-between">
-                          <span>{l10n.getString('balance-after-contribution')}:</span>
-                          <span className={`font-medium ${balance - parseFloat(contributionAmount) < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                            {toCurrency(balance - parseFloat(contributionAmount))}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={cancelContribution}
-                      className="flex-1 py-2 px-4 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
-                    >
-                      {l10n.getString('cancel')}
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="flex-1 py-2 px-4 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
-                    >
-                      {submitting ? l10n.getString('contributing') : l10n.getString('contribute')}
-                    </button>
-                  </div>
-                </form>
               </div>
             )}
 
