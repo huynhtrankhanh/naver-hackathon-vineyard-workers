@@ -5,4 +5,9 @@ http://ionicframework.com/docs/theming/ */
 @tailwind components;
 @tailwind utilities;
 
+/* Safe area handling for status bar - using ion-app padding to prevent content bleeding */
+ion-app {
+  padding-top: env(safe-area-inset-top);
+}
+
 /* ... code CSS variables mặc định của Ionic ... */

@@ -5,7 +5,6 @@ import {
   IonButton,
   IonSpinner,
   IonToast,
-  IonIcon,
 } from "@ionic/react";
 import { useHistory, useLocation } from "react-router-dom";
 import Header from "../../components/dashboard/Header";
@@ -14,7 +13,6 @@ import { transactionApi, budgetApi } from "../../services/api";
 import { useInvalidateOnMutation } from "../../services/useStateInvalidation";
 import { useBalance } from "../../services/BalanceContext";
 import { useLocalization } from "../../services/LocaleContext";
-import { mic, camera } from "ionicons/icons";
 
 interface Budget {
   id: string;
@@ -200,26 +198,6 @@ const AddTransaction: React.FC = () => {
                 )}
               </div>
             )}
-
-            <IonButton
-              fill="outline"
-              expand="block"
-              onClick={() => history.push("/add-voice")}
-              className="mb-4"
-            >
-              <IonIcon icon={mic} slot="start" />
-              {l10n.getString('add-by-voice')}
-            </IonButton>
-            <IonButton
-              fill="outline"
-              expand="block"
-              onClick={() => history.push("/add-receipt")} // Điều hướng đến trang mới
-              className="mb-4"
-            >
-              <IonIcon icon={camera} slot="start" />
-              {l10n.getString('add-by-receipt')}
-            </IonButton>
-            <p className="text-center text-gray-500 my-2">{l10n.getString('or-enter-manually')}</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
